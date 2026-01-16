@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -156,7 +157,7 @@ class ProfileScreen extends StatelessWidget {
             Switch.adaptive(
               value: true,
               onChanged: (v) {},
-              activeColor: AppTheme.primary,
+              activeTrackColor: AppTheme.primary,
             )
           else
             const Icon(Icons.chevron_right_rounded, color: AppTheme.secondary, size: 20),
@@ -169,12 +170,24 @@ class ProfileScreen extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: TextButton(
-        onPressed: () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
+        onPressed: () async {
+          // Show a simple loading dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(child: CircularProgressIndicator()),
           );
+
+          final authService = AuthService();
+          await authService.logout();
+
+          if (context.mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
         },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),

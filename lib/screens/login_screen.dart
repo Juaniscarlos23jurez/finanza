@@ -1,13 +1,134 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../services/auth_service.dart';
 import 'main_screen.dart';
 import 'register_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor llena todos los campos')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final result = await _authService.login(email, password);
+    setState(() => _isLoading = false);
+
+    _processAuthResult(result);
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    debugPrint('Step 1: Button Pressed - Starting Google Sign In');
+    setState(() => _isLoading = true);
+    try {
+      debugPrint('Step 2: Opening Google Account Selector');
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        debugPrint('Step 2: Aborted - User closed the selector');
+        setState(() => _isLoading = false);
+        return;
+      }
+      debugPrint('Step 3: Account Selected: ${googleUser.email}');
+
+      debugPrint('Step 4: Getting Authentication Tokens');
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      debugPrint('Step 4: ID Token obtained (length: ${googleAuth.idToken?.length})');
+
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      debugPrint('Step 5: Authenticating with Firebase using Credential');
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      debugPrint('Step 6: Firebase Auth Success: ${userCredential.user?.uid}');
+
+      final String? idToken = await userCredential.user?.getIdToken();
+      debugPrint('Step 7: Firebase idToken extracted (length: ${idToken?.length})');
+
+      if (idToken != null) {
+        debugPrint('Step 8: Sending idToken to Laravel Backend');
+        final result = await _authService.loginWithFirebaseIdToken(
+          idToken: idToken,
+          provider: 'google.com',
+        );
+        debugPrint('Step 9: Backend Result Success: ${result['success']}');
+        _processAuthResult(result);
+      } else {
+        debugPrint('Error: idToken is NULL after Firebase login');
+      }
+    } catch (e) {
+      debugPrint('CRITICAL ERROR during Google Sign In: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error con Google: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final appleProvider = AppleAuthProvider();
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
+      final String? idToken = await userCredential.user?.getIdToken();
+
+      if (idToken != null) {
+        final result = await _authService.loginWithFirebaseIdToken(
+          idToken: idToken,
+          provider: 'apple.com',
+        );
+        _processAuthResult(result);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error con Apple: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _processAuthResult(Map<String, dynamic> result) {
+    if (result['success']) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,24 +145,23 @@ class LoginScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 48),
-              const CustomTextField(
+              CustomTextField(
                 label: 'Email',
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                hintText: 'john@example.com',
               ),
               const SizedBox(height: 24),
-              const CustomTextField(
+              CustomTextField(
                 label: 'Password',
+                controller: _passwordController,
                 obscureText: true,
+                hintText: '••••••••',
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: 'Sign In',
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MainScreen()),
-                  );
-                },
+                text: _isLoading ? 'Sign In...' : 'Sign In',
+                onPressed: _isLoading ? () {} : _handleLogin,
               ),
               const SizedBox(height: 24),
               Row(
@@ -59,15 +179,15 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: 'Continue with Google',
-                onPressed: () {},
+                text: _isLoading ? 'Loading...' : 'Continue with Google',
+                onPressed: _isLoading ? () {} : _handleGoogleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.google,
               ),
               const SizedBox(height: 16),
               CustomButton(
-                text: 'Continue with Apple',
-                onPressed: () {},
+                text: _isLoading ? 'Loading...' : 'Continue with Apple',
+                onPressed: _isLoading ? () {} : _handleAppleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.apple,
               ),
