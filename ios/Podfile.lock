@@ -1495,7 +1495,7 @@ SPEC CHECKSUMS:
   FirebaseFirestore: 1e5fafdac2b2ef1ffc24034460b7b4821a15be96
   FirebaseFirestoreInternal: df9ab608a59a4e8eefd0796ed7652f3c1a88473a
   FirebaseSharedSwift: e17c654ef1f1a616b0b33054e663ad1035c8fd40
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   google_sign_in_ios: 7411fab6948df90490dc4620ecbcabdc3ca04017
   GoogleSignIn: ce8c89bb9b37fb624b92e7514cc67335d1e277e4
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
@@ -1512,6 +1512,6 @@ SPEC CHECKSUMS:
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
 
-PODFILE CHECKSUM: f8c2dcdfb50bb67645580d28a6bf814fca30bdec
+PODFILE CHECKSUM: 50fd0505f665bfa50c65bca6a6da7109c67dd0c6
 
 COCOAPODS: 1.16.2

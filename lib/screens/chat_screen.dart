@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_theme.dart';
+import '../models/message_model.dart';
+import '../services/ai_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -12,24 +14,39 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Message> _messages = [
-    Message(
-      text: "Hola! Soy tu asistente financiero inteligente. ¿En qué puedo ayudarte hoy?",
-      isAi: true,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-    ),
-    Message(
-      text: "¿Cómo van mis ahorros este mes?",
-      isAi: false,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
-    ),
-    Message(
-      text: "Tus ahorros han crecido un 12% respecto al mes pasado. Aquí tienes un resumen visual de tu progreso:",
-      isAi: true,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 3)),
-      isGenUI: true,
-    ),
-  ];
+  final AiService _aiService = AiService();
+  final List<Message> _messages = [];
+  bool _isTyping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages.add(
+      Message(
+        text: "Hola! Soy tu asistente financiero inteligente. ¿En qué puedo ayudarte hoy?",
+        isAi: true,
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> _handleSend() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+
+    _messageController.clear();
+    setState(() {
+      _messages.add(Message(text: text, isAi: false, timestamp: DateTime.now()));
+      _isTyping = true;
+    });
+
+    final aiResponse = await _aiService.sendMessage(text);
+
+    setState(() {
+      _messages.add(aiResponse);
+      _isTyping = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +63,14 @@ class _ChatScreenState extends State<ChatScreen> {
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                  itemCount: _messages.length,
+                  itemCount: _messages.length + (_isTyping ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == _messages.length) {
+                      return const Padding(
+                        padding: EdgeInsets.only(bottom: 24),
+                        child: Text('AI is thinking...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
+                      );
+                    }
                     final message = _messages[index];
                     return ChatMessageWidget(message: message);
                   },
@@ -119,6 +142,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      onSubmitted: (_) => _handleSend(),
                       decoration: InputDecoration(
                         hintText: "Escribe algo...",
                         hintStyle: GoogleFonts.manrope(color: AppTheme.secondary),
@@ -146,18 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             child: IconButton(
               icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-              onPressed: () {
-                if (_messageController.text.isNotEmpty) {
-                  setState(() {
-                    _messages.add(Message(
-                      text: _messageController.text,
-                      isAi: false,
-                      timestamp: DateTime.now(),
-                    ));
-                    _messageController.clear();
-                  });
-                }
-              },
+              onPressed: _handleSend,
             ),
           ),
         ],
@@ -166,19 +179,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-class Message {
-  final String text;
-  final bool isAi;
-  final DateTime timestamp;
-  final bool isGenUI;
-
-  Message({
-    required this.text,
-    required this.isAi,
-    required this.timestamp,
-    this.isGenUI = false,
-  });
-}
 
 class ChatMessageWidget extends StatelessWidget {
   final Message message;
@@ -220,7 +220,7 @@ class ChatMessageWidget extends StatelessWidget {
             ),
           const SizedBox(height: 8),
           if (message.isGenUI)
-            _buildGenUIPlaceholder()
+            _buildGenUIPlaceholder(context)
           else
             Container(
               padding: const EdgeInsets.all(16),
@@ -258,10 +258,30 @@ class ChatMessageWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildGenUIPlaceholder() {
+  Widget _buildGenUIPlaceholder(BuildContext context) {
+    if (message.data == null) return const SizedBox.shrink();
+
+    final data = message.data!;
+    final String type = data['type'] ?? 'unknown';
+
+    if (type == 'transaction') {
+      return _buildTransactionCard(data);
+    } else if (type == 'balance') {
+      return _buildBalanceCard(data);
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildTransactionCard(Map<String, dynamic> data) {
+    final bool isExpense = data['is_expense'] ?? true;
+    final double amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+    final String category = data['category'] ?? 'General';
+    final String description = data['description'] ?? 'Transacción';
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -280,54 +300,100 @@ class ChatMessageWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text('Ticket Generado', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+              Icon(isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, 
+                   color: isExpense ? Colors.redAccent : Colors.green, size: 20),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: (isExpense ? Colors.redAccent : Colors.green).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isExpense ? Icons.shopping_bag_outlined : Icons.attach_money,
+                  color: isExpense ? Colors.redAccent : Colors.green,
+                ),
+              ),
+              const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Ahorros del Mes', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('Febrero 2024', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12)),
+                  Text(category, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(description, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12)),
                 ],
               ),
-              const Icon(Icons.trending_up, color: Colors.green),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatCell('Meta', '\$2,500'),
-              _buildStatCell('Actual', '\$1,840'),
-              _buildStatCell('Restante', '\$660'),
+              Text('Total', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                '${isExpense ? "-" : "+"}\$${amount.toStringAsFixed(2)}',
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w900, 
+                  fontSize: 20,
+                  color: isExpense ? AppTheme.primary : Colors.green,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 24),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: 0.73,
-              backgroundColor: AppTheme.background,
-              color: AppTheme.primary,
-              minHeight: 12,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '¡Vas por buen camino! Has completado el 73% de tu meta.',
-            style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary, fontStyle: FontStyle.italic),
-          )
         ],
       ),
     );
   }
 
-  Widget _buildStatCell(String label, String value) {
+  Widget _buildBalanceCard(Map<String, dynamic> data) {
+    final double total = (data['total'] as num?)?.toDouble() ?? 0.0;
+    final double income = (data['income'] as num?)?.toDouble() ?? 0.0;
+    final double expenses = (data['expenses'] as num?)?.toDouble() ?? 0.0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text('BALANCE ACTUAL', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('\$${total.toStringAsFixed(2)}', style: GoogleFonts.manrope(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildMiniStat('Ingresos', '+\$${income.toStringAsFixed(0)}', Colors.greenAccent),
+              _buildMiniStat('Gastos', '-\$${expenses.toStringAsFixed(0)}', Colors.redAccent),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniStat(String label, String value, Color color) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 11, fontWeight: FontWeight.bold)),
-        Text(value, style: GoogleFonts.manrope(color: AppTheme.primary, fontSize: 16, fontWeight: FontWeight.w900)),
+        Text(label, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(value, style: GoogleFonts.manrope(color: color, fontSize: 16, fontWeight: FontWeight.bold)),
       ],
     );
   }
+
 }
 
 class HistoryDrawer extends StatelessWidget {
