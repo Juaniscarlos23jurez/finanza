@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/message_model.dart';
 
 class AiService {
-  // TODO: Replace with your actual API Key or use an environment variable
-  static const String _apiKey = 'AIzaSyBCjF8_76HMNew-dLaBpi5vk1vh1k3Aw1s';
+  // Use dotenv to get the API Key
+  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
   
   final GenerativeModel _model;
   ChatSession? _chat;
@@ -43,24 +44,44 @@ class AiService {
     try {
       final response = await _chat!.sendMessage(Content.text(text));
       String responseText = response.text ?? 'No pude procesar tu solicitud.';
+      debugPrint('AI Response Raw: $responseText');
       
       Map<String, dynamic>? genUiData;
       bool isGenUI = false;
 
       // Extract JSON block using Regex
-      final jsonMatch = RegExp(r'```json\s*(\{.*?\})\s*```', dotAll: true).firstMatch(responseText);
+      // 1. Try formatted Markdown code block
+      RegExp jsonRegex = RegExp(r'```json\s*(\{.*?\})\s*```', dotAll: true);
+      Match? jsonMatch = jsonRegex.firstMatch(responseText);
+
+      // 2. If not found, try lax JSON block (just start/end braces)
+      if (jsonMatch == null) {
+        // Look for { "type": ... } pattern generally at the end
+        jsonRegex = RegExp(r'(\{.*"type"\s*:\s*".*?\}.*?)', dotAll: true);
+        final matches = jsonRegex.allMatches(responseText);
+        if (matches.isNotEmpty) {
+           jsonMatch = matches.last; // Take the last JSON candidates
+        }
+      }
       
       if (jsonMatch != null) {
         try {
-          final jsonString = jsonMatch.group(1)!;
-          // Decode JSON (Need to import dart:convert)
+          String jsonString = jsonMatch.group(1)!;
+          // Sanitize if necessary (sometimes it might include non-json text)
+          if (jsonString.startsWith('```json')) {
+             jsonString = jsonString.replaceAll('```json', '').replaceAll('```', '');
+          }
+           
+          // Decode JSON
           genUiData = json.decode(jsonString);
           isGenUI = true;
+          debugPrint('GenUI Data Parsed: $genUiData');
           
-          // Remove the JSON block from the visible text
-          responseText = responseText.replaceFirst(jsonMatch.group(0)!, '').trim();
+          // Remove the JSON block from the visible text (using the full match range)
+          responseText = responseText.replaceRange(jsonMatch.start, jsonMatch.end, '').trim();
         } catch (e) {
           debugPrint('Error parsing GenUI JSON: $e');
+          // If parsing failed, maybe it wasn't our valid JSON. Keep text as is.
         }
       } else if (responseText.contains('[SHOW_GENUI_SUMMARY]')) {
          // Fallback for previous manual trigger if needed
