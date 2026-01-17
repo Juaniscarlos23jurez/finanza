@@ -703,6 +703,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final bool isIncome = item['type'] == 'income';
     final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
     
+    // Parse date and format time
+    final String dateStr = item['date'] ?? DateTime.now().toIso8601String();
+    DateTime? transactionDate;
+    String timeStr = '';
+    try {
+      transactionDate = DateTime.parse(dateStr);
+      timeStr = DateFormat('HH:mm').format(transactionDate); // 24h format, e.g., "14:30"
+    } catch (_) {
+      timeStr = '';
+    }
+    
     final IconData icon = _getCategoryIcon(category);
     final Color color = _getCategoryColor(category);
 
@@ -738,9 +749,34 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   title,
                   style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 14),
                 ),
-                Text(
-                  category,
-                  style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.w600),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      category,
+                      style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    if (timeStr.isNotEmpty) ...[
+                      Text(
+                        '  •  ',
+                        style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontSize: 12),
+                      ),
+                      Icon(
+                        Icons.access_time_rounded,
+                        size: 12,
+                        color: AppTheme.secondary.withValues(alpha: 0.6),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        timeStr,
+                        style: GoogleFonts.manrope(
+                          color: AppTheme.secondary.withValues(alpha: 0.7),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
