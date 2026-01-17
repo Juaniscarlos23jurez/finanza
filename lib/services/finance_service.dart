@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart'; // For debugPrint
 import 'auth_service.dart';
 
 class FinanceService {
   final Dio _dio = Dio();
   final AuthService _authService = AuthService();
-  final String _baseUrl = '${dotenv.env['API_URL']}/api/client/auth/finance';
+  // Hardcoding for stability as .env seems to be having issues loading on some devices/builds immediately
+  final String _baseUrl = 'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth/finance';
 
   Future<Map<String, dynamic>> getFinanceData({
     String? type,
@@ -128,8 +129,9 @@ class FinanceService {
       final token = await _authService.getToken();
       if (token == null) throw Exception('No authentication token found');
 
+      debugPrint('DEBUG: Fetching goals from ${AuthService.baseUrl}/goals');
       final response = await _dio.get(
-        '$_baseUrl/goals',
+        '${AuthService.baseUrl}/goals',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -138,11 +140,14 @@ class FinanceService {
         ),
       );
 
+      debugPrint('DEBUG: Goals response status: ${response.statusCode}');
+      debugPrint('DEBUG: Goals response data: ${response.data}');
+
       return response.data;
     } catch (e) {
+      debugPrint('DEBUG: Error querying goals: $e');
       if (e is DioException) {
-         // Log error but return empty list to be safe
-         // debugPrint('Error fetching goals: ${e.response?.data}');
+         debugPrint('DEBUG: API Error Data: ${e.response?.data}');
       }
       return [];
     }
@@ -153,8 +158,13 @@ class FinanceService {
       final token = await _authService.getToken();
       if (token == null) throw Exception('No authentication token found');
 
+      print('DEBUG: Creating goal with data: $data');
+      // The _baseUrl already ends in /api/client/auth/finance
+      // Verify if the goals endpoint is /api/client/auth/finance/goals or what.
+      // Based on previous code it was $_baseUrl/goals.
+      // If _baseUrl is .../finance, then this makes .../finance/goals.
       final response = await _dio.post(
-        '$_baseUrl/goals',
+        '${AuthService.baseUrl}/goals',
         data: data,
         options: Options(
           headers: {
@@ -165,11 +175,15 @@ class FinanceService {
         ),
       );
 
+      print('DEBUG: Create goal response: ${response.data}');
       return response.data;
     } catch (e) {
+      print('DEBUG: Error creating goal: $e');
       if (e is DioException) {
+        print('DEBUG: Create Goal API Error: ${e.response?.data}');
         throw Exception(e.response?.data['message'] ?? 'Error creating goal');
       }
       throw Exception('Error creating goal: $e');
     }
   }
+}

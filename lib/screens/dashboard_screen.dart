@@ -77,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   double get _totalBalance => 
-    (_summary['total_income'] ?? 0.0) - (_summary['total_expense'] ?? 0.0);
+    ((_summary['total_income'] ?? 0) as num).toDouble() - ((_summary['total_expense'] ?? 0) as num).toDouble();
 
   @override
   Widget build(BuildContext context) {

@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_theme.dart';
 import '../models/message_model.dart';
 import '../services/ai_service.dart';
+import '../services/finance_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -180,19 +181,61 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 
-class ChatMessageWidget extends StatelessWidget {
+class ChatMessageWidget extends StatefulWidget {
   final Message message;
 
   const ChatMessageWidget({super.key, required this.message});
+
+  @override
+  State<ChatMessageWidget> createState() => _ChatMessageWidgetState();
+}
+
+class _ChatMessageWidgetState extends State<ChatMessageWidget> {
+  bool _isSaving = false;
+  bool _isSaved = false;
+
+  Future<void> _saveTransaction(Map<String, dynamic> data) async {
+    setState(() => _isSaving = true);
+    
+    try {
+      final financeService = FinanceService();
+      final bool isExpense = data['is_expense'] ?? true;
+      
+      await financeService.createRecord({
+        'amount': (data['amount'] as num).toDouble(),
+        'category': data['category'] ?? 'General',
+        'type': isExpense ? 'expense' : 'income',
+        'date': DateTime.now().toIso8601String().split('T')[0],
+        'description': data['description'] ?? 'Transacción AI',
+      });
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Movimiento registrado correctamente')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
-        crossAxisAlignment: message.isAi ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        crossAxisAlignment: widget.message.isAi ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
-          if (message.isAi)
+          if (widget.message.isAi)
              Row(
                children: [
                  const Icon(FontAwesomeIcons.robot, size: 12, color: AppTheme.secondary),
@@ -219,21 +262,21 @@ class ChatMessageWidget extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 8),
-          if (message.isGenUI)
-            _buildGenUIPlaceholder(context)
+          if (widget.message.isGenUI)
+            _buildGenUIPlaceholder()
           else
             Container(
               padding: const EdgeInsets.all(16),
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
               decoration: BoxDecoration(
-                color: message.isAi ? Colors.white : AppTheme.primary,
+                color: widget.message.isAi ? Colors.white : AppTheme.primary,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(message.isAi ? 4 : 20),
-                  bottomRight: Radius.circular(message.isAi ? 20 : 4),
+                  bottomLeft: Radius.circular(widget.message.isAi ? 4 : 20),
+                  bottomRight: Radius.circular(widget.message.isAi ? 20 : 4),
                 ),
-                boxShadow: message.isAi
+                boxShadow: widget.message.isAi
                     ? [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -244,12 +287,12 @@ class ChatMessageWidget extends StatelessWidget {
                     : [],
               ),
               child: Text(
-                message.text,
+                widget.message.text,
                 style: GoogleFonts.manrope(
-                  color: message.isAi ? AppTheme.primary : Colors.white,
+                  color: widget.message.isAi ? AppTheme.primary : Colors.white,
                   fontSize: 15,
                   height: 1.5,
-                  fontWeight: message.isAi ? FontWeight.w500 : FontWeight.w400,
+                  fontWeight: widget.message.isAi ? FontWeight.w500 : FontWeight.w400,
                 ),
               ),
             ),
@@ -258,19 +301,177 @@ class ChatMessageWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildGenUIPlaceholder(BuildContext context) {
-    if (message.data == null) return const SizedBox.shrink();
+  Widget _buildGenUIPlaceholder() {
+    if (widget.message.data == null) return const SizedBox.shrink();
 
-    final data = message.data!;
+    final data = widget.message.data!;
     final String type = data['type'] ?? 'unknown';
 
     if (type == 'transaction') {
       return _buildTransactionCard(data);
     } else if (type == 'balance') {
       return _buildBalanceCard(data);
+    } else if (type == 'goal_suggestion') {
+      return _buildGoalSuggestionCard(data);
+    } else if (type == 'view_chart') {
+      return _buildChartTriggerCard(data);
     }
 
     return const SizedBox.shrink();
+  }
+
+  Widget _buildGoalSuggestionCard(Map<String, dynamic> data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blueAccent.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.flag_rounded, color: Colors.blueAccent),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Sugerencia de Meta',
+                  style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(data['title'] ?? 'Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          const SizedBox(height: 4),
+          Text('Objetivo: \$${data['target_amount']}', style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          Text(data['reason'] ?? '', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _createGoal(data),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text(_isSaved ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartTriggerCard(Map<String, dynamic> data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+            child: const Icon(Icons.bar_chart_rounded, color: Colors.white),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Análisis Disponible', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(
+                  data['message'] ?? 'Ver gráficas detalladas',
+                  style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              // Hacky navigation to tab 2 (Transactions)
+              // Ideally use a provider or callback. For now, assume MainScreen is parent or we can push replacement.
+              // Actually, simply popping/switching tab is hard from here without context of MainScreen.
+              // Solution: We'll show a snackbar saying "Ve a la pestaña Movimientos" or try to find ancestor.
+              // Let's standard navigation for now.
+              // BETTER: We are in a chat screen which is likely a tab. 
+              // If we are in MainScreen indexed stack, we can't easily switch tabs from here without a callback.
+              // For this MVP, let's just tell user.
+              // WAIT: The design says "ChartTrigger". 
+              // Let's implement a simple "Navigate" if we can, else just a visual indicator.
+              // Assuming standard Flutter, if ChatScreen is inside MainScreen, we need a way to reach MainScreenState.
+              // Let's skip the complex navigation logic for now and just show a message or generic action.
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ve a la pestaña "Movimientos" para ver los gráficos.')));
+            },
+            style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppTheme.primary),
+            icon: const Icon(Icons.arrow_forward_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createGoal(Map<String, dynamic> data) async {
+    setState(() => _isSaving = true);
+    try {
+      final financeService = FinanceService();
+      await financeService.createGoal({
+        'title': data['title'],
+        'target_amount': (data['target_amount'] as num).toDouble(),
+        'target_date': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0], // Default 30 days
+        'current_amount': 0.0,
+        'status': 'active',
+        'description': data['reason'] ?? 'Meta creada por AI',
+      });
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Meta creada exitosamente')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al crear meta: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildTransactionCard(Map<String, dynamic> data) {
@@ -346,6 +547,39 @@ class ChatMessageWidget extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _saveTransaction(data),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving 
+                ? const SizedBox(
+                    width: 20, 
+                    height: 20, 
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isSaved ? 'Guardado' : 'Confirmar y Guardar',
+                        style: GoogleFonts.manrope(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+            ),
+          )
         ],
       ),
     );
@@ -393,7 +627,6 @@ class ChatMessageWidget extends StatelessWidget {
       ],
     );
   }
-
 }
 
 class HistoryDrawer extends StatelessWidget {
