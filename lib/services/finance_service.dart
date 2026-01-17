@@ -196,14 +196,76 @@ class FinanceService {
     }
   }
 
-  Future<Map<String, dynamic>> requestReport(String email) async {
+  Future<Map<String, dynamic>> updateGoal(int id, Map<String, dynamic> data) async {
     try {
       final token = await _authService.getToken();
       if (token == null) throw Exception('No authentication token found');
 
+      debugPrint('DEBUG: Updating goal $id with data: $data');
+      final response = await _dio.put(
+        '${AuthService.baseUrl}/goals/$id',
+        data: data,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      debugPrint('DEBUG: Update goal response: ${response.data}');
+      _updateController.add(null); // Notify listeners
+      return response.data;
+    } catch (e) {
+      debugPrint('DEBUG: Error updating goal: $e');
+      if (e is DioException) {
+        debugPrint('DEBUG: Update Goal API Error: ${e.response?.data}');
+        throw Exception(e.response?.data['message'] ?? 'Error updating goal');
+      }
+      throw Exception('Error updating goal: $e');
+    }
+  }
+
+  /// Contribute/add funds to a goal using the dedicated endpoint
+  Future<Map<String, dynamic>> contributeToGoal(int goalId, double amount) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      debugPrint('DEBUG: Contributing $amount to goal $goalId');
       final response = await _dio.post(
-        '${AuthService.baseUrl}/finance/report',
-        data: {'email': email},
+        '${AuthService.baseUrl}/goals/$goalId/contribute',
+        data: {'amount': amount},
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      debugPrint('DEBUG: Contribute response: ${response.data}');
+      _updateController.add(null); // Notify listeners
+      return response.data;
+    } catch (e) {
+      debugPrint('DEBUG: Error contributing to goal: $e');
+      if (e is DioException) {
+        debugPrint('DEBUG: Contribute API Error: ${e.response?.data}');
+        throw Exception(e.response?.data['message'] ?? 'Error contributing to goal');
+      }
+      throw Exception('Error contributing to goal: $e');
+    }
+  }
+
+  Future<dynamic> getReportSettings() async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      final response = await _dio.get(
+        '${AuthService.baseUrl}/report-settings',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -215,9 +277,43 @@ class FinanceService {
       return response.data;
     } catch (e) {
       if (e is DioException) {
-        throw Exception(e.response?.data['message'] ?? 'Error al solicitar el reporte');
+        throw Exception(e.response?.data['message'] ?? 'Error al obtener configuración de reportes');
       }
-      throw Exception('Error al solicitar el reporte: $e');
+      throw Exception('Error al obtener configuración de reportes: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> saveReportSettings({
+    required String email,
+    required int frequencyDays,
+    bool isActive = true,
+  }) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      final response = await _dio.post(
+        '${AuthService.baseUrl}/report-settings',
+        data: {
+          'email': email,
+          'frequency_days': frequencyDays,
+          'is_active': isActive,
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      return response.data;
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(e.response?.data['message'] ?? 'Error al guardar configuración de reportes');
+      }
+      throw Exception('Error al guardar configuración de reportes: $e');
     }
   }
 }

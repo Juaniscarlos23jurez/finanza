@@ -25,6 +25,7 @@ class AuthService {
           'idToken': idToken,
           'provider': provider,
           'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
+          'app_name': 'finanzas',
         },
       );
       
@@ -60,6 +61,7 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
+          'app_name': 'finanzas',
         },
       );
       
@@ -93,6 +95,7 @@ class AuthService {
           'name': name,
           'email': email,
           'password': password,
+          'app_name': 'finanzas',
         },
       );
       
@@ -162,6 +165,8 @@ class AuthService {
           },
         ),
       );
+
+      debugPrint('AuthService: Profile response: ${response.data}');
 
       if (response.statusCode == 200) {
         final data = response.data['data'] ?? response.data;
@@ -234,14 +239,20 @@ class AuthService {
     try {
       final token = await getToken();
       if (token == null) {
+        debugPrint('AuthService: Error sendFeedback - No hay token');
         return {'success': false, 'message': 'No hay token de autenticación'};
       }
 
-      final formData = FormData.fromMap({
+      final formDataMap = {
         'type': type,
         if (subject != null) 'subject': subject,
         'message': message,
-      });
+      };
+
+      debugPrint('AuthService: Requesting feedback to $baseUrl/feedback');
+      debugPrint('AuthService: Feedback Payload: $formDataMap');
+
+      final formData = FormData.fromMap(formDataMap);
 
       final response = await _dio.post(
         '$baseUrl/feedback',
@@ -254,10 +265,55 @@ class AuthService {
         ),
       );
 
+      debugPrint('AuthService: Feedback Response Status: ${response.statusCode}');
+      debugPrint('AuthService: Feedback Response Data: ${response.data}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'message': response.data['message'] ?? 'Feedback enviado correctamente'};
       }
       return {'success': false, 'message': 'Fallo al enviar el feedback'};
+    } catch (e) {
+      if (e is DioException) {
+        debugPrint('AuthService: Feedback DioError Status: ${e.response?.statusCode}');
+        debugPrint('AuthService: Feedback DioError Data: ${e.response?.data}');
+      } else {
+        debugPrint('AuthService: Feedback Generic Error: $e');
+      }
+      return {'success': false, 'message': _handleError(e)};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    String? fcmToken,
+    String? devicePlatform,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': 'No hay token de autenticación'};
+      }
+
+      final response = await _dio.post(
+        '$baseUrl/profile',
+        data: {
+          if (fcmToken != null) 'fcm_token': fcmToken,
+          if (devicePlatform != null) 'device_platform': devicePlatform,
+          'app_name': 'finanzas',
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['data'] ?? response.data;
+        if (data != null) _saveUser(data);
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'message': 'Fallo al actualizar el perfil'};
     } catch (e) {
       return {'success': false, 'message': _handleError(e)};
     }

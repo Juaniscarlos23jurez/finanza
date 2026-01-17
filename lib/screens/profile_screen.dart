@@ -87,7 +87,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 32),
                   _buildMenuSection('OTRO', [
                     _buildMenuItem(Icons.feedback_outlined, 'Feedback', onTap: () => _showFeedbackModal(context)),
-                    _buildMenuItem(Icons.help_outline_rounded, 'Ayuda y Soporte'),
                     _buildMenuItem(
                       Icons.info_outline_rounded, 
                       'Términos y Condiciones',
@@ -645,180 +644,222 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showScheduleReportModal(BuildContext context) {
     if (_userData == null) return;
     
-    final email = _userData?['email'] ?? '';
-    final photoUrl = (_userData?['photo_url'] ?? '').toString();
-    final provider = (_userData?['provider'] ?? '').toString().toLowerCase();
-    
-    // Heurística para detectar login social si el backend no lo envía explícitamente
-    final bool isSocial = provider.contains('google') || 
-                         provider.contains('apple') || 
-                         photoUrl.contains('googleusercontent') || 
-                         photoUrl.contains('appleid');
-    
-    final TextEditingController emailController = TextEditingController(text: email);
+    final TextEditingController emailController = TextEditingController(text: _userData?['email'] ?? '');
+    int selectedDays = 30;
+    final List<int> frequencyOptions = [7, 15, 30];
     bool isRequesting = false;
+    bool isLoadingSettings = true;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: EdgeInsets.only(
-            top: 32,
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Programar Reporte',
-                    style: GoogleFonts.manrope(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.primary,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
+        builder: (context, setModalState) {
+          // Fetch settings when modal opens
+          if (isLoadingSettings) {
+            _financeService.getReportSettings().then((res) {
+              if (context.mounted) {
+                // If the API returns a list (as CRUD standard might), take first or handle. 
+                // Based on user description, it seems to handle one per user.
+                final data = res is List ? (res.isNotEmpty ? res.first : null) : res;
+                if (data != null) {
+                  setModalState(() {
+                    if (data['email'] != null) emailController.text = data['email'];
+                    if (data['frequency_days'] != null) selectedDays = int.tryParse(data['frequency_days'].toString()) ?? 30;
+                    isLoadingSettings = false;
+                  });
+                } else {
+                  setModalState(() => isLoadingSettings = false);
+                }
+              }
+            }).catchError((e) {
+              if (context.mounted) {
+                setModalState(() => isLoadingSettings = false);
+              }
+            });
+          }
+
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            padding: EdgeInsets.only(
+              top: 32,
+              left: 24,
+              right: 24,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.auto_graph_rounded, color: AppTheme.primary),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        'Recibirás un Excel con tus movimientos y un análisis financiero generado por IA.',
-                        style: GoogleFonts.manrope(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
-                        ),
+                    Text(
+                      'Programar Reporte',
+                      style: GoogleFonts.manrope(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primary,
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-              if (!isSocial) ...[
-                Text(
-                  'Confirma el correo de destino:',
-                  style: GoogleFonts.manrope(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primary,
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.auto_graph_rounded, color: AppTheme.primary),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Recibirás un Excel con tus movimientos y un análisis financiero generado por IA.',
+                          style: GoogleFonts.manrope(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppTheme.background,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                const SizedBox(height: 24),
+                if (isLoadingSettings)
+                  const Center(child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  ))
+                else ...[
+                  Text(
+                    'Enviar reporte a:',
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.secondary,
+                      letterSpacing: 1.2,
                     ),
-                    prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
                   ),
-                ),
-              ] else ...[
-                Text(
-                  'El reporte se enviará a tu correo registrado:',
-                  style: GoogleFonts.manrope(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.secondary,
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: emailController,
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppTheme.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20, color: AppTheme.primary),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  email,
-                  style: GoogleFonts.manrope(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.primary,
+                  const SizedBox(height: 24),
+                  Text(
+                    '¿Cada cuántos días?',
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.secondary,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    children: frequencyOptions.map((days) {
+                      final isSelected = selectedDays == days;
+                      return ChoiceChip(
+                        label: Text(days == 30 ? '30 días' : '$days días'),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setModalState(() => selectedDays = days);
+                          }
+                        },
+                        selectedColor: AppTheme.primary,
+                        labelStyle: GoogleFonts.manrope(
+                          color: isSelected ? Colors.white : AppTheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: (isRequesting || isLoadingSettings)
+                        ? null
+                        : () async {
+                            final targetEmail = emailController.text.trim();
+                            if (targetEmail.isEmpty) return;
+
+                            setModalState(() => isRequesting = true);
+                            
+                            try {
+                              await _financeService.saveReportSettings(
+                                email: targetEmail, 
+                                frequencyDays: selectedDays,
+                              );
+                              
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('¡Configuración guardada con éxito!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                setModalState(() => isRequesting = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+                                );
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: isRequesting
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            'Confirmar y Programar',
+                            style: GoogleFonts.manrope(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
               ],
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: isRequesting
-                      ? null
-                      : () async {
-                          final targetEmail = emailController.text.trim();
-                          if (targetEmail.isEmpty) return;
-
-                          setModalState(() => isRequesting = true);
-                          
-                          try {
-                            await _financeService.requestReport(targetEmail);
-                            
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('¡Reporte programado con éxito! Revisa tu correo.'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              setModalState(() => isRequesting = false);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
-                              );
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
-                  child: isRequesting
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text(
-                          'Confirmar y Programar',
-                          style: GoogleFonts.manrope(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

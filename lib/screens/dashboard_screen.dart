@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
+import '../services/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,6 +18,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final FinanceService _financeService = FinanceService();
+  final AuthService _authService = AuthService();
   StreamSubscription? _updateSubscription;
   bool _isLoading = true;
   Map<String, dynamic> _summary = {
@@ -32,6 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _fetchFinanceData();
+    _requestNotificationPermissionAndSaveFCM();
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchFinanceData();
     });
@@ -131,6 +136,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
         debugPrint('Error loading dashboard data: $e');
       }
     }
+  }
+
+  Future<void> _requestNotificationPermissionAndSaveFCM() async {
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized || 
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        
+        String? fcmToken = await messaging.getToken();
+        if (fcmToken != null) {
+          debugPrint('FCM Token: $fcmToken');
+          _saveFCMTokenToBackend(fcmToken);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error requesting notification permissions: $e');
+    }
+  }
+
+  Future<void> _saveFCMTokenToBackend(String fcmToken) async {
+    final String devicePlatform = Platform.isIOS ? 'ios' : Platform.isAndroid ? 'android' : 'web';
+    
+    await _authService.updateProfile(
+      fcmToken: fcmToken,
+      devicePlatform: devicePlatform,
+    );
   }
 
   double get _totalBalance {
@@ -611,61 +653,356 @@ class _DashboardScreenState extends State<DashboardScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: _goals.map((goal) {
-          final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
-          final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
-          final double progress = (current / target).clamp(0.0, 1.0);
-          final String title = goal['title'] ?? 'Meta';
-
           return Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: _buildGoalCard(
-              title, 
-              progress, 
-              '\$${current.toStringAsFixed(0)} / \$${target.toStringAsFixed(0)}'
-            ),
+            child: _buildGoalCard(goal),
           );
         }).toList(),
       ),
     );
   }
 
-  Widget _buildGoalCard(String title, double progress, String detail) {
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
+  Widget _buildGoalCard(Map<String, dynamic> goal) {
+    final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
+    final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
+    final double progress = (current / target).clamp(0.0, 1.0);
+    final String title = goal['title'] ?? 'Meta';
+    final int? goalId = goal['id'];
+    final int percentage = (progress * 100).round();
+    
+    // Color based on progress
+    Color progressColor = percentage < 30 
+        ? Colors.orange 
+        : percentage < 70 
+            ? Colors.amber 
+            : Colors.green;
+
+    return GestureDetector(
+      onTap: goalId != null ? () => _showContributeToGoalDialog(goal) : null,
+      child: Container(
+        width: 180,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.grey.shade50],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: AppTheme.background,
-            color: AppTheme.primary,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            detail,
-            style: GoogleFonts.manrope(
-              fontSize: 12,
-              color: AppTheme.secondary,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primary.withValues(alpha: 0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con icono y título
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: progressColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.flag_rounded,
+                    color: progressColor,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Progress bar con gradiente
+            Stack(
+              children: [
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: AppTheme.background,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: progress,
+                  child: Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [progressColor.withValues(alpha: 0.7), progressColor],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: progressColor.withValues(alpha: 0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Porcentaje y montos
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '$percentage%',
+                  style: GoogleFonts.manrope(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: progressColor,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '\$${current.toStringAsFixed(0)}',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    Text(
+                      'de \$${target.toStringAsFixed(0)}',
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        color: AppTheme.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Botón de abonar
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Abonar',
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showContributeToGoalDialog(Map<String, dynamic> goal) {
+    final amountController = TextEditingController();
+    bool isSaving = false;
+    
+    final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
+    final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
+    final double remaining = target - current;
+    final String title = goal['title'] ?? 'Meta';
+    final int? goalId = goal['id'];
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.savings, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Abonar a Meta',
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      title,
+                      style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Progress actual
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.background,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Progreso actual',
+                          style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
+                        ),
+                        Text(
+                          '\$${current.toStringAsFixed(2)}',
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Restante',
+                          style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
+                        ),
+                        Text(
+                          '\$${remaining.toStringAsFixed(2)}',
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 18,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: amountController,
+                decoration: InputDecoration(
+                  labelText: 'Monto a abonar',
+                  prefixText: '\$ ',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              // Quick amounts
+              Wrap(
+                spacing: 8,
+                children: [100, 500, 1000].map((amount) {
+                  return ActionChip(
+                    label: Text('\$$amount'),
+                    onPressed: () {
+                      amountController.text = amount.toString();
+                    },
+                    backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                    labelStyle: GoogleFonts.manrope(
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              onPressed: isSaving ? null : () async {
+                final double? amount = double.tryParse(amountController.text);
+                if (amount == null || amount <= 0 || goalId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Ingresa un monto válido')),
+                  );
+                  return;
+                }
+
+                setDialogState(() => isSaving = true);
+                
+                try {
+                  // Usar el nuevo endpoint que suma automáticamente
+                  await _financeService.contributeToGoal(goalId, amount);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('¡Abonaste \$${amount.toStringAsFixed(2)} a "$title"!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _fetchFinanceData(); // Refresh UI
+                } catch (e) {
+                  if (!context.mounted) return;
+                  setDialogState(() => isSaving = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              },
+              child: isSaving 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                : Text('Abonar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
       ),
     );
   }
