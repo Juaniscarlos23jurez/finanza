@@ -121,7 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               if (index == messages.length) {
                                 return const Padding(
                                   padding: EdgeInsets.only(bottom: 24),
-                                  child: Text('AI is thinking...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
+                                  child: Text('La IA está pensando...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
                                 );
                               }
                               return ChatMessageWidget(message: messages[index]);
@@ -324,7 +324,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                  const Icon(FontAwesomeIcons.robot, size: 12, color: AppTheme.secondary),
                  const SizedBox(width: 8),
                  Text(
-                   'AI ASSISTANT',
+                   'ASISTENTE IA',
                    style: GoogleFonts.manrope(
                      fontSize: 10,
                      fontWeight: FontWeight.w800,
@@ -336,7 +336,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
              )
           else
             Text(
-              'YOU',
+              'TÚ',
               style: GoogleFonts.manrope(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,

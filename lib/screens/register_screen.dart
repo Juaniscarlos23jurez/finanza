@@ -74,32 +74,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Create\nAccount.',
+                'Crear\nCuenta.',
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 48),
               CustomTextField(
-                label: 'Name',
+                label: 'Nombre',
                 controller: _nameController,
                 hintText: 'John Doe',
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                label: 'Email',
+                label: 'Correo Electrónico',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 hintText: 'john@example.com',
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                label: 'Password',
+                label: 'Contraseña',
                 controller: _passwordController,
                 obscureText: true,
                 hintText: '••••••••',
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: _isLoading ? 'Sign Up...' : 'Sign Up',
+                text: _isLoading ? 'Registrando...' : 'Registrarse',
                 onPressed: _isLoading ? () {} : _handleRegister,
               ),
             ],

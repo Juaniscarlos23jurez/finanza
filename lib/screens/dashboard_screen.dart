@@ -202,9 +202,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_balanceHistory.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      height: 200,
+      height: 240,
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(0, 20, 20, 0),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -217,7 +217,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: LineChart(
         LineChartData(
-          gridData: const FlGridData(show: false),
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (touchedSpot) => AppTheme.primary,
+              getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                return touchedBarSpots.map((barSpot) {
+                  return LineTooltipItem(
+                    '\$ ${barSpot.y.toStringAsFixed(0)}',
+                    GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: 1000,
+            getDrawingHorizontalLine: (value) => FlLine(
+              color: Colors.grey.withValues(alpha: 0.05),
+              strokeWidth: 1,
+            ),
+          ),
           titlesData: FlTitlesData(
             leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -230,10 +254,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (index >= 0 && index < 7) {
                     final date = DateTime.now().subtract(Duration(days: 6 - index));
                     return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
+                      padding: const EdgeInsets.only(top: 12.0),
                       child: Text(
                         DateFormat('E').format(date).substring(0, 1),
-                        style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.manrope(
+                          color: AppTheme.secondary.withValues(alpha: 0.6), 
+                          fontSize: 10, 
+                          fontWeight: FontWeight.bold
+                        ),
                       ),
                     );
                   }
@@ -248,9 +276,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               spots: _balanceHistory,
               isCurved: true,
               color: AppTheme.primary,
-              barWidth: 4,
+              barWidth: 5,
               isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.white,
+                  strokeWidth: 3,
+                  strokeColor: AppTheme.primary,
+                ),
+              ),
               belowBarData: BarAreaData(
                 show: true,
                 gradient: LinearGradient(
@@ -345,7 +381,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             Text(
-              'Dashboard Central',
+              'Panel de Control',
               style: GoogleFonts.manrope(
                 fontSize: 24,
                 color: AppTheme.primary,
@@ -392,7 +428,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'BALANCE TOTAL',
+            'SALDO TOTAL',
             style: GoogleFonts.manrope(
               fontSize: 12,
               color: Colors.white.withValues(alpha: 0.6),
@@ -484,14 +520,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ],
-        ),
-        Text(
-          'Ver todo',
-          style: GoogleFonts.manrope(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.secondary,
-          ),
         ),
       ],
     );
@@ -664,78 +692,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
     var sortedEntries = _categoryStats.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     
-    // Take top 3 for display
-    if (sortedEntries.length > 3) {
-      sortedEntries = sortedEntries.sublist(0, 3);
-    }
-
-    final topCategory = sortedEntries.isNotEmpty ? sortedEntries.first : null;
+    // Take top 5 for display
+    final displayEntries = sortedEntries.take(5).toList();
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.primary, width: 10),
-            ),
-            // Show percentage of the top category
-            child: Center(
-              child: Text(
-                '${topCategory?.value.toStringAsFixed(0)}%',
-                style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Column(
-              children: sortedEntries.map((e) {
-                // Assign simplified colors for now
-                Color color = Colors.grey;
-                if (e.key.toLowerCase().contains('comida')) {
-                  color = Colors.orange;
-                } else if (e.key.toLowerCase().contains('renta')) {
-                  color = Colors.blue;
-                } else if (e.key.toLowerCase().contains('ocio')) {
-                  color = Colors.purple;
-                } else {
-                  color = AppTheme.primary.withValues(alpha: 0.5);
-                }
-
-                return _buildCategoryItem(e.key, '${e.value.toStringAsFixed(1)}%', color);
-              }).toList(),
-            ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           )
         ],
       ),
-    );
-  }
-
-  Widget _buildCategoryItem(String label, String percent, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          Row(
-            children: [
-              Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-              const SizedBox(width: 8),
-              Text(label, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w600)),
-            ],
+          SizedBox(
+            height: 220,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 4,
+                centerSpaceRadius: 60,
+                sections: displayEntries.map((e) {
+                  return PieChartSectionData(
+                    color: _getChartColor(e.key),
+                    value: e.value,
+                    title: '${e.value.toStringAsFixed(0)}%',
+                    radius: 20,
+                    showTitle: e.value > 5,
+                    titleStyle: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
-          Text(percent, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 32),
+          Wrap(
+            spacing: 16,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: displayEntries.map((e) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: _getChartColor(e.key),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    e.key,
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.secondary,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
   }
+
+  Color _getChartColor(String category) {
+    final cat = category.toLowerCase();
+    if (cat.contains('comida')) return Colors.orangeAccent;
+    if (cat.contains('renta') || cat.contains('hogar')) return Colors.blueAccent;
+    if (cat.contains('ocio') || cat.contains('entretenimiento')) return Colors.purpleAccent;
+    if (cat.contains('transporte') || cat.contains('viajes')) return Colors.cyanAccent;
+    if (cat.contains('salud')) return Colors.redAccent;
+    return AppTheme.primary.withValues(alpha: 0.7);
+  }
+
+
 }

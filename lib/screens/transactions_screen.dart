@@ -212,6 +212,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
       ),
       child: TableCalendar(
+        locale: 'es',
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: _focusedDay,
@@ -640,15 +641,25 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDateSeparator(key, open: balances?['open'], close: balances?['close']),
+            _buildDateSeparator(key, balance: balances?['close']),
             ...items.map((item) => _buildTransactionItem(item)),
+            if (balances?['open'] != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 24, right: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _buildSmallBalance('Abre:', balances!['open']!),
+                  ],
+                ),
+              ),
           ],
         );
       },
     );
   }
 
-  Widget _buildDateSeparator(String label, {double? open, double? close}) {
+  Widget _buildDateSeparator(String label, {double? balance}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
@@ -663,14 +674,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          if (open != null && close != null)
-            Row(
-              children: [
-                _buildSmallBalance('Abre:', open),
-                const SizedBox(width: 12),
-                _buildSmallBalance('Cierra:', close),
-              ],
-            )
+          if (balance != null)
+            _buildSmallBalance('Cierra:', balance),
         ],
       ),
     );

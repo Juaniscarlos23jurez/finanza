@@ -151,26 +151,26 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 48),
               Text(
-                'Welcome\nBack.',
+                'Bienvenido\nde nuevo.',
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 48),
               CustomTextField(
-                label: 'Email',
+                label: 'Correo Electrónico',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 hintText: 'john@example.com',
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                label: 'Password',
+                label: 'Contraseña',
                 controller: _passwordController,
                 obscureText: true,
                 hintText: '••••••••',
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: _isLoading ? 'Sign In...' : 'Sign In',
+                text: _isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión',
                 onPressed: _isLoading ? () {} : _handleLogin,
               ),
               const SizedBox(height: 24),
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      'OR',
+                      'O',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -189,14 +189,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: _isLoading ? 'Loading...' : 'Continue with Google',
+                text: _isLoading ? 'Cargando...' : 'Continuar con Google',
                 onPressed: _isLoading ? () {} : _handleGoogleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.google,
               ),
               const SizedBox(height: 16),
               CustomButton(
-                text: _isLoading ? 'Loading...' : 'Continue with Apple',
+                text: _isLoading ? 'Cargando...' : 'Continuar con Apple',
                 onPressed: _isLoading ? () {} : _handleAppleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.apple,
@@ -212,11 +212,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: RichText(
                     text: TextSpan(
-                      text: "Don't have an account? ",
+                      text: "¿No tienes cuenta? ",
                       style: Theme.of(context).textTheme.bodyMedium,
                       children: [
                         TextSpan(
-                          text: 'Sign up',
+                          text: 'Regístrate',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.primary,
                                 fontWeight: FontWeight.bold,

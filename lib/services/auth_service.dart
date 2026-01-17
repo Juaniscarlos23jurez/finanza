@@ -180,6 +180,29 @@ class AuthService {
     return prefs.getString('auth_token');
   }
 
+  Future<Map<String, dynamic>> deleteAccount() async {
+    try {
+      final token = await getToken();
+      if (token != null) {
+        await _dio.post(
+          '$baseUrl/delete',
+          options: Options(
+            headers: {'Authorization': 'Bearer $token'},
+          ),
+        );
+      }
+      
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      return {'success': true};
+    } catch (e) {
+      // Even if API fails, we clear local session for safety
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      return {'success': false, 'message': _handleError(e)};
+    }
+  }
+
   Future<Map<String, dynamic>> logout() async {
     try {
       final token = await getToken();
@@ -200,6 +223,43 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       return {'success': true, 'warning': _handleError(e)};
+    }
+  }
+
+  Future<Map<String, dynamic>> sendFeedback({
+    required String type,
+    String? subject,
+    required String message,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': 'No hay token de autenticación'};
+      }
+
+      final formData = FormData.fromMap({
+        'type': type,
+        if (subject != null) 'subject': subject,
+        'message': message,
+      });
+
+      final response = await _dio.post(
+        '$baseUrl/feedback',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': response.data['message'] ?? 'Feedback enviado correctamente'};
+      }
+      return {'success': false, 'message': 'Fallo al enviar el feedback'};
+    } catch (e) {
+      return {'success': false, 'message': _handleError(e)};
     }
   }
 

@@ -195,4 +195,29 @@ class FinanceService {
       throw Exception('Error creating goal: $e');
     }
   }
+
+  Future<Map<String, dynamic>> requestReport(String email) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      final response = await _dio.post(
+        '${AuthService.baseUrl}/finance/report',
+        data: {'email': email},
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      return response.data;
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(e.response?.data['message'] ?? 'Error al solicitar el reporte');
+      }
+      throw Exception('Error al solicitar el reporte: $e');
+    }
+  }
 }
