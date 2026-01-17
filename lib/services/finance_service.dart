@@ -140,7 +140,36 @@ class FinanceService {
 
       return response.data;
     } catch (e) {
-       // Return empty list on error to not break UI if endpoint is not ready
+      if (e is DioException) {
+         // Log error but return empty list to be safe
+         // debugPrint('Error fetching goals: ${e.response?.data}');
+      }
       return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> createGoal(Map<String, dynamic> data) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      final response = await _dio.post(
+        '$_baseUrl/goals',
+        data: data,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      return response.data;
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(e.response?.data['message'] ?? 'Error creating goal');
+      }
+      throw Exception('Error creating goal: $e');
     }
   }

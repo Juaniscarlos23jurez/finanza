@@ -98,7 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 32),
                     _buildBalanceCard(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Tus Metas'),
+                    _buildSectionTitle('Tus Metas', onAdd: _showAddGoalDialog),
                     const SizedBox(height: 16),
                     _buildGoalsList(),
                     const SizedBox(height: 32),
@@ -239,17 +239,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, {VoidCallback? onAdd}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: GoogleFonts.manrope(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.primary,
-          ),
+        Row(
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.manrope(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primary,
+              ),
+            ),
+            if (onAdd != null) ...[
+              const SizedBox(width: 12),
+              InkWell(
+                onTap: onAdd,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.add, size: 20, color: AppTheme.primary),
+                ),
+              ),
+            ],
+          ],
         ),
         Text(
           'Ver todo',
@@ -260,6 +279,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showAddGoalDialog() {
+    final titleController = TextEditingController();
+    final amountController = TextEditingController();
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Nueva Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Nombre de la meta (ej. Viaje)'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(labelText: 'Monto objetivo (\$)', prefixText: '\$'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: isSaving ? null : () async {
+                final double? amount = double.tryParse(amountController.text);
+                if (titleController.text.isEmpty || amount == null) return;
+
+                setDialogState(() => isSaving = true);
+                
+                try {
+                  await _financeService.createGoal({
+                    'title': titleController.text,
+                    'target_amount': amount,
+                    'current_amount': 0,
+                    'deadline': DateTime.now().add(const Duration(days: 90)).toIso8601String().split('T')[0],
+                  });
+                  if (mounted) Navigator.pop(context);
+                  _fetchFinanceData(); // Refresh UI
+                } catch (e) {
+                  setDialogState(() => isSaving = false);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              },
+              child: isSaving 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
+                : const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
