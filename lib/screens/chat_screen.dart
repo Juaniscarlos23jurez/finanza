@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../theme/app_theme.dart';
 import '../models/message_model.dart';
 import '../services/finance_service.dart';
@@ -21,11 +22,67 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _currentConversationId;
   bool _isTyping = false;
   final ScrollController _scrollController = ScrollController();
+  
+  // Speech to text
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
+  bool _speechAvailable = false;
 
   @override
   void initState() {
     super.initState();
     _currentConversationId = widget.conversationId;
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechAvailable = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          if (mounted) setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() => _isListening = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error de voz: ${error.errorMsg}')),
+          );
+        }
+      },
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _toggleListening() async {
+    if (!_speechAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reconocimiento de voz no disponible')),
+      );
+      return;
+    }
+
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+    } else {
+      setState(() => _isListening = true);
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            _messageController.text = result.recognizedWords;
+          });
+          // Si es el resultado final y hay texto, enviamos automáticamente
+          if (result.finalResult && result.recognizedWords.isNotEmpty) {
+            _handleSend();
+          }
+        },
+        localeId: 'es_MX', // Español México
+        listenMode: stt.ListenMode.confirmation,
+        cancelOnError: true,
+        partialResults: true,
+      );
+    }
   }
 
   Future<void> _handleSend() async {
@@ -206,8 +263,11 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
                 borderRadius: BorderRadius.circular(28),
+                border: _isListening 
+                    ? Border.all(color: AppTheme.primary, width: 2)
+                    : null,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -218,26 +278,30 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline, color: AppTheme.secondary),
-                    onPressed: () {},
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _messageController,
                       onSubmitted: (_) => _handleSend(),
                       decoration: InputDecoration(
-                        hintText: "Escribe algo...",
-                        hintStyle: GoogleFonts.manrope(color: AppTheme.secondary),
+                        hintText: _isListening 
+                            ? "Escuchando..." 
+                            : "Pregunta sobre tus finanzas...",
+                        hintStyle: GoogleFonts.manrope(
+                          color: _isListening ? AppTheme.primary : AppTheme.secondary,
+                          fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
+                        ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.mic_none_outlined, color: AppTheme.secondary),
-                    onPressed: () {},
+                    icon: Icon(
+                      _isListening ? Icons.mic : Icons.mic_none_outlined,
+                      color: _isListening ? Colors.red : AppTheme.secondary,
+                    ),
+                    onPressed: _toggleListening,
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -248,13 +312,17 @@ class _ChatScreenState extends State<ChatScreen> {
           Container(
             height: 56,
             width: 56,
-            decoration: const BoxDecoration(
-              color: AppTheme.primary,
+            decoration: BoxDecoration(
+              color: _isListening ? Colors.red : AppTheme.primary,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-              onPressed: _handleSend,
+              icon: Icon(
+                _isListening ? Icons.stop_rounded : Icons.send_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: _isListening ? _toggleListening : _handleSend,
             ),
           ),
         ],

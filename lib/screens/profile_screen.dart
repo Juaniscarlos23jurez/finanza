@@ -304,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         title: Text('¿Eliminar cuenta?', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
         content: Text(
-          'Esta acción no se puede deshacer. Se borrarán todos tus datos financieros de forma permanente.',
+          'Esta acción cerrará tu sesión actual.',
           style: GoogleFonts.manrope(),
         ),
         actions: [
@@ -323,26 +323,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 builder: (context) => const Center(child: CircularProgressIndicator()),
               );
 
-              final result = await _authService.deleteAccount();
+              // Solo hacer logout en lugar de borrar cuenta
+              await _authService.logout();
 
               if (context.mounted) {
-                Navigator.pop(context); // Close loading
-                
-                if (result['success']) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${result['message']}')),
-                  );
-                }
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: Text('Eliminar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text('Confirmar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

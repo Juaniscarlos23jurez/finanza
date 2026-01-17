@@ -31,15 +31,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _goals = [];
   List<dynamic> _recentTransactions = [];
   List<FlSpot> _balanceHistory = [];
+  String _userName = '';
 
   @override
   void initState() {
     super.initState();
     _fetchFinanceData();
+    _fetchUserProfile();
     _requestNotificationPermissionAndSaveFCM();
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchFinanceData();
     });
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final result = await _authService.getProfile();
+      if (result['success'] == true && result['data'] != null) {
+        final data = result['data'];
+        if (mounted) {
+          setState(() {
+            _userName = data['name'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+    }
   }
 
   @override
@@ -408,44 +426,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ... (Keep existing methods: _buildHeader, _buildBalanceCard, _buildSectionTitle, _showAddGoalDialog, _buildGoalsList, _buildGoalCard, _buildCategoryChart, _buildCategoryItem) ...
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hola, Juan', // Could fetch from profile if desired
-              style: GoogleFonts.manrope(
-                fontSize: 14,
-                color: AppTheme.secondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              'Panel de Control',
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                color: AppTheme.primary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-              )
-            ],
+        Text(
+          _userName.isNotEmpty ? 'Hola, $_userName' : 'Hola',
+          style: GoogleFonts.manrope(
+            fontSize: 14,
+            color: AppTheme.secondary,
+            fontWeight: FontWeight.w600,
           ),
-          child: const Icon(Icons.notifications_none_rounded),
+        ),
+        Text(
+          'Panel de Control',
+          style: GoogleFonts.manrope(
+            fontSize: 24,
+            color: AppTheme.primary,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ],
     );
