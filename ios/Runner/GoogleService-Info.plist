@@ -3,21 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>518436904271-mpkvca3d6eul2a9vqklck903pgh7enau.apps.googleusercontent.com</string>
+	<string>680910624455-ocvhpht9jrmvmk0h9hv654vh5rb21cql.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.518436904271-mpkvca3d6eul2a9vqklck903pgh7enau</string>
+	<string>com.googleusercontent.apps.680910624455-ocvhpht9jrmvmk0h9hv654vh5rb21cql</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>680910624455-4g767vqt5saqlvhbf58dmoc7j4q1nvmv.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAL_XqxDsMcT9ZhrIhFJoea_H205XyOrbE</string>
+	<string>AIzaSyDDXaaEUf-X6YAInFDRU3ih3lKY39KYyJE</string>
 	<key>GCM_SENDER_ID</key>
-	<string>518436904271</string>
+	<string>680910624455</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.fynlink.finanzas</string>
 	<key>PROJECT_ID</key>
-	<string>finansas-mvapq7</string>
+	<string>menushenu-2828b</string>
 	<key>STORAGE_BUCKET</key>
-	<string>finansas-mvapq7.firebasestorage.app</string>
+	<string>menushenu-2828b.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,8 +31,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:518436904271:ios:b71de5b89f63890194b93a</string>
+	<string>1:680910624455:ios:bef1aab8edde4c244810e2</string>
 	<key>DATABASE_URL</key>
-	<string>https://finansas-mvapq7-default-rtdb.firebaseio.com</string>
+	<string>https://menushenu-2828b-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>

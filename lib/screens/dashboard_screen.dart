@@ -1,38 +1,119 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../services/finance_service.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final FinanceService _financeService = FinanceService();
+  bool _isLoading = true;
+  Map<String, dynamic> _summary = {
+    'total_income': 0.0,
+    'total_expense': 0.0,
+    'total_cost': 0.0,
+  };
+  Map<String, double> _categoryStats = {};
+
+  List<dynamic> _goals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFinanceData();
+  }
+
+  Future<void> _fetchFinanceData() async {
+    try {
+      final futures = await Future.wait([
+        _financeService.getFinanceData(),
+        _financeService.getGoals(),
+      ]);
+
+      final data = futures[0] as Map<String, dynamic>;
+      final goals = futures[1] as List<dynamic>;
+
+      final summary = data['summary'] as Map<String, dynamic>;
+      final records = data['records'] as List<dynamic>;
+
+      // Calculate category stats client-side
+      final Map<String, double> stats = {};
+      double totalExpense = 0.0;
+
+      for (var record in records) {
+        if (record['type'] == 'expense') {
+          final double amount = double.tryParse(record['amount'].toString()) ?? 0.0;
+          final String category = record['category'] ?? 'General';
+          
+          stats[category] = (stats[category] ?? 0.0) + amount;
+          totalExpense += amount;
+        }
+      }
+
+      if (totalExpense > 0) {
+        stats.updateAll((key, value) => (value / totalExpense) * 100);
+      }
+
+      if (mounted) {
+        setState(() {
+          _summary = summary;
+          _categoryStats = stats;
+          _goals = goals;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        // Silently fail for now or show snackbar
+        debugPrint('Error loading dashboard data: $e');
+      }
+    }
+  }
+
+  double get _totalBalance => 
+    (_summary['total_income'] ?? 0.0) - (_summary['total_expense'] ?? 0.0);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 32),
-              _buildBalanceCard(),
-              const SizedBox(height: 32),
-              _buildSectionTitle('Tus Metas'),
-              const SizedBox(height: 16),
-              _buildGoalsList(),
-              const SizedBox(height: 32),
-              _buildSectionTitle('Gastos por Categoría'),
-              const SizedBox(height: 16),
-              _buildCategoryChart(),
-            ],
-          ),
-        ),
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          : RefreshIndicator(
+              onRefresh: _fetchFinanceData,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 32),
+                    _buildBalanceCard(),
+                    const SizedBox(height: 32),
+                    _buildSectionTitle('Tus Metas'),
+                    const SizedBox(height: 16),
+                    _buildGoalsList(),
+                    const SizedBox(height: 32),
+                    _buildSectionTitle('Gastos por Categoría'),
+                    const SizedBox(height: 16),
+                    _buildCategoryChart(),
+                  ],
+                ),
+              ),
+            ),
       ),
     );
   }
 
+  // ... (Header and BalanceCard remain the same) ...
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -41,7 +122,7 @@ class DashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hola, Juan',
+              'Hola, Juan', // Could fetch from profile if desired
               style: GoogleFonts.manrope(
                 fontSize: 14,
                 color: AppTheme.secondary,
@@ -106,7 +187,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '\$12,450.00',
+            '\$${_totalBalance.toStringAsFixed(2)}',
             style: GoogleFonts.manrope(
               fontSize: 36,
               color: Colors.white,
@@ -116,9 +197,17 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildMiniStat('Ingresos', '+\$4,200', Colors.greenAccent),
+              _buildMiniStat(
+                'Ingresos', 
+                '+\$${(_summary['total_income'] ?? 0).toStringAsFixed(0)}', 
+                Colors.greenAccent
+              ),
               const SizedBox(width: 32),
-              _buildMiniStat('Egresos', '-\$1,840', Colors.redAccent),
+              _buildMiniStat(
+                'Egresos', 
+                '-\$${(_summary['total_expense'] ?? 0).toStringAsFixed(0)}', 
+                Colors.redAccent
+              ),
             ],
           ),
         ],
@@ -174,15 +263,43 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+
   Widget _buildGoalsList() {
+    if (_goals.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Center(
+          child: Text(
+            'No tienes metas activas',
+            style: GoogleFonts.manrope(color: AppTheme.secondary),
+          ),
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: [
-          _buildGoalCard('Viaje Japón', 0.65, '\$3,250 / \$5,000'),
-          const SizedBox(width: 16),
-          _buildGoalCard('MacBook Pro', 0.40, '\$800 / \$2,000'),
-        ],
+        children: _goals.map((goal) {
+          final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
+          final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
+          final double progress = (current / target).clamp(0.0, 1.0);
+          final String title = goal['title'] ?? 'Meta';
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _buildGoalCard(
+              title, 
+              progress, 
+              '\$${current.toStringAsFixed(0)} / \$${target.toStringAsFixed(0)}'
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -229,6 +346,34 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryChart() {
+    if (_categoryStats.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Center(
+          child: Text(
+            'No hay gastos registrados',
+            style: GoogleFonts.manrope(color: AppTheme.secondary),
+          ),
+        ),
+      );
+    }
+
+    // Sort categories by percentage descending
+    var sortedEntries = _categoryStats.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    
+    // Take top 3 for display
+    if (sortedEntries.length > 3) {
+      sortedEntries = sortedEntries.sublist(0, 3);
+    }
+
+    final topCategory = sortedEntries.isNotEmpty ? sortedEntries.first : null;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -245,16 +390,27 @@ class DashboardScreen extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: AppTheme.primary, width: 10),
             ),
-            child: const Center(child: Text('70%')),
+            // Show percentage of the top category
+            child: Center(
+              child: Text(
+                '${topCategory?.value.toStringAsFixed(0)}%',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
           const SizedBox(width: 24),
           Expanded(
             child: Column(
-              children: [
-                _buildCategoryItem('Comida', '35%', Colors.orange),
-                _buildCategoryItem('Renta', '25%', Colors.blue),
-                _buildCategoryItem('Ocio', '10%', Colors.purple),
-              ],
+              children: sortedEntries.map((e) {
+                // Assign simplified colors for now
+                Color color = Colors.grey;
+                if (e.key.toLowerCase().contains('comida')) color = Colors.orange;
+                else if (e.key.toLowerCase().contains('renta')) color = Colors.blue;
+                else if (e.key.toLowerCase().contains('ocio')) color = Colors.purple;
+                else color = AppTheme.primary.withValues(alpha: 0.5);
+
+                return _buildCategoryItem(e.key, '${e.value.toStringAsFixed(1)}%', color);
+              }).toList(),
             ),
           )
         ],

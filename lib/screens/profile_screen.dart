@@ -4,47 +4,80 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final AuthService _authService = AuthService();
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    final result = await _authService.getProfile();
+    if (mounted) {
+      setState(() {
+        if (result['success']) {
+          _userData = result['data'];
+        }
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const SizedBox(height: 48),
-              _buildProfileHeader(),
-              const SizedBox(height: 48),
-              _buildMenuSection('CUENTA', [
-                _buildMenuItem(Icons.person_outline_rounded, 'Información Personal'),
-                _buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
-                _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
-              ]),
-              const SizedBox(height: 32),
-              _buildMenuSection('SEGURIDAD', [
-                _buildMenuItem(Icons.lock_outline_rounded, 'Cambiar Contraseña'),
-                _buildMenuItem(Icons.fingerprint_rounded, 'Face ID / Touch ID', hasSwitch: true),
-              ]),
-              const SizedBox(height: 32),
-              _buildMenuSection('OTRO', [
-                _buildMenuItem(Icons.help_outline_rounded, 'Ayuda y Soporte'),
-                _buildMenuItem(Icons.info_outline_rounded, 'Términos y Condiciones'),
-              ]),
-              const SizedBox(height: 48),
-              _buildLogoutButton(context),
-              const SizedBox(height: 48),
-            ],
-          ),
-        ),
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 48),
+                  _buildProfileHeader(),
+                  const SizedBox(height: 48),
+                  _buildMenuSection('CUENTA', [
+                    _buildMenuItem(Icons.person_outline_rounded, 'Información Personal'),
+                    _buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
+                    _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
+                  ]),
+                  const SizedBox(height: 32),
+                  _buildMenuSection('SEGURIDAD', [
+                    _buildMenuItem(Icons.lock_outline_rounded, 'Cambiar Contraseña'),
+                    _buildMenuItem(Icons.fingerprint_rounded, 'Face ID / Touch ID', hasSwitch: true),
+                  ]),
+                  const SizedBox(height: 32),
+                  _buildMenuSection('OTRO', [
+                    _buildMenuItem(Icons.help_outline_rounded, 'Ayuda y Soporte'),
+                    _buildMenuItem(Icons.info_outline_rounded, 'Términos y Condiciones'),
+                  ]),
+                  const SizedBox(height: 48),
+                  _buildLogoutButton(context),
+                  const SizedBox(height: 48),
+                ],
+              ),
+            ),
       ),
     );
   }
 
   Widget _buildProfileHeader() {
+    final name = _userData?['name'] ?? 'Usuario';
+    final email = _userData?['email'] ?? 'email@ejemplo.com';
+    final photoUrl = _userData?['photo_url'];
+
     return Column(
       children: [
         Stack(
@@ -62,8 +95,12 @@ class ProfileScreen extends StatelessWidget {
                   )
                 ],
               ),
-              child: const Center(
-                child: Icon(Icons.person_rounded, size: 60, color: AppTheme.primary),
+              child: ClipOval(
+                child: photoUrl != null
+                    ? Image.network(photoUrl, fit: BoxFit.cover)
+                    : const Center(
+                        child: Icon(Icons.person_rounded, size: 60, color: AppTheme.primary),
+                      ),
               ),
             ),
             Positioned(
@@ -82,7 +119,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Juan Pérez',
+          name,
           style: GoogleFonts.manrope(
             fontSize: 24,
             fontWeight: FontWeight.w900,
@@ -90,7 +127,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         Text(
-          'juan.perez@email.com',
+          email,
           style: GoogleFonts.manrope(
             fontSize: 14,
             color: AppTheme.secondary,
@@ -178,8 +215,7 @@ class ProfileScreen extends StatelessWidget {
             builder: (context) => const Center(child: CircularProgressIndicator()),
           );
 
-          final authService = AuthService();
-          await authService.logout();
+          await _authService.logout();
 
           if (context.mounted) {
             Navigator.pushAndRemoveUntil(

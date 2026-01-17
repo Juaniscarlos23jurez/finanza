@@ -92,20 +92,30 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleAppleSignIn() async {
+    debugPrint('Step 1: Apple Button Pressed');
     setState(() => _isLoading = true);
     try {
+      debugPrint('Step 2: Starting Apple Auth Provider Flow');
       final appleProvider = AppleAuthProvider();
       final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
+      
+      debugPrint('Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}');
       final String? idToken = await userCredential.user?.getIdToken();
+      debugPrint('Step 4: Firebase idToken extracted (length: ${idToken?.length})');
 
       if (idToken != null) {
+        debugPrint('Step 5: Sending Apple idToken to Laravel Backend');
         final result = await _authService.loginWithFirebaseIdToken(
           idToken: idToken,
           provider: 'apple.com',
         );
+        debugPrint('Step 6: Backend Result Success: ${result['success']}');
         _processAuthResult(result);
+      } else {
+        debugPrint('Error: Apple idToken is NULL');
       }
     } catch (e) {
+      debugPrint('CRITICAL ERROR during Apple Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error con Apple: $e')),

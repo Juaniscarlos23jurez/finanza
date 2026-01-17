@@ -16,6 +16,9 @@ class AuthService {
     required String provider,
   }) async {
     try {
+      debugPrint('AuthService: Requesting social login to $baseUrl/login');
+      debugPrint('AuthService: Payload: idToken: ${idToken.substring(0, 20)}..., provider: $provider');
+      
       final response = await _dio.post(
         '$baseUrl/login',
         data: {
@@ -25,6 +28,9 @@ class AuthService {
         },
       );
       
+      debugPrint('AuthService: Response Status: ${response.statusCode}');
+      debugPrint('AuthService: Response Data: ${response.data}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
@@ -33,8 +39,12 @@ class AuthService {
         }
         return {'success': true, 'data': data};
       }
-      return {'success': false, 'message': 'Fallo la autenticación social'};
+      return {'success': false, 'message': 'Fallo la autenticación social: ${response.data}'};
     } catch (e) {
+      if (e is DioException) {
+        debugPrint('AuthService: Dio Error Status: ${e.response?.statusCode}');
+        debugPrint('AuthService: Dio Error Data: ${e.response?.data}');
+      }
       return {'success': false, 'message': _handleError(e)};
     }
   }
@@ -95,6 +105,33 @@ class AuthService {
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': 'No hay token de autenticación'};
+      }
+
+      final response = await _dio.get(
+        '$baseUrl/profile',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data['data'] ?? response.data;
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'message': 'Fallo al obtener el perfil'};
+    } catch (e) {
+      return {'success': false, 'message': _handleError(e)};
+    }
   }
 
   Future<String?> getToken() async {
