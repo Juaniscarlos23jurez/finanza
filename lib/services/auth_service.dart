@@ -34,8 +34,12 @@ class AuthService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
+        final user = data['user'];
         if (token != null) {
           await _saveToken(token);
+        }
+        if (user != null) {
+          await _saveUser(user);
         }
         return {'success': true, 'data': data};
       }
@@ -62,8 +66,12 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
+        final user = data['user'];
         if (token != null) {
           await _saveToken(token);
+        }
+        if (user != null) {
+          await _saveUser(user);
         }
         return {'success': true, 'data': data};
       }
@@ -91,8 +99,12 @@ class AuthService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
+        final user = data['user'];
         if (token != null) {
           await _saveToken(token);
+        }
+        if (user != null) {
+          await _saveUser(user);
         }
         return {'success': true, 'data': data};
       }
@@ -105,6 +117,33 @@ class AuthService {
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+  }
+
+  Future<void> _saveUser(Map<String, dynamic> user) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (user['id'] != null) {
+      await prefs.setString('user_id', user['id'].toString());
+    }
+    if (user['name'] != null) {
+      await prefs.setString('user_name', user['name']);
+    }
+  }
+
+  Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('user_id');
+    // If no ID locally, try fetching profile (fallback)
+    if (id == null) {
+      try {
+        final profile = await getProfile();
+        if (profile['success'] == true) {
+          final user = profile['data'];
+          await _saveUser(user as Map<String, dynamic>); // Cast safely if possible
+          return user['id'].toString();
+        }
+      } catch (_) {}
+    }
+    return id;
   }
 
   Future<Map<String, dynamic>> getProfile() async {
@@ -126,6 +165,8 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data['data'] ?? response.data;
+        // Optionally update cache here too
+        if (data != null) _saveUser(data);
         return {'success': true, 'data': data};
       }
       return {'success': false, 'message': 'Fallo al obtener el perfil'};
@@ -152,12 +193,12 @@ class AuthService {
       }
       
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('auth_token');
+      await prefs.clear(); // Clear all (token, user_id, etc.)
       return {'success': true};
     } catch (e) {
       // Even if the API fails (e.g. token already expired), we clear local prefs
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('auth_token');
+      await prefs.clear();
       return {'success': true, 'warning': _handleError(e)};
     }
   }
