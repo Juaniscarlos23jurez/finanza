@@ -1,13 +1,15 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_theme.dart';
 import '../models/message_model.dart';
-import '../services/ai_service.dart';
 import '../services/finance_service.dart';
+import '../services/chat_service.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String? conversationId;
+  const ChatScreen({super.key, this.conversationId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -15,20 +17,15 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final AiService _aiService = AiService();
-  final List<Message> _messages = [];
+  final ChatService _chatService = ChatService();
+  String? _currentConversationId;
   bool _isTyping = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _messages.add(
-      Message(
-        text: "Hola! Soy tu asistente financiero inteligente. ¿En qué puedo ayudarte hoy?",
-        isAi: true,
-        timestamp: DateTime.now(),
-      ),
-    );
+    _currentConversationId = widget.conversationId;
   }
 
   Future<void> _handleSend() async {
@@ -36,23 +33,33 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     _messageController.clear();
-    setState(() {
-      _messages.add(Message(text: text, isAi: false, timestamp: DateTime.now()));
-      _isTyping = true;
-    });
+    setState(() => _isTyping = true);
 
-    final aiResponse = await _aiService.sendMessage(text);
-
-    setState(() {
-      _messages.add(aiResponse);
-      _isTyping = false;
-    });
+    try {
+      await _chatService.sendMessage(
+        conversationId: _currentConversationId,
+        text: text,
+        onConversationCreated: (newId) {
+          setState(() => _currentConversationId = newId);
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isTyping = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const HistoryDrawer(),
+      drawer: HistoryDrawer(
+        onChatSelected: (id) {
+          setState(() => _currentConversationId = id);
+        },
+      ),
       body: Container(
         decoration: const BoxDecoration(
           color: AppTheme.background,
@@ -62,25 +69,99 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               _buildHeader(),
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                  itemCount: _messages.length + (_isTyping ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == _messages.length) {
-                      return const Padding(
-                        padding: EdgeInsets.only(bottom: 24),
-                        child: Text('AI is thinking...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
-                      );
-                    }
-                    final message = _messages[index];
-                    return ChatMessageWidget(message: message);
-                  },
-                ),
+                child: _currentConversationId == null
+                    ? _buildWelcomeMessage()
+                    : StreamBuilder<DatabaseEvent>(
+                        stream: _chatService.getMessages(_currentConversationId!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          }
+
+                          if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
+                             if (snapshot.connectionState == ConnectionState.waiting) {
+                               return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+                             }
+                             return const SizedBox(); 
+                          }
+
+                          final data = snapshot.data!.snapshot.value;
+                          final List<Message> messages = [];
+                          
+                          if (data is Map) {
+                             data.forEach((key, value) {
+                               final map = value as Map<dynamic, dynamic>;
+                               messages.add(_chatService.fromRealtimeDB(map));
+                             });
+                          } else if (data is List) {
+                            for (var item in data) {
+                              if (item != null) {
+                                messages.add(_chatService.fromRealtimeDB(item as Map<dynamic, dynamic>));
+                              }
+                            }
+                          }
+                          
+                          messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) { 
+                             if (_scrollController.hasClients) {
+                               _scrollController.animateTo(
+                                 _scrollController.position.maxScrollExtent,
+                                 duration: const Duration(milliseconds: 300),
+                                 curve: Curves.easeOut,
+                               );
+                             }
+                          });
+
+                          return ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                            itemCount: messages.length + (_isTyping ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == messages.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(bottom: 24),
+                                  child: Text('AI is thinking...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
+                                );
+                              }
+                              return ChatMessageWidget(message: messages[index]);
+                            },
+                          );
+                        },
+                      ),
               ),
               _buildInputArea(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeMessage() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(FontAwesomeIcons.robot, size: 40, color: AppTheme.primary),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Hola! Soy tu asistente financiero.',
+            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Inicia una conversación para comenzar.',
+            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
+          ),
+        ],
       ),
     );
   }
@@ -107,8 +188,10 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert_rounded, color: AppTheme.primary),
-            onPressed: () {},
+            icon: const Icon(Icons.add_rounded, color: AppTheme.primary),
+            onPressed: () {
+               setState(() => _currentConversationId = null);
+            },
           ),
         ],
       ),
@@ -193,16 +276,16 @@ class ChatMessageWidget extends StatefulWidget {
 class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   bool _isSaving = false;
   bool _isSaved = false;
+  final FinanceService _financeService = FinanceService();
 
   Future<void> _saveTransaction(Map<String, dynamic> data) async {
     setState(() => _isSaving = true);
     
     try {
-      final financeService = FinanceService();
       final bool isExpense = data['is_expense'] ?? true;
       
-      await financeService.createRecord({
-        'amount': (data['amount'] as num).toDouble(),
+      await _financeService.createRecord({
+        'amount': double.tryParse(data['amount'].toString()) ?? 0.0,
         'category': data['category'] ?? 'General',
         'type': isExpense ? 'expense' : 'income',
         'date': DateTime.now().toIso8601String().split('T')[0],
@@ -365,6 +448,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               children: [
                 Expanded(flex: 2, child: Text('Concepto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary))),
                 Expanded(child: Text('Monto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+                Expanded(child: Text('Resultó', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
                 Expanded(child: Text('Impacto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
               ],
             ),
@@ -372,7 +456,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           const SizedBox(height: 8),
           ...items.take(5).map((item) {
             final bool isExpense = item['is_expense'] ?? true;
-            final double amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
+            final double amount = double.tryParse(item['amount'].toString()) ?? 0.0;
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               child: Row(
@@ -395,10 +479,17 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     ),
                   ),
                   Expanded(
+                    child: Text(
+                      '\$${(double.tryParse(item['balance']?.toString() ?? '') ?? 0.0).toStringAsFixed(0)}',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primary),
+                    ),
+                  ),
+                  Expanded(
                     child: Container(
                       alignment: Alignment.centerRight,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                         decoration: BoxDecoration(
                           color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -406,7 +497,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                         child: Text(
                           isExpense ? 'Baja 📉' : 'Sube 📈',
                           style: GoogleFonts.manrope(
-                            fontSize: 10, 
+                            fontSize: 9, 
                             fontWeight: FontWeight.bold,
                             color: isExpense ? Colors.red : Colors.green
                           ),
@@ -419,7 +510,27 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             );
           }),
           if (items.isEmpty)
-             Center(child: Text('Sin datos recientes', style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary))),
+             Center(child: Text('Sin datos recientes', style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
+          else ...[
+            const Divider(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Balance Resultante',
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.secondary),
+                ),
+                Text(
+                  '\$${(double.tryParse(data['total_balance']?.toString() ?? '') ?? double.tryParse(data['balance']?.toString() ?? '') ?? 0.0).toStringAsFixed(2)}',
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 18, 
+                    color: AppTheme.primary
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -525,18 +636,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           ),
           IconButton(
             onPressed: () {
-              // Hacky navigation to tab 2 (Transactions)
-              // Ideally use a provider or callback. For now, assume MainScreen is parent or we can push replacement.
-              // Actually, simply popping/switching tab is hard from here without context of MainScreen.
-              // Solution: We'll show a snackbar saying "Ve a la pestaña Movimientos" or try to find ancestor.
-              // Let's standard navigation for now.
-              // BETTER: We are in a chat screen which is likely a tab. 
-              // If we are in MainScreen indexed stack, we can't easily switch tabs from here without a callback.
-              // For this MVP, let's just tell user.
-              // WAIT: The design says "ChartTrigger". 
-              // Let's implement a simple "Navigate" if we can, else just a visual indicator.
-              // Assuming standard Flutter, if ChatScreen is inside MainScreen, we need a way to reach MainScreenState.
-              // Let's skip the complex navigation logic for now and just show a message or generic action.
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ve a la pestaña "Movimientos" para ver los gráficos.')));
             },
             style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppTheme.primary),
@@ -553,7 +652,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       final financeService = FinanceService();
       await financeService.createGoal({
         'title': data['title'],
-        'target_amount': (data['target_amount'] as num).toDouble(),
+        'target_amount': double.tryParse(data['target_amount'].toString()) ?? 0.0,
         'target_date': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0], // Default 30 days
         'current_amount': 0.0,
         'status': 'active',
@@ -581,7 +680,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   Widget _buildTransactionCard(Map<String, dynamic> data) {
     final bool isExpense = data['is_expense'] ?? true;
-    final double amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+    final double amount = double.tryParse(data['amount'].toString()) ?? 0.0;
     final String category = data['category'] ?? 'General';
     final String description = data['description'] ?? 'Transacción';
 
@@ -691,9 +790,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Widget _buildBalanceCard(Map<String, dynamic> data) {
-    final double total = (data['total'] as num?)?.toDouble() ?? 0.0;
-    final double income = (data['income'] as num?)?.toDouble() ?? 0.0;
-    final double expenses = (data['expenses'] as num?)?.toDouble() ?? 0.0;
+    final double total = double.tryParse(data['total'].toString()) ?? 0.0;
+    final double income = double.tryParse(data['income'].toString()) ?? 0.0;
+    final double expenses = double.tryParse(data['expenses'].toString()) ?? 0.0;
 
     return Container(
       width: double.infinity,
@@ -735,10 +834,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 }
 
 class HistoryDrawer extends StatelessWidget {
-  const HistoryDrawer({super.key});
+  final Function(String?) onChatSelected;
+  const HistoryDrawer({super.key, required this.onChatSelected});
 
   @override
   Widget build(BuildContext context) {
+    final ChatService chatService = ChatService();
+    // Assuming context is sufficient for Theme and MediaQuery, and we can instantiate ChatService safely.
+
     return Drawer(
       backgroundColor: AppTheme.background,
       elevation: 0,
@@ -759,15 +862,65 @@ class HistoryDrawer extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              _buildHistoryItem('Análisis de Gastos', 'Hoy, 10:45 AM'),
-              _buildHistoryItem('Presupuesto Viaje', 'Ayer, 8:20 PM'),
-              _buildHistoryItem('Meta de Ahorros', '22 Feb, 2:15 PM'),
-              _buildHistoryItem('Inversiones Tesla', '20 Feb, 11:00 AM'),
-              const Spacer(),
+              Expanded(
+                child: StreamBuilder<DatabaseEvent>(
+                  stream: chatService.getUserConversations(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error cargando historial', style: GoogleFonts.manrope(color: Colors.red));
+                    }
+                    if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
+                       return const Center(child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2));
+                    }
+                    
+                    final data = snapshot.data!.snapshot.value;
+                    if (data == null || (data is Map && data.isEmpty)) {
+                      return Text('No hay conversaciones guardadas.', style: GoogleFonts.manrope(color: AppTheme.secondary));
+                    }
+
+                    // Convert map to list and sort
+                    final List<MapEntry<dynamic, dynamic>> entries = [];
+                    if (data is Map) {
+                       entries.addAll(data.entries);
+                    }
+                    
+                    entries.sort((a, b) {
+                       final tA = a.value['last_activity'] as int? ?? 0;
+                       final tB = b.value['last_activity'] as int? ?? 0;
+                       return tB.compareTo(tA);
+                    });
+
+                    return ListView.builder(
+                      itemCount: entries.length,
+                      itemBuilder: (context, index) {
+                        final key = entries[index].key;
+                        final value = entries[index].value as Map<dynamic, dynamic>;
+                        
+                        String dateLabel = '';
+                        if (value['last_activity'] is int) {
+                           final dt = DateTime.fromMillisecondsSinceEpoch(value['last_activity'] as int);
+                           dateLabel = '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+                        }
+                        
+                        return GestureDetector(
+                          onTap: () {
+                             Navigator.pop(context); // Close drawer
+                             onChatSelected(key);
+                          },
+                          child: _buildHistoryItem(value['title']?.toString() ?? 'Conversación sin título', dateLabel),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
               CustomDrawerButton(
                 icon: Icons.add_rounded,
                 text: 'Nuevo Chat',
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                   Navigator.pop(context);
+                   onChatSelected(null);
+                },
               ),
               const SizedBox(height: 12),
               CustomDrawerButton(
@@ -801,7 +954,12 @@ class HistoryDrawer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(
+                  title, 
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 Text(date, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 11)),
               ],
             ),

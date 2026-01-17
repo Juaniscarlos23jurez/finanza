@@ -1,40 +1,34 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart'; // For debuPrint
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart'; // For debugPrint
 import '../models/message_model.dart';
 import 'ai_service.dart';
 import 'auth_service.dart';
 
 class ChatService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseDatabase _database = FirebaseDatabase.instance;
   final AuthService _authService = AuthService();
   final AiService _aiService = AiService();
 
-  // Get conversations stream for current user
-  Stream<QuerySnapshot> getUserConversations() async* {
+  // Get conversations stream for current user (Realtime DB)
+  Stream<DatabaseEvent> getUserConversations() async* {
     final userId = await _authService.getUserId();
     if (userId == null) yield* const Stream.empty();
     
-    yield* _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('conversations')
-        .orderBy('last_activity', descending: true)
-        .snapshots();
+    yield* _database
+        .ref('users/$userId/conversations')
+        .orderByChild('last_activity')
+        .onValue;
   }
 
   // Get messages stream for a specific conversation
-  Stream<QuerySnapshot> getMessages(String conversationId) async* {
+  Stream<DatabaseEvent> getMessages(String conversationId) async* {
     final userId = await _authService.getUserId();
     if (userId == null) yield* const Stream.empty();
 
-    yield* _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('conversations')
-        .doc(conversationId)
-        .collection('messages')
-        .orderBy('timestamp', descending: false)
-        .snapshots();
+    yield* _database
+        .ref('users/$userId/conversations/$conversationId/messages')
+        .orderByChild('timestamp')
+        .onValue;
   }
 
   // Create a new conversation
@@ -42,18 +36,17 @@ class ChatService {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
-    final docRef = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('conversations')
-        .add({
+    final conversationsRef = _database.ref('users/$userId/conversations');
+    final newConvRef = conversationsRef.push(); // Generate ID
+
+    await newConvRef.set({
       'title': initialMessage.length > 30 ? '${initialMessage.substring(0, 30)}...' : initialMessage,
-      'createdAt': FieldValue.serverTimestamp(),
-      'last_activity': FieldValue.serverTimestamp(),
+      'createdAt': ServerValue.timestamp,
+      'last_activity': ServerValue.timestamp,
       'last_message': initialMessage,
     });
 
-    return docRef.id;
+    return newConvRef.key!;
   }
 
   // Send a message (User) and trigger AI response
@@ -75,28 +68,22 @@ class ChatService {
       }
     } else {
        // Update last message
-       await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('conversations')
-          .doc(currentConversationId)
+       await _database
+          .ref('users/$userId/conversations/$currentConversationId')
           .update({
-             'last_activity': FieldValue.serverTimestamp(),
+             'last_activity': ServerValue.timestamp,
              'last_message': text,
           });
     }
 
-    final conversationRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('conversations')
-        .doc(currentConversationId);
+    final conversationRef = _database.ref('users/$userId/conversations/$currentConversationId');
+    final messagesRef = conversationRef.child('messages');
 
     // 1. Save User Message
-    await conversationRef.collection('messages').add({
+    await messagesRef.push().set({
       'text': text,
       'is_ai': false,
-      'timestamp': FieldValue.serverTimestamp(),
+      'timestamp': ServerValue.timestamp,
     });
 
     // 2. Get AI Response
@@ -104,35 +91,35 @@ class ChatService {
       final aiMessage = await _aiService.sendMessage(text);
       
       // 3. Save AI Message
-      await conversationRef.collection('messages').add({
+      await messagesRef.push().set({
         'text': aiMessage.text,
         'is_ai': true,
         'is_gen_ui': aiMessage.isGenUI,
-        'data': aiMessage.data,
-        'timestamp': FieldValue.serverTimestamp(),
+        'data': aiMessage.data, // Map<String, dynamic> leads to proper JSON in RTDB
+        'timestamp': ServerValue.timestamp,
       });
       
       // Update last message with AI text
       await conversationRef.update({
-        'last_activity': FieldValue.serverTimestamp(),
+        'last_activity': ServerValue.timestamp,
         'last_message': aiMessage.text,
       });
 
     } catch (e) {
       debugPrint('Error getting AI response: $e');
-      // Optionally save an error message as AI response
     }
   }
   
-  // Create a message object from Firestore doc
-  Message fromFirestore(QueryDocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  // Create a message object from Realtime DB DataSnapshot value (Map)
+  Message fromRealtimeDB(Map<dynamic, dynamic> data) {
     return Message(
-      text: data['text'] ?? '',
-      isAi: data['is_ai'] ?? false,
-      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isGenUI: data['is_gen_ui'] ?? false,
-      data: data['data'],
+      text: data['text']?.toString() ?? '',
+      isAi: data['is_ai'] == true,
+      timestamp: data['timestamp'] != null 
+          ? DateTime.fromMillisecondsSinceEpoch(data['timestamp'] as int) 
+          : DateTime.now(),
+      isGenUI: data['is_gen_ui'] == true,
+      data: data['data'] != null ? Map<String, dynamic>.from(data['data'] as Map) : null,
     );
   }
 }

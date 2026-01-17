@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 
@@ -24,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<dynamic> _goals = [];
   List<dynamic> _recentTransactions = [];
+  List<FlSpot> _balanceHistory = [];
 
   @override
   void initState() {
@@ -79,12 +82,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
         stats.updateAll((key, value) => (value / totalExpense) * 100);
       }
 
+      // Calculate balance history for last 7 days
+      final List<FlSpot> historySpots = [];
+      double runningBalance = (double.tryParse((summary['total_income'] ?? 0).toString()) ?? 0.0) - 
+                             (double.tryParse((summary['total_expense'] ?? 0).toString()) ?? 0.0);
+      
+      // Group all transactions by date (descending)
+      Map<String, double> dailyNet = {};
+      for (var record in records) {
+        String date = (record['date'] ?? '').toString().split('T')[0];
+        if (date.isEmpty) continue;
+        
+        double amount = double.tryParse(record['amount'].toString()) ?? 0.0;
+        if (record['type'] == 'expense') {
+          dailyNet[date] = (dailyNet[date] ?? 0.0) - amount;
+        } else {
+          dailyNet[date] = (dailyNet[date] ?? 0.0) + amount;
+        }
+      }
+
+      // We want today and the previous 6 days
+      DateTime now = DateTime.now();
+      for (int i = 0; i < 7; i++) {
+        DateTime day = now.subtract(Duration(days: i));
+        String dayStr = DateFormat('yyyy-MM-dd').format(day);
+        
+        // Spot X: 6 (today) down to 0 (6 days ago)
+        historySpots.add(FlSpot((6 - i).toDouble(), runningBalance));
+        
+        // Subtract today's net change to get yesterday's balance
+        runningBalance -= (dailyNet[dayStr] ?? 0.0);
+      }
+
       if (mounted) {
         setState(() {
           _summary = summary;
           _categoryStats = stats;
           _goals = goals;
           _recentTransactions = recent;
+          _balanceHistory = historySpots.reversed.toList();
           _isLoading = false;
         });
       }
@@ -97,8 +133,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  double get _totalBalance => 
-    ((_summary['total_income'] ?? 0) as num).toDouble() - ((_summary['total_expense'] ?? 0) as num).toDouble();
+  double get _totalBalance {
+    double balance = (double.tryParse((_summary['total_income'] ?? 0).toString()) ?? 0.0) - (double.tryParse((_summary['total_expense'] ?? 0).toString()) ?? 0.0);
+    return balance;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +156,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildHeader(),
                     const SizedBox(height: 32),
                     _buildBalanceCard(),
+                    const SizedBox(height: 32),
+                    _buildSectionTitle('Movimiento de Balance'),
+                    const SizedBox(height: 16),
+                    _buildHistoryChart(),
                     const SizedBox(height: 32),
                     _buildSectionTitle('Tus Metas', onAdd: _showAddGoalDialog),
                     const SizedBox(height: 16),
@@ -153,6 +195,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Column(
       children: _recentTransactions.map((t) => _buildTransactionItem(t)).toList(),
+    );
+  }
+
+  Widget _buildHistoryChart() {
+    if (_balanceHistory.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 200,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(0, 20, 20, 0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+          )
+        ],
+      ),
+      child: LineChart(
+        LineChartData(
+          gridData: const FlGridData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < 7) {
+                    final date = DateTime.now().subtract(Duration(days: 6 - index));
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        DateFormat('E').format(date).substring(0, 1),
+                        style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: _balanceHistory,
+              isCurved: true,
+              color: AppTheme.primary,
+              barWidth: 4,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [AppTheme.primary.withValues(alpha: 0.2), AppTheme.primary.withValues(alpha: 0.0)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -431,9 +541,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     'current_amount': 0,
                     'deadline': DateTime.now().add(const Duration(days: 90)).toIso8601String().split('T')[0],
                   });
-                  if (mounted) Navigator.pop(context);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
                   _fetchFinanceData(); // Refresh UI
                 } catch (e) {
+                  if (!context.mounted) return;
                   setDialogState(() => isSaving = false);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                 }
@@ -589,10 +701,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: sortedEntries.map((e) {
                 // Assign simplified colors for now
                 Color color = Colors.grey;
-                if (e.key.toLowerCase().contains('comida')) color = Colors.orange;
-                else if (e.key.toLowerCase().contains('renta')) color = Colors.blue;
-                else if (e.key.toLowerCase().contains('ocio')) color = Colors.purple;
-                else color = AppTheme.primary.withValues(alpha: 0.5);
+                if (e.key.toLowerCase().contains('comida')) {
+                  color = Colors.orange;
+                } else if (e.key.toLowerCase().contains('renta')) {
+                  color = Colors.blue;
+                } else if (e.key.toLowerCase().contains('ocio')) {
+                  color = Colors.purple;
+                } else {
+                  color = AppTheme.primary.withValues(alpha: 0.5);
+                }
 
                 return _buildCategoryItem(e.key, '${e.value.toStringAsFixed(1)}%', color);
               }).toList(),

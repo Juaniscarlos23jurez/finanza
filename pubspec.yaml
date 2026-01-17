@@ -58,6 +58,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_dotenv: ^5.1.0
   fl_chart: ^1.1.1
+  firebase_database: ^11.3.10
+  table_calendar: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +89,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
+    - assets/logo.png
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -119,6 +122,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo.png"
+  image_path: "assets/logo.png"
   remove_alpha_ios: true
   min_sdk_android: 21
