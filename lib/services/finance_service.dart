@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart'; // For debugPrint
 import 'auth_service.dart';
@@ -7,6 +8,10 @@ class FinanceService {
   final AuthService _authService = AuthService();
   // Hardcoding for stability as .env seems to be having issues loading on some devices/builds immediately
   final String _baseUrl = 'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth/finance';
+
+  // Stream controller to broadcast data updates to the app
+  static final StreamController<void> _updateController = StreamController<void>.broadcast();
+  Stream<void> get onDataUpdated => _updateController.stream;
 
   Future<Map<String, dynamic>> getFinanceData({
     String? type,
@@ -63,6 +68,7 @@ class FinanceService {
         ),
       );
 
+      _updateController.add(null); // Notify listeners
       return response.data;
     } catch (e) {
       if (e is DioException) {
@@ -90,6 +96,7 @@ class FinanceService {
         ),
       );
 
+      _updateController.add(null); // Notify listeners
       return response.data;
     } catch (e) {
       if (e is DioException) {
@@ -114,6 +121,7 @@ class FinanceService {
           },
         ),
       );
+      _updateController.add(null); // Notify listeners
     } catch (e) {
       if (e is DioException) {
         throw Exception(e.response?.data['message'] ?? 'Error deleting record');
@@ -158,7 +166,7 @@ class FinanceService {
       final token = await _authService.getToken();
       if (token == null) throw Exception('No authentication token found');
 
-      print('DEBUG: Creating goal with data: $data');
+      debugPrint('DEBUG: Creating goal with data: $data');
       // The _baseUrl already ends in /api/client/auth/finance
       // Verify if the goals endpoint is /api/client/auth/finance/goals or what.
       // Based on previous code it was $_baseUrl/goals.
@@ -175,12 +183,13 @@ class FinanceService {
         ),
       );
 
-      print('DEBUG: Create goal response: ${response.data}');
+      debugPrint('DEBUG: Create goal response: ${response.data}');
+      _updateController.add(null); // Notify listeners
       return response.data;
     } catch (e) {
-      print('DEBUG: Error creating goal: $e');
+      debugPrint('DEBUG: Error creating goal: $e');
       if (e is DioException) {
-        print('DEBUG: Create Goal API Error: ${e.response?.data}');
+        debugPrint('DEBUG: Create Goal API Error: ${e.response?.data}');
         throw Exception(e.response?.data['message'] ?? 'Error creating goal');
       }
       throw Exception('Error creating goal: $e');

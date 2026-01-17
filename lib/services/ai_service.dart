@@ -34,6 +34,8 @@ class AiService {
       '{ "type": "transaction", "amount": 100, "category": "General", "is_expense": true, "description": "..." } '
       '4. VER BALANCE: '
       '{ "type": "balance", "total": 1500, "income": 2000, "expenses": 500 } '
+      '5. LISTA DE MOVIMIENTOS (Tabla): '
+      '{ "type": "transaction_list", "items": [ {"date": "Hoy", "description": "Uber", "amount": 15.50, "is_expense": true}, {"date": "Ayer", "description": "Sueldo", "amount": 2000, "is_expense": false} ] } '
     ),
     generationConfig: GenerationConfig(
       temperature: 0.7,

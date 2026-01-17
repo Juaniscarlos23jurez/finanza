@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
@@ -12,6 +13,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final FinanceService _financeService = FinanceService();
+  StreamSubscription? _updateSubscription;
   bool _isLoading = true;
   Map<String, dynamic> _summary = {
     'total_income': 0.0,
@@ -21,11 +23,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, double> _categoryStats = {};
 
   List<dynamic> _goals = [];
+  List<dynamic> _recentTransactions = [];
 
   @override
   void initState() {
     super.initState();
     _fetchFinanceData();
+    _updateSubscription = _financeService.onDataUpdated.listen((_) {
+      _fetchFinanceData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _updateSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchFinanceData() async {
@@ -40,6 +52,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       final summary = data['summary'] as Map<String, dynamic>;
       final records = data['records'] as List<dynamic>;
+
+      // Sort for recent transactions
+      records.sort((a, b) {
+        final dateA = DateTime.tryParse(a['date'] ?? '') ?? DateTime(2000);
+        final dateB = DateTime.tryParse(b['date'] ?? '') ?? DateTime(2000);
+        return dateB.compareTo(dateA);
+      });
+      final recent = records.take(5).toList();
 
       // Calculate category stats client-side
       final Map<String, double> stats = {};
@@ -64,6 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _summary = summary;
           _categoryStats = stats;
           _goals = goals;
+          _recentTransactions = recent;
           _isLoading = false;
         });
       }
@@ -105,6 +126,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildSectionTitle('Gastos por Categoría'),
                     const SizedBox(height: 16),
                     _buildCategoryChart(),
+                    const SizedBox(height: 32),
+                    _buildSectionTitle('Movimientos Recientes'),
+                    const SizedBox(height: 16),
+                    _buildRecentTransactions(),
                   ],
                 ),
               ),
@@ -114,6 +139,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ... (Header and BalanceCard remain the same) ...
+  // ... (Previous methods) ...
+
+  Widget _buildRecentTransactions() {
+    if (_recentTransactions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+        child: Center(child: Text('Sin actividad reciente', style: GoogleFonts.manrope(color: AppTheme.secondary))),
+      );
+    }
+
+    return Column(
+      children: _recentTransactions.map((t) => _buildTransactionItem(t)).toList(),
+    );
+  }
+
+  Widget _buildTransactionItem(Map<String, dynamic> item) {
+    final String title = item['description'] ?? 'Sin descripción';
+    final String category = item['category'] ?? 'General';
+    final double amountVal = double.tryParse(item['amount'].toString()) ?? 0.0;
+    final bool isIncome = item['type'] == 'income';
+    final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
+    
+    // Simple icon logic (reused conceptualy)
+    IconData icon = Icons.attach_money;
+    if (category.toLowerCase().contains('comida')) icon = Icons.restaurant;
+    if (category.toLowerCase().contains('transporte')) icon = Icons.directions_car;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: (isIncome ? Colors.green : AppTheme.primary).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: isIncome ? Colors.green : AppTheme.primary, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(
+                  item['date'] ?? '',
+                  style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            amountStr,
+            style: GoogleFonts.manrope(
+              fontWeight: FontWeight.w800,
+              color: isIncome ? Colors.green : AppTheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ... (Keep existing methods: _buildHeader, _buildBalanceCard, _buildSectionTitle, _showAddGoalDialog, _buildGoalsList, _buildGoalCard, _buildCategoryChart, _buildCategoryItem) ...
+
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

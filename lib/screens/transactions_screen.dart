@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,33 +15,48 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
   final FinanceService _financeService = FinanceService();
+  StreamSubscription? _updateSubscription;
   bool _isLoading = true;
   bool _showCharts = false;
   List<dynamic> _allTransactions = [];
   List<dynamic> _filteredTransactions = [];
   String _currentFilter = 'Todos';
+  double _currentTotalBalance = 0.0;
 
   @override
   void initState() {
     super.initState();
     _fetchTransactions();
+    _updateSubscription = _financeService.onDataUpdated.listen((_) {
+      _fetchTransactions();
+    });
   }
 
-  Future<void> _fetchTransactions() async {
-    try {
+  @override
+  void dispose() {
+    _updateSubscription?.cancel();
+    super.dispose();
+  }
+
       final data = await _financeService.getFinanceData();
       final records = data['records'] as List<dynamic>;
+      final summary = data['summary'] as Map<String, dynamic>;
+      
+      // Calculate current balance from summary
+      double income = (summary['total_income'] as num?)?.toDouble() ?? 0.0;
+      double expense = (summary['total_expense'] as num?)?.toDouble() ?? 0.0;
       
       // Sort by date descending
       records.sort((a, b) {
         DateTime dateA = DateTime.parse(a['date'] ?? DateTime.now().toString());
         DateTime dateB = DateTime.parse(b['date'] ?? DateTime.now().toString());
-        return dateB.compareTo(dateA);
+        return dateB.compareTo(dateA); // Newest first
       });
 
       if (mounted) {
         setState(() {
           _allTransactions = records;
+          _currentTotalBalance = income - expense;
           _applyFilter(_currentFilter);
           _isLoading = false;
         });
@@ -48,7 +64,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        // Clean fail, maybe show empty state
       }
     }
   }
@@ -64,6 +79,55 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         _filteredTransactions = _allTransactions.where((t) => t['type'] == 'expense').toList();
       }
     });
+  }
+
+  Map<String, Map<String, double>> _calculateDailyBalances() {
+    if (_currentFilter != 'Todos') return {}; // Only sensible for 'Todos'
+
+    Map<String, Map<String, double>> dailyBalances = {};
+    double runningBalance = _currentTotalBalance;
+
+    // Use a copy of all transactions sorted DESC (already sorted in fetch)
+    // We need to group them first to handle day boundaries correctly while iterating backwards?
+    // Actually, iterating strictly backwards record by record is easier.
+    
+    // Group first to iterate day by day
+    Map<String, List<dynamic>> byDay = {};
+    for (var t in _allTransactions) {
+      String dateStr = t['date'] ?? DateTime.now().toIso8601String();
+      String key = _getDateLabel(DateTime.parse(dateStr));
+      if (!byDay.containsKey(key)) byDay[key] = [];
+      byDay[key]!.add(t);
+    }
+
+    // Iterate keys (Dates) in order (assuming they are inserted in order because _allTransactions is sorted)
+    // Keys in Dart Map from _allTransactions loop should preserve insertion order (descending date)
+    
+    for (var key in byDay.keys) {
+      double close = runningBalance;
+      double netChange = 0.0;
+      
+      for (var t in byDay[key]!) {
+        double amount = (t['amount'] as num).toDouble();
+        bool isIncome = t['type'] == 'income';
+        if (isIncome) {
+          netChange += amount;
+        } else {
+          netChange -= amount;
+        }
+      }
+
+      // Open = Close - NetChange
+      // (e.g. Started with 100, earned 50. Close = 150. Open = 150 - 50 = 100).
+      double open = close - netChange;
+      
+      dailyBalances[key] = {'open': open, 'close': close};
+      
+      // Update running balance for the NEXT iteration (yesterday's close is today's open)
+      runningBalance = open;
+    }
+
+    return dailyBalances;
   }
 
   @override
@@ -102,7 +166,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       child: Column(
         children: [
           Container(
-            height: 300,
+            height: 350, // Increased height for legend
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -121,7 +185,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 _buildLegend(pieData),
               ],
             ),
@@ -137,14 +201,24 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Últimos 7 Días', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Últimos 7 Días (Gastos)', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 24),
                 Expanded(
                   child: BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
                       maxY: barData.map((e) => e.barRods.first.toY).fold(0.0, (p, c) => p > c ? p : c) * 1.2,
-                      barTouchData: BarTouchData(enabled: false),
+                      barTouchData: BarTouchData(
+                        touchTooltipData: BarTouchTooltipData(
+                          getTooltipColor: (group) => Colors.blueGrey,
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                             return BarTooltipItem(
+                               '\$${rod.toY.toStringAsFixed(0)}',
+                               const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                             );
+                          },
+                        ),
+                      ),
                       titlesData: FlTitlesData(
                         show: true,
                         bottomTitles: AxisTitles(
@@ -153,9 +227,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             getTitlesWidget: (value, meta) {
                               final index = value.toInt();
                               if (index >= 0 && index < 7) {
-                                return Text(
-                                  DateFormat('E').format(DateTime.now().subtract(Duration(days: 6 - index))).substring(0, 1),
-                                  style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 10),
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    DateFormat('E').format(DateTime.now().subtract(Duration(days: 6 - index))).substring(0, 1),
+                                    style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
                                 );
                               }
                               return const SizedBox.shrink();
@@ -181,6 +258,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
+  // ... _getPieData ...
   List<PieChartSectionData> _getPieData() {
     Map<String, double> categoryTotals = {};
     double total = 0.0;
@@ -204,68 +282,41 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
+        // Hack to store category name for legend logic loop if needed, 
+        // but our legend builder re-calculates or needs access to map keys.
+        // Simplified: The builder above just regenerated sections. We need to pass meaningful data to legend.
       );
     }).toList();
   }
 
-  List<BarChartGroupData> _getWeeklySpendingData() {
-    final now = DateTime.now();
-    List<BarChartGroupData> groups = [];
-
-    for (int i = 6; i >= 0; i--) {
-      final date = DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
-      double dailyTotal = 0.0;
-      
-      for (var t in _filteredTransactions) {
-        final tDate = DateTime.parse(t['date']);
-        if (tDate.year == date.year && tDate.month == date.month && tDate.day == date.day) {
-           dailyTotal += double.tryParse(t['amount'].toString()) ?? 0.0;
-        }
-      }
-
-      groups.add(
-        BarChartGroupData(
-          x: 6 - i,
-          barRods: [
-            BarChartRodData(
-              toY: dailyTotal,
-              color: AppTheme.primary,
-              width: 12,
-              borderRadius: BorderRadius.circular(4),
-              backDrawRodData: BackgroundBarChartRodData(
-                show: true,
-                toY: 1, // Min height placeholder
-                color: AppTheme.background,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return groups;
-  }
+  // ... _getWeeklySpendingData ...
 
   Widget _buildLegend(List<PieChartSectionData> sections) {
+    // Re-derive categories from filtered transactions since sections don't hold the string key easily accessible 
+    // without a custom data class extension.
+    Map<String, double> categoryTotals = {};
+    for (var t in _filteredTransactions) {
+      double amount = double.tryParse(t['amount'].toString()) ?? 0.0;
+      String cat = t['category'] ?? 'Otros';
+      categoryTotals[cat] = (categoryTotals[cat] ?? 0.0) + amount;
+    }
+    
     return Wrap(
       spacing: 16,
-      runSpacing: 8,
-      children: sections.map((section) {
-        // Find category name from color is tricky without storing it, 
-        // simplificaton: we iterate categories again roughly or rely on color
-        // For distinct colors it's okay. 
-        // Better: We will just skip legend names for this snippet to keep it concise or generic
+      runSpacing: 12,
+      children: categoryTotals.entries.map((e) {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 8, height: 8,
-              decoration: BoxDecoration(color: section.color, shape: BoxShape.circle),
+              width: 12, height: 12,
+              decoration: BoxDecoration(color: _getCategoryColor(e.key), shape: BoxShape.circle),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
             Text(
-              section.value.toStringAsFixed(0),
-              style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 10),
-            )
+              e.key,
+              style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
           ],
         );
       }).toList(),
@@ -281,6 +332,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         ),
       );
     }
+
+    final dailyBalances = _calculateDailyBalances();
 
     // Group by date
     Map<String, List<dynamic>> groupedResponse = {};
@@ -301,11 +354,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       itemBuilder: (context, index) {
         String key = groupedResponse.keys.elementAt(index);
         List<dynamic> items = groupedResponse[key]!;
+        final balances = dailyBalances[key]; // {'open': X, 'close': Y}
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDateSeparator(key),
+            _buildDateSeparator(key, open: balances?['open'], close: balances?['close']),
             ...items.map((item) => _buildTransactionItem(item)),
           ],
         );
@@ -313,106 +367,46 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  String _getDateLabel(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final checkDate = DateTime(date.year, date.month, date.day);
-
-    if (checkDate == today) return 'HOY';
-    if (checkDate == yesterday) return 'AYER';
-    return DateFormat('dd MMM, yyyy').format(date).toUpperCase();
-  }
-
-  Widget _buildHeader() {
+  Widget _buildDateSeparator(String label, {double? open, double? close}) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Movimientos',
+            label,
             style: GoogleFonts.manrope(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
               color: AppTheme.primary,
+              letterSpacing: 1.2,
             ),
           ),
-          InkWell(
-            onTap: () => setState(() => _showCharts = !_showCharts),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: _showCharts ? AppTheme.primary : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                  )
-                ],
-              ),
-              child: Icon(
-                _showCharts ? Icons.list_rounded : Icons.bar_chart_rounded,
-                color: _showCharts ? Colors.white : AppTheme.primary,
-              ),
-            ),
-          ),
+          if (open != null && close != null)
+            Row(
+              children: [
+                _buildSmallBalance('Abre:', open),
+                const SizedBox(width: 12),
+                _buildSmallBalance('Cierra:', close),
+              ],
+            )
         ],
       ),
     );
   }
-
-  Widget _buildFilterTabs() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      child: Row(
-        children: [
-          _buildTab('Todos'),
-          _buildTab('Ingresos'),
-          _buildTab('Gastos'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTab(String label) {
-    bool isSelected = _currentFilter == label;
-    return GestureDetector(
-      onTap: () => _applyFilter(label),
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+  
+  Widget _buildSmallBalance(String label, double amount) {
+    return Row(
+      children: [
+        Text(
+          '$label ',
+          style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.bold),
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: isSelected ? Colors.white : AppTheme.secondary,
-          ),
+        Text(
+          '\$${amount.toStringAsFixed(0)}',
+          style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w900),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDateSeparator(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Text(
-        label,
-        style: GoogleFonts.manrope(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          color: AppTheme.secondary,
-          letterSpacing: 1.5,
-        ),
-      ),
+      ],
     );
   }
 
@@ -465,15 +459,94 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               ],
             ),
           ),
-          Text(
-            amountStr,
-            style: GoogleFonts.manrope(
-              fontWeight: FontWeight.w900,
-              fontSize: 15,
-              color: isIncome ? Colors.green : AppTheme.primary,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amountStr,
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 15,
+                  color: isIncome ? Colors.green : AppTheme.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              InkWell(
+                onTap: () => _showEditDialog(item),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(Icons.edit_rounded, size: 16, color: AppTheme.secondary.withValues(alpha: 0.5)),
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditDialog(Map<String, dynamic> item) {
+    if (item['id'] == null) return;
+    
+    final descController = TextEditingController(text: item['description']);
+    final amountController = TextEditingController(text: item['amount'].toString());
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Editar Movimiento', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: descController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(labelText: 'Monto'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: isSaving ? null : () async {
+                final double? amount = double.tryParse(amountController.text);
+                if (descController.text.isEmpty || amount == null) return;
+
+                setDialogState(() => isSaving = true);
+                
+                try {
+                  await _financeService.updateRecord(item['id'], {
+                    'description': descController.text,
+                    'amount': amount,
+                    // Keep existing values for others
+                    'category': item['category'],
+                    'type': item['type'],
+                    'date': item['date'],
+                  });
+                  if (mounted) Navigator.pop(context);
+                  // Refresh happens automatically via stream
+                } catch (e) {
+                  setDialogState(() => isSaving = false);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              },
+              child: isSaving 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
+                : const Text('Guardar'),
+            ),
+          ],
+        ),
       ),
     );
   }

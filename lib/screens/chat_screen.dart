@@ -315,9 +315,114 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       return _buildGoalSuggestionCard(data);
     } else if (type == 'view_chart') {
       return _buildChartTriggerCard(data);
+    } else if (type == 'transaction_list') {
+      return _buildTransactionListCard(data);
     }
 
     return const SizedBox.shrink();
+  }
+
+  Widget _buildTransactionListCard(Map<String, dynamic> data) {
+    final List<dynamic> items = data['items'] ?? [];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.table_chart_rounded, size: 18, color: AppTheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Resumen de Movimientos',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Table Header
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(flex: 2, child: Text('Concepto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary))),
+                Expanded(child: Text('Monto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+                Expanded(child: Text('Impacto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...items.take(5).map((item) {
+            final bool isExpense = item['is_expense'] ?? true;
+            final double amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item['description'] ?? 'Item', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(item['date'] ?? '', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '\$${amount.toStringAsFixed(0)}',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isExpense ? 'Baja 📉' : 'Sube 📈',
+                          style: GoogleFonts.manrope(
+                            fontSize: 10, 
+                            fontWeight: FontWeight.bold,
+                            color: isExpense ? Colors.red : Colors.green
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          if (items.isEmpty)
+             Center(child: Text('Sin datos recientes', style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary))),
+        ],
+      ),
+    );
   }
 
   Widget _buildGoalSuggestionCard(Map<String, dynamic> data) {
