@@ -799,29 +799,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 12),
             
-            // Botón de abonar
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Abonar',
-                    style: GoogleFonts.manrope(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primary,
+            // Botones de abonar y eliminar
+            Row(
+              children: [
+                // Botón Abonar
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Abonar',
+                          style: GoogleFonts.manrope(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                // Botón Eliminar
+                GestureDetector(
+                  onTap: () => _showDeleteGoalConfirmation(goal),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      size: 16,
+                      color: Colors.redAccent.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -832,6 +855,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _showContributeToGoalDialog(Map<String, dynamic> goal) {
     final amountController = TextEditingController();
     bool isSaving = false;
+    bool isWithdrawMode = false; // Toggle entre abonar y retirar
     
     final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
     final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
@@ -849,10 +873,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  color: isWithdrawMode 
+                      ? Colors.orange.withValues(alpha: 0.1)
+                      : AppTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.savings, color: AppTheme.primary),
+                child: Icon(
+                  isWithdrawMode ? Icons.output_rounded : Icons.savings,
+                  color: isWithdrawMode ? Colors.orange : AppTheme.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -860,7 +889,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Abonar a Meta',
+                      isWithdrawMode ? 'Retirar de Meta' : 'Abonar a Meta',
                       style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     Text(
@@ -875,6 +904,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Toggle Abonar / Retirar
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.background,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setDialogState(() {
+                          isWithdrawMode = false;
+                          amountController.clear();
+                        }),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !isWithdrawMode ? AppTheme.primary : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_circle_outline,
+                                size: 18,
+                                color: !isWithdrawMode ? Colors.white : AppTheme.secondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Abonar',
+                                style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold,
+                                  color: !isWithdrawMode ? Colors.white : AppTheme.secondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: current > 0 ? () => setDialogState(() {
+                          isWithdrawMode = true;
+                          amountController.clear();
+                        }) : null,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isWithdrawMode ? Colors.orange : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.output_rounded,
+                                size: 18,
+                                color: isWithdrawMode 
+                                    ? Colors.white 
+                                    : (current > 0 ? AppTheme.secondary : AppTheme.secondary.withValues(alpha: 0.3)),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Retirar',
+                                style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold,
+                                  color: isWithdrawMode 
+                                      ? Colors.white 
+                                      : (current > 0 ? AppTheme.secondary : AppTheme.secondary.withValues(alpha: 0.3)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               // Progress actual
               Container(
                 padding: const EdgeInsets.all(16),
@@ -889,12 +1000,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Progreso actual',
+                          isWithdrawMode ? 'Disponible' : 'Ahorrado',
                           style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
                         ),
                         Text(
                           '\$${current.toStringAsFixed(2)}',
-                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18),
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 18,
+                            color: isWithdrawMode ? Colors.orange : AppTheme.primary,
+                          ),
                         ),
                       ],
                     ),
@@ -902,15 +1017,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'Restante',
+                          isWithdrawMode ? 'Meta' : 'Restante',
                           style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
                         ),
                         Text(
-                          '\$${remaining.toStringAsFixed(2)}',
+                          isWithdrawMode 
+                              ? '\$${target.toStringAsFixed(2)}'
+                              : '\$${remaining.toStringAsFixed(2)}',
                           style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold, 
                             fontSize: 18,
-                            color: Colors.orange,
+                            color: isWithdrawMode ? AppTheme.secondary : Colors.orange,
                           ),
                         ),
                       ],
@@ -922,7 +1039,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: amountController,
                 decoration: InputDecoration(
-                  labelText: 'Monto a abonar',
+                  labelText: isWithdrawMode ? 'Monto a retirar' : 'Monto a abonar',
                   prefixText: '\$ ',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   filled: true,
@@ -935,15 +1052,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Quick amounts
               Wrap(
                 spacing: 8,
-                children: [100, 500, 1000].map((amount) {
+                children: (isWithdrawMode 
+                    ? [100, 500, current.toInt()].where((a) => a > 0 && a <= current).toList()
+                    : [100, 500, 1000]
+                ).map((amount) {
                   return ActionChip(
-                    label: Text('\$$amount'),
+                    label: Text(amount == current.toInt() && isWithdrawMode ? 'Todo' : '\$$amount'),
                     onPressed: () {
                       amountController.text = amount.toString();
                     },
-                    backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                    backgroundColor: (isWithdrawMode ? Colors.orange : AppTheme.primary).withValues(alpha: 0.1),
                     labelStyle: GoogleFonts.manrope(
-                      color: AppTheme.primary,
+                      color: isWithdrawMode ? Colors.orange : AppTheme.primary,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -959,7 +1079,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
+                backgroundColor: isWithdrawMode ? Colors.orange : AppTheme.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -973,19 +1093,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return;
                 }
 
+                if (isWithdrawMode && amount > current) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('No puedes retirar más de \$${current.toStringAsFixed(2)}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 setDialogState(() => isSaving = true);
                 
                 try {
-                  // Usar el nuevo endpoint que suma automáticamente
-                  await _financeService.contributeToGoal(goalId, amount);
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('¡Abonaste \$${amount.toStringAsFixed(2)} a "$title"!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  if (isWithdrawMode) {
+                    await _financeService.withdrawFromGoal(goalId, amount);
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Retiraste \$${amount.toStringAsFixed(2)} de "$title"'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  } else {
+                    await _financeService.contributeToGoal(goalId, amount);
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('¡Abonaste \$${amount.toStringAsFixed(2)} a "$title"!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                   _fetchFinanceData(); // Refresh UI
                 } catch (e) {
                   if (!context.mounted) return;
@@ -997,10 +1138,152 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
               child: isSaving 
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
-                : Text('Abonar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                : Text(isWithdrawMode ? 'Retirar' : 'Abonar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+
+  void _showDeleteGoalConfirmation(Map<String, dynamic> goal) {
+    final String title = goal['title'] ?? 'esta meta';
+    final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
+    final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
+    final int? goalId = goal['id'];
+
+    if (goalId == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Eliminar Meta',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Estás seguro de eliminar esta meta?',
+              style: GoogleFonts.manrope(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.flag_rounded, color: AppTheme.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        Text(
+                          '\$${current.toStringAsFixed(0)} de \$${target.toStringAsFixed(0)}',
+                          style: GoogleFonts.manrope(
+                            color: AppTheme.secondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (current > 0) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Ya tienes \$${current.toStringAsFixed(0)} ahorrados en esta meta.',
+                        style: GoogleFonts.manrope(fontSize: 11, color: Colors.orange.shade800),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              
+              try {
+                await _financeService.deleteGoal(goalId);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Meta "$title" eliminada'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+                _fetchFinanceData(); // Refresh UI
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('Eliminar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

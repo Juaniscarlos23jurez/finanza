@@ -259,6 +259,67 @@ class FinanceService {
     }
   }
 
+  /// Delete a goal
+  Future<void> deleteGoal(int id) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      debugPrint('DEBUG: Deleting goal $id');
+      await _dio.delete(
+        '${AuthService.baseUrl}/goals/$id',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      debugPrint('DEBUG: Goal deleted successfully');
+      _updateController.add(null); // Notify listeners
+    } catch (e) {
+      debugPrint('DEBUG: Error deleting goal: $e');
+      if (e is DioException) {
+        debugPrint('DEBUG: Delete Goal API Error: ${e.response?.data}');
+        throw Exception(e.response?.data['message'] ?? 'Error deleting goal');
+      }
+      throw Exception('Error deleting goal: $e');
+    }
+  }
+
+  /// Withdraw funds from a goal
+  Future<Map<String, dynamic>> withdrawFromGoal(int goalId, double amount) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      debugPrint('DEBUG: Withdrawing $amount from goal $goalId');
+      final response = await _dio.post(
+        '${AuthService.baseUrl}/goals/$goalId/withdraw',
+        data: {'amount': amount},
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      debugPrint('DEBUG: Withdraw response: ${response.data}');
+      _updateController.add(null); // Notify listeners
+      return response.data;
+    } catch (e) {
+      debugPrint('DEBUG: Error withdrawing from goal: $e');
+      if (e is DioException) {
+        debugPrint('DEBUG: Withdraw API Error: ${e.response?.data}');
+        throw Exception(e.response?.data['message'] ?? 'Error withdrawing from goal');
+      }
+      throw Exception('Error withdrawing from goal: $e');
+    }
+  }
+
   Future<dynamic> getReportSettings() async {
     try {
       final token = await _authService.getToken();

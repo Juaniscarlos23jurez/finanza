@@ -793,13 +793,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              InkWell(
-                onTap: () => _showEditDialog(item),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Icon(Icons.edit_rounded, size: 16, color: AppTheme.secondary.withValues(alpha: 0.5)),
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: () => _showEditDialog(item),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(Icons.edit_rounded, size: 16, color: AppTheme.secondary.withValues(alpha: 0.5)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () => _showDeleteConfirmation(item),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent.withValues(alpha: 0.5)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -871,6 +885,110 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(Map<String, dynamic> item) {
+    if (item['id'] == null) return;
+    
+    final String description = item['description'] ?? 'esta transacción';
+    final double amount = double.tryParse(item['amount'].toString()) ?? 0.0;
+    final bool isIncome = item['type'] == 'income';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+            ),
+            const SizedBox(width: 12),
+            Text('Eliminar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Estás seguro de eliminar este movimiento?',
+              style: GoogleFonts.manrope(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          description,
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        Text(
+                          '${isIncome ? "+" : "-"}\$${amount.toStringAsFixed(2)}',
+                          style: GoogleFonts.manrope(
+                            color: isIncome ? Colors.green : Colors.redAccent,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              
+              try {
+                await _financeService.deleteRecord(item['id']);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Movimiento eliminado'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+                // Refresh happens automatically via stream
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al eliminar: $e')),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('Eliminar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
