@@ -30,12 +30,15 @@ class AiService {
       '{ "type": "goal_suggestion", "title": "Nombre Meta", "target_amount": 1000, "reason": "Explicación breve basada en sus finanzas." } '
       '2. VER GRÁFICAS (Cuando el usuario pida análisis visual): '
       '{ "type": "view_chart", "chart_type": "pie", "message": "Aquí tienes tu análisis." } '
-      '3. CREAR TRANSACCIÓN (Ticket): '
+      '3. CREAR UNA TRANSACCIÓN (para UNA SOLA transacción): '
       '{ "type": "transaction", "amount": 100, "category": "General", "is_expense": true, "description": "..." } '
-      '4. VER BALANCE: '
+      '4. CREAR MÚLTIPLES TRANSACCIONES (IMPORTANTE: cuando el usuario mencione varias transacciones en un solo mensaje, usa este formato): '
+      '{ "type": "multi_transaction", "transactions": [ { "amount": 20, "category": "Ventas", "is_expense": false, "description": "Venta" }, { "amount": 30, "category": "Comida", "is_expense": true, "description": "Comida" }, { "amount": 20, "category": "Transporte", "is_expense": true, "description": "Pasaje" } ] } '
+      '5. VER BALANCE: '
       '{ "type": "balance", "total": 1500, "income": 2000, "expenses": 500 } '
-      '5. LISTA DE MOVIMIENTOS (Tabla): '
+      '6. LISTA DE MOVIMIENTOS (Tabla histórica): '
       '{ "type": "transaction_list", "items": [ {"date": "Hoy", "description": "Uber", "amount": 15.50, "is_expense": true}, {"date": "Ayer", "description": "Sueldo", "amount": 2000, "is_expense": false} ] } '
+      'REGLA CRÍTICA: Si el usuario menciona múltiples ingresos o gastos en un mismo mensaje (ej: "gané 20, gasté 30 en comida y 20 en pasaje"), SIEMPRE usa "multi_transaction" para generar TODAS las transacciones, no solo la primera. '
     ),
     generationConfig: GenerationConfig(
       temperature: 0.7,

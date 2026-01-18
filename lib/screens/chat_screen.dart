@@ -460,6 +460,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
     if (type == 'transaction') {
       return _buildTransactionCard(data);
+    } else if (type == 'multi_transaction') {
+      return _buildMultiTransactionCard(data);
     } else if (type == 'balance') {
       return _buildBalanceCard(data);
     } else if (type == 'goal_suggestion') {
@@ -602,6 +604,227 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildMultiTransactionCard(Map<String, dynamic> data) {
+    final List<dynamic> transactions = data['transactions'] ?? [];
+
+    if (transactions.isEmpty) return const SizedBox.shrink();
+
+    // Calculate totals
+    double totalIncome = 0;
+    double totalExpense = 0;
+    for (var t in transactions) {
+      final amount = double.tryParse(t['amount'].toString()) ?? 0;
+      if (t['is_expense'] == true) {
+        totalExpense += amount;
+      } else {
+        totalIncome += amount;
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.receipt_long_rounded, size: 18, color: AppTheme.primary),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${transactions.length} Transacciones',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: (totalIncome >= totalExpense ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  totalIncome >= totalExpense 
+                      ? '+\$${(totalIncome - totalExpense).toStringAsFixed(2)}' 
+                      : '-\$${(totalExpense - totalIncome).toStringAsFixed(2)}',
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: totalIncome >= totalExpense ? Colors.green : Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          // List of transactions
+          ...transactions.map((t) {
+            final bool isExpense = t['is_expense'] ?? true;
+            final double amount = double.tryParse(t['amount'].toString()) ?? 0;
+            final String desc = t['description'] ?? 'Transacción';
+            final String category = t['category'] ?? 'General';
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                      size: 16,
+                      color: isExpense ? Colors.red : Colors.green,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          desc,
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        Text(
+                          category,
+                          style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${isExpense ? "-" : "+"}\$${amount.toStringAsFixed(2)}',
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: isExpense ? Colors.red : Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+          // Summary row
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    Text('Ingresos', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                    Text('+\$${totalIncome.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.green)),
+                  ],
+                ),
+                Container(width: 1, height: 30, color: Colors.grey.withValues(alpha: 0.2)),
+                Column(
+                  children: [
+                    Text('Gastos', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                    Text('-\$${totalExpense.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.red)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Save all button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _saveAllTransactions(transactions),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isSaved ? 'Todo Guardado' : 'Guardar ${transactions.length} Transacciones',
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveAllTransactions(List<dynamic> transactions) async {
+    setState(() => _isSaving = true);
+
+    try {
+      for (var t in transactions) {
+        final bool isExpense = t['is_expense'] ?? true;
+        await _financeService.createRecord({
+          'amount': double.tryParse(t['amount'].toString()) ?? 0.0,
+          'category': t['category'] ?? 'General',
+          'type': isExpense ? 'expense' : 'income',
+          'date': DateTime.now().toIso8601String().split('T')[0],
+          'description': t['description'] ?? 'Transacción AI',
+        });
+      }
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${transactions.length} transacciones guardadas')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildGoalSuggestionCard(Map<String, dynamic> data) {
