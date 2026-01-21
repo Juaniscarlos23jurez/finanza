@@ -48,6 +48,7 @@ class AiService {
       'Formato: { "type": "premium_analysis", "title": "Nombre", "summary": "Resumen", "metrics": [{"label": "Ahorro", "value": "15%", "icon": "trending_up"}], "content": "Markdown extenso" } '
       'REGLA DE FORMATO: En "content", usa tablas de Markdown para comparativas, negritas para números clave y secciones claras (Situación, Estrategia, Pasos).'
       '8. EXPORTAR CSV (NUEVO): Usa esto si el usuario pide "exportar", "descargar CSV" o "guardar tabla". '
+      'REGLA CRÍTICA: USA ÚNICAMENTE los datos reales de "MOVIMIENTOS RECIENTES" proporcionados en el contexto para generar el CSV. NUNCA inventes datos o uses ejemplos si hay movimientos disponibles. '
       'Formato: { "type": "csv_export", "filename": "movimientos.csv", "data": "fecha,descripcion,monto,tipo\\n2024-01-01,Sueldo,2000,ingreso\\n..." }'
     ),
     generationConfig: GenerationConfig(
@@ -73,16 +74,23 @@ class AiService {
       final goals = futures[1] as List<dynamic>;
       
       final summary = data['summary'];
+      final List<dynamic> records = data['records'] ?? [];
       
+      // Limit to last 50 transactions to avoid huge prompts but provide enough for CSV
+      final recentRecords = records.take(50).map((r) => 
+        "{fecha: ${r['date']}, desc: ${r['description']}, monto: ${r['amount']}, tipo: ${r['type']}, cat: ${r['category']}}"
+      ).join(', ');
+
       final goalsString = goals.map((g) => 
         "${g['title']}: \$${g['current_amount']}/\$${g['target_amount']}"
       ).join(', ');
 
       return '[CONTEXTO FINANCIERO ACTUAL: '
-             'Balance Total: \$${(summary['total_income'] - summary['total_expense']).toStringAsFixed(2)}, '
+             'Balance: \$${(summary['total_income'] - summary['total_expense']).toStringAsFixed(2)}, '
              'Ingresos: \$${summary['total_income']}, '
              'Gastos: \$${summary['total_expense']}, '
-             'Metas Activas: ${goalsString.isEmpty ? "Ninguna" : goalsString}]';
+             'Metas: ${goalsString.isEmpty ? "Ninguna" : goalsString}. '
+             'MOVIMIENTOS RECIENTES: $recentRecords]';
     } catch (e) {
       return '[No se pudo obtener el contexto financiero actual]';
     }

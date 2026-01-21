@@ -761,10 +761,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       final file = File('${directory.path}/$filename');
       await file.writeAsString(data);
       
+      final box = context.findRenderObject() as RenderBox?;
+      final Rect? sharePositionOrigin = box != null 
+          ? box.localToGlobal(Offset.zero) & box.size 
+          : null;
+
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
           text: 'Aquí tienes mi reporte financiero.',
+          sharePositionOrigin: sharePositionOrigin,
         ),
       );
     } catch (e) {
