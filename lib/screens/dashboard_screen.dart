@@ -668,185 +668,217 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final int? goalId = goal['id'];
     final int percentage = (progress * 100).round();
     
-    // Color based on progress
-    Color progressColor = percentage < 30 
-        ? Colors.orange 
-        : percentage < 70 
-            ? Colors.amber 
-            : Colors.green;
+    // Premium Color Palette based on progress
+    Color primaryColor;
+    Color secondaryColor;
+    
+    if (percentage < 30) {
+      primaryColor = const Color(0xFF6B4CFF); // Deep Purple
+      secondaryColor = const Color(0xFFB8A5FF);
+    } else if (percentage < 70) {
+      primaryColor = const Color(0xFFFF8F4C); // Rich Orange
+      secondaryColor = const Color(0xFFFFCFA5);
+    } else {
+      primaryColor = const Color(0xFF00C896); // Vivid Teal
+      secondaryColor = const Color(0xFF9AFFD9);
+    }
 
     return GestureDetector(
       onTap: goalId != null ? () => _showContributeToGoalDialog(goal) : null,
       child: Container(
-        width: 180,
-        padding: const EdgeInsets.all(20),
+        width: 220,
+        margin: const EdgeInsets.only(right: 20, bottom: 20, top: 10), // Margin for shadow
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.grey.shade50],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(24),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primary.withValues(alpha: 0.08),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: primaryColor.withValues(alpha: 0.15),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header con icono y título
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: Stack(
+            children: [
+              // Decorative background blob
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Container(
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
-                    color: progressColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.flag_rounded,
-                    color: progressColor,
-                    size: 18,
+                    color: primaryColor.withValues(alpha: 0.06),
+                    shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.manrope(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            // Progress bar con gradiente
-            Stack(
-              children: [
-                Container(
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: AppTheme.background,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: progress,
-                  child: Container(
-                    height: 10,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [progressColor.withValues(alpha: 0.7), progressColor],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: progressColor.withValues(alpha: 0.3),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            
-            // Porcentaje y montos
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$percentage%',
-                  style: GoogleFonts.manrope(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: progressColor,
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '\$${current.toStringAsFixed(0)}',
-                      style: GoogleFonts.manrope(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primary,
-                      ),
-                    ),
-                    Text(
-                      'de \$${target.toStringAsFixed(0)}',
-                      style: GoogleFonts.manrope(
-                        fontSize: 10,
-                        color: AppTheme.secondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            
-            // Botones de abonar y eliminar
-            Row(
-              children: [
-                // Botón Abonar
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    // Icon and Menu
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Abonar',
-                          style: GoogleFonts.manrope(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.star_rounded,
+                            color: primaryColor,
+                            size: 24,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showDeleteGoalConfirmation(goal),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            color: Colors.transparent, // Hitbox expansion
+                            child: Icon(Icons.more_horiz_rounded, color: AppTheme.secondary.withValues(alpha: 0.5)),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Botón Eliminar
-                GestureDetector(
-                  onTap: () => _showDeleteGoalConfirmation(goal),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 24),
+                    
+                    // Title
+                    Text(
+                      title,
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: AppTheme.primary,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    child: Icon(
-                      Icons.delete_outline_rounded,
-                      size: 16,
-                      color: Colors.redAccent.withValues(alpha: 0.7),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Amounts
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '\$${current.toStringAsFixed(0)}',
+                          style: GoogleFonts.manrope(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primary,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '/ ${target.toStringAsFixed(0)}',
+                          style: GoogleFonts.manrope(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.secondary.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Progress Bar
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.background,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              FractionallySizedBox(
+                                widthFactor: progress,
+                                child: Container(
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [primaryColor, secondaryColor],
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: primaryColor.withValues(alpha: 0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '$percentage%',
+                          style: GoogleFonts.manrope(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Action Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _showContributeToGoalDialog(goal),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.add_circle_outline_rounded, size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Abonar',
+                              style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1260,21 +1292,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               
               try {
                 await _financeService.deleteGoal(goalId);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Meta "$title" eliminada'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Meta "$title" eliminada'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 _fetchFinanceData(); // Refresh UI
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -1288,6 +1318,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  int _touchedIndex = -1;
+
   Widget _buildCategoryChart() {
     if (_categoryStats.isEmpty) {
       return Container(
@@ -1296,6 +1328,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            )
+          ],
         ),
         child: Center(
           child: Text(
@@ -1321,7 +1360,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -1330,55 +1369,139 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         children: [
           SizedBox(
-            height: 220,
+            height: 250,
             child: PieChart(
               PieChartData(
-                sectionsSpace: 4,
-                centerSpaceRadius: 60,
-                sections: displayEntries.map((e) {
+                pieTouchData: PieTouchData(
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          pieTouchResponse == null ||
+                          pieTouchResponse.touchedSection == null) {
+                        _touchedIndex = -1;
+                        return;
+                      }
+                      _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                    });
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                sectionsSpace: 2,
+                centerSpaceRadius: 50,
+                sections: List.generate(displayEntries.length, (i) {
+                  final e = displayEntries[i];
+                  final isTouched = i == _touchedIndex;
+                  final fontSize = isTouched ? 20.0 : 14.0;
+                  final radius = isTouched ? 60.0 : 50.0;
+                  const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+
                   return PieChartSectionData(
                     color: _getChartColor(e.key),
                     value: e.value,
                     title: '${e.value.toStringAsFixed(0)}%',
-                    radius: 20,
-                    showTitle: e.value > 5,
+                    radius: radius,
                     titleStyle: GoogleFonts.manrope(
-                      fontSize: 12,
+                      fontSize: fontSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      shadows: shadows,
                     ),
+                    badgeWidget: isTouched 
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              e.key,
+                              style: GoogleFonts.manrope(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ) 
+                        : null,
+                    badgePositionPercentageOffset: 1.3,
                   );
-                }).toList(),
+                }),
               ),
             ),
           ),
           const SizedBox(height: 32),
+          // Legend
           Wrap(
             spacing: 16,
             runSpacing: 12,
             alignment: WrapAlignment.center,
             children: displayEntries.map((e) {
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: _getChartColor(e.key),
-                      shape: BoxShape.circle,
-                    ),
+              final index = displayEntries.indexOf(e);
+              final isTouched = index == _touchedIndex;
+              
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _touchedIndex = isTouched ? -1 : index;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isTouched 
+                        ? _getChartColor(e.key).withValues(alpha: 0.1) 
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                    border: isTouched 
+                        ? Border.all(color: _getChartColor(e.key), width: 1)
+                        : null,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    e.key,
-                    style: GoogleFonts.manrope(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.secondary,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: _getChartColor(e.key),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _getChartColor(e.key).withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        e.key,
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          fontWeight: isTouched ? FontWeight.w800 : FontWeight.w600,
+                          color: isTouched ? AppTheme.primary : AppTheme.secondary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${e.value.toStringAsFixed(0)}%)',
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          fontWeight: isTouched ? FontWeight.w800 : FontWeight.normal,
+                          color: isTouched ? AppTheme.primary : AppTheme.secondary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               );
             }).toList(),
           ),

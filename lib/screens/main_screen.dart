@@ -5,6 +5,7 @@ import 'chat_screen.dart';
 import 'dashboard_screen.dart';
 import 'transactions_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/ad_banner_widget.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -30,31 +31,37 @@ class _MainScreenState extends State<MainScreen> {
         index: _selectedIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard),
-                _buildNavItem(1, FontAwesomeIcons.commentDots, FontAwesomeIcons.solidCommentDots),
-                _buildNavItem(2, Icons.receipt_long_outlined, Icons.receipt_long),
-                _buildNavItem(3, Icons.person_outline_rounded, Icons.person),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AdBannerWidget(),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
               ],
             ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard),
+                    _buildNavItem(1, FontAwesomeIcons.commentDots, FontAwesomeIcons.solidCommentDots),
+                    _buildNavItem(2, Icons.receipt_long_outlined, Icons.receipt_long),
+                    _buildNavItem(3, Icons.person_outline_rounded, Icons.person),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

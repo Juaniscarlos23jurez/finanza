@@ -1,12 +1,19 @@
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../theme/app_theme.dart';
 import '../models/message_model.dart';
 import '../services/finance_service.dart';
 import '../services/chat_service.dart';
+import '../services/ad_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -77,10 +84,12 @@ class _ChatScreenState extends State<ChatScreen> {
             _handleSend();
           }
         },
+        listenOptions: stt.SpeechListenOptions(
+          listenMode: stt.ListenMode.confirmation,
+          cancelOnError: true,
+          partialResults: true,
+        ),
         localeId: 'es_MX', // Español México
-        listenMode: stt.ListenMode.confirmation,
-        cancelOnError: true,
-        partialResults: true,
       );
     }
   }
@@ -145,18 +154,21 @@ class _ChatScreenState extends State<ChatScreen> {
                           final data = snapshot.data!.snapshot.value;
                           final List<Message> messages = [];
                           
-                          if (data is Map) {
-                             data.forEach((key, value) {
-                               final map = value as Map<dynamic, dynamic>;
-                               messages.add(_chatService.fromRealtimeDB(map));
-                             });
-                          } else if (data is List) {
-                            for (var item in data) {
-                              if (item != null) {
-                                messages.add(_chatService.fromRealtimeDB(item as Map<dynamic, dynamic>));
-                              }
-                            }
-                          }
+                           if (data is Map) {
+                              data.forEach((key, value) {
+                                final map = value as Map<dynamic, dynamic>;
+                                messages.add(_chatService.fromRealtimeDB(map, key: key?.toString()));
+                              });
+                           } else if (data is List) {
+                             // Lists in Firebase are tricky with keys if indices are used, but typically we push() which makes keys
+                             // If it's a list, we might not have string keys easily unless we restructure.
+                             // For now assuming Map which is standard for push()
+                             for (var item in data) {
+                               if (item != null) {
+                                 messages.add(_chatService.fromRealtimeDB(item as Map<dynamic, dynamic>));
+                               }
+                             }
+                           }
                           
                           messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
@@ -181,7 +193,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   child: Text('La IA está pensando...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
                                 );
                               }
-                              return ChatMessageWidget(message: messages[index]);
+                              return ChatMessageWidget(
+                                message: messages[index],
+                                conversationId: _currentConversationId,
+                              );
                             },
                           );
                         },
@@ -334,8 +349,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
 class ChatMessageWidget extends StatefulWidget {
   final Message message;
+  final String? conversationId;
 
-  const ChatMessageWidget({super.key, required this.message});
+  const ChatMessageWidget({super.key, required this.message, this.conversationId});
 
   @override
   State<ChatMessageWidget> createState() => _ChatMessageWidgetState();
@@ -343,8 +359,19 @@ class ChatMessageWidget extends StatefulWidget {
 
 class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   bool _isSaving = false;
-  bool _isSaved = false;
+  // bool _isSaved = false; // We will use widget.message.isHandled instead
   final FinanceService _financeService = FinanceService();
+  final ChatService _chatService = ChatService();
+
+  Future<void> _markAsHandled() async {
+    if (widget.conversationId != null && widget.message.key != null) {
+      await _chatService.updateMessage(
+        widget.conversationId!, 
+        widget.message.key!, 
+        {'is_handled': true}
+      );
+    }
+  }
 
   Future<void> _saveTransaction(Map<String, dynamic> data) async {
     setState(() => _isSaving = true);
@@ -360,10 +387,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         'description': data['description'] ?? 'Transacción AI',
       });
 
+      await _markAsHandled();
+
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Movimiento registrado correctamente')),
@@ -458,21 +486,377 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     final data = widget.message.data!;
     final String type = data['type'] ?? 'unknown';
 
-    if (type == 'transaction') {
-      return _buildTransactionCard(data);
-    } else if (type == 'multi_transaction') {
-      return _buildMultiTransactionCard(data);
-    } else if (type == 'balance') {
-      return _buildBalanceCard(data);
-    } else if (type == 'goal_suggestion') {
-      return _buildGoalSuggestionCard(data);
-    } else if (type == 'view_chart') {
-      return _buildChartTriggerCard(data);
-    } else if (type == 'transaction_list') {
-      return _buildTransactionListCard(data);
+    switch (type) {
+      case 'goal_suggestion':
+        return _buildGoalSuggestionCard(data);
+      case 'transaction':
+        return _buildTransactionCard(data);
+      case 'multi_transaction':
+        return _buildMultiTransactionCard(data);
+      case 'balance':
+        return _buildBalanceCard(data);
+      case 'transaction_list':
+        return _buildTransactionListCard(data);
+      case 'view_chart':
+        return _buildChartTriggerCard(data);
+      case 'premium_analysis':
+        return _buildPremiumAnalysisCard(data);
+      case 'csv_export':
+        return _buildCsvExportCard(data);
+      default:
+        return const SizedBox.shrink();
     }
+  }
 
-    return const SizedBox.shrink();
+  Widget _buildPremiumAnalysisCard(Map<String, dynamic> data) {
+    // If isHandled is true, it means the content is UNLOCKED
+    final bool isUnlocked = widget.message.isHandled;
+    final String title = data['title'] ?? 'Análisis Premium';
+    final String summary = data['summary'] ?? 'Contenido exclusivo desbloqueable.';
+    final String content = data['content'] ?? '';
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isUnlocked 
+            ? [Colors.white, Colors.white]
+            : [const Color(0xFF2E3192), const Color(0xFF1BFFFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.auto_awesome, 
+                    color: isUnlocked ? AppTheme.primary : Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.manrope(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isUnlocked ? AppTheme.primary : Colors.white,
+                        ),
+                      ),
+                      if (!isUnlocked)
+                        Text(
+                          'Análisis Profundo con IA',
+                          style: GoogleFonts.manrope(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          if (isUnlocked) ...[
+            if (data['metrics'] != null)
+             _buildReportMetrics(data['metrics']),
+          
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+              child: MarkdownBody(
+                data: content,
+                styleSheet: MarkdownStyleSheet(
+                  p: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, height: 1.6),
+                  h1: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  h2: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  h3: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  listBullet: GoogleFonts.manrope(color: AppTheme.primary),
+                  tableBorder: TableBorder.all(color: AppTheme.primary.withValues(alpha: 0.1), width: 1),
+                  tableBody: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary),
+                  tableHead: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  tableCellsPadding: const EdgeInsets.all(8),
+                  blockquote: GoogleFonts.manrope(fontSize: 14, color: AppTheme.primary, fontStyle: FontStyle.italic),
+                  blockquoteDecoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 12, color: AppTheme.secondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Análisis generado por Finanzas AI',
+                    style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ] else ...[
+             // Locked State
+             Padding(
+               padding: const EdgeInsets.symmetric(horizontal: 24),
+               child: Text(
+                 summary,
+                 style: GoogleFonts.manrope(color: Colors.white, fontSize: 14, height: 1.5),
+               ),
+             ),
+             const SizedBox(height: 24),
+             Container(
+               width: double.infinity,
+               padding: const EdgeInsets.all(24),
+               decoration: const BoxDecoration(
+                 color: Colors.white,
+                 borderRadius: BorderRadius.only(
+                   bottomLeft: Radius.circular(22), // slightly less than outer
+                   bottomRight: Radius.circular(22),
+                 ),
+               ),
+               child: Column(
+                 children: [
+                   Text(
+                     'Este reporte contiene información estratégica de alto valor.',
+                     textAlign: TextAlign.center,
+                     style: GoogleFonts.manrope(
+                       color: AppTheme.secondary,
+                       fontSize: 12,
+                     ),
+                   ),
+                   const SizedBox(height: 16),
+                   SizedBox(
+                     width: double.infinity,
+                     child: ElevatedButton(
+                     onPressed: _isSaving ? null : _showRewardedAd,
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: AppTheme.primary,
+                       foregroundColor: Colors.white,
+                       padding: const EdgeInsets.symmetric(vertical: 16),
+                       elevation: 0,
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                       disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.6),
+                     ),
+                     child: _isSaving 
+                         ? const SizedBox(
+                             height: 20,
+                             width: 20,
+                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                           )
+                         : Row(
+                             mainAxisAlignment: MainAxisAlignment.center,
+                             children: [
+                               const Icon(Icons.play_circle_fill_rounded, size: 20),
+                               const SizedBox(width: 8),
+                               Text(
+                                 'Ver Video para Desbloquear',
+                                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+                               ),
+                             ],
+                           ),
+                   ),
+                   ),
+                 ],
+               ),
+             ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCsvExportCard(Map<String, dynamic> data) {
+    final String filename = data['filename'] ?? 'export.csv';
+    final String csvData = data['data'] ?? '';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.description_outlined, color: Colors.green, size: 32),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Reporte CSV Listo',
+            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            filename,
+            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _shareCsv(filename, csvData),
+              icon: const Icon(Icons.share_rounded, size: 18),
+              label: Text(
+                'Compartir / Guardar CSV',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _shareCsv(String filename, String data) async {
+    try {
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/$filename');
+      await file.writeAsString(data);
+      
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Aquí tienes mi reporte financiero.',
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al compartir CSV: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildReportMetrics(dynamic metrics) {
+    if (metrics is! List) return const SizedBox.shrink();
+    
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: metrics.map((m) {
+          final String label = m['label'] ?? '';
+          final String value = m['value'] ?? '';
+          final String iconName = m['icon'] ?? 'star';
+          
+          IconData displayIcon = Icons.auto_graph_rounded;
+          if (iconName == 'trending_up') displayIcon = Icons.trending_up_rounded;
+          if (iconName == 'trending_down') displayIcon = Icons.trending_down_rounded;
+          if (iconName == 'savings') displayIcon = Icons.savings_rounded;
+          if (iconName == 'warning') displayIcon = Icons.warning_amber_rounded;
+          
+          return Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.05)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(displayIcon, size: 14, color: AppTheme.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        label,
+                        style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w900, color: AppTheme.primary),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  void _showRewardedAd() {
+    setState(() => _isSaving = true); // Loading state
+    AdService().loadRewardedAd(
+      onAdLoaded: (ad) {
+        setState(() => _isSaving = false);
+        ad.show(
+          onUserEarnedReward: (AdWithoutView ad, RewardItem rewardItem) {
+            // User watched the ad! Unlock the content.
+            _markAsHandled(); // This persists "unlocked" state to Firebase
+            // _markAsHandled call will update the widget via StreamBuilder update in parent or strict setState if local?
+            // Since we are inside a widget that might not rebuild from stream instantly without parent update, let's force local update too.
+            // But actually ChatMessageWidget receives 'message' as param. 
+            // We should optimistically update local state or rely on Firebase Stream.
+            // For immediate feedback let's assume parent stream updates automatically.
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('¡Contenido desbloqueado!'), backgroundColor: Colors.green),
+            );
+          }
+        );
+      },
+      onAdFailedToLoad: (error) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo cargar el anuncio. Intenta de nuevo. ($error)'), backgroundColor: Colors.red),
+        );
+      },
+    );
   }
 
   Widget _buildTransactionListCard(Map<String, dynamic> data) {
@@ -766,9 +1150,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || _isSaved) ? null : () => _saveAllTransactions(transactions),
+              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveAllTransactions(transactions),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                backgroundColor: widget.message.isHandled ? Colors.green : AppTheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
@@ -778,10 +1162,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                        Icon(widget.message.isHandled ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          _isSaved ? 'Todo Guardado' : 'Guardar ${transactions.length} Transacciones',
+                          widget.message.isHandled ? 'Todo Guardado' : 'Guardar ${transactions.length} Transacciones',
                           style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],
@@ -807,11 +1191,12 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           'description': t['description'] ?? 'Transacción AI',
         });
       }
+      
+      await _markAsHandled();
 
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${transactions.length} transacciones guardadas')),
@@ -872,16 +1257,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || _isSaved) ? null : () => _createGoal(data),
+              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _createGoal(data),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isSaved ? Colors.green : Colors.blueAccent,
+                backgroundColor: widget.message.isHandled ? Colors.green : Colors.blueAccent,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
               child: _isSaving 
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(_isSaved ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                : Text(widget.message.isHandled ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ),
         ],
@@ -950,10 +1335,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         'description': data['reason'] ?? 'Meta creada por AI',
       });
 
+      await _markAsHandled();
+
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Meta creada exitosamente')),
@@ -1046,9 +1432,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || _isSaved) ? null : () => _saveTransaction(data),
+              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveTransaction(data),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                backgroundColor: widget.message.isHandled ? Colors.green : AppTheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
@@ -1062,10 +1448,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                      Icon(widget.message.isHandled ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        _isSaved ? 'Guardado' : 'Confirmar y Guardar',
+                        widget.message.isHandled ? 'Guardado' : 'Confirmar y Guardar',
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -1213,13 +1599,7 @@ class HistoryDrawer extends StatelessWidget {
                    onChatSelected(null);
                 },
               ),
-              const SizedBox(height: 12),
-              CustomDrawerButton(
-                icon: Icons.settings_outlined,
-                text: 'Configuración',
-                onPressed: () {},
-                isSecondary: true,
-              ),
+           
             ],
           ),
         ),

@@ -109,16 +109,28 @@ class ChatService {
       debugPrint('Error getting AI response: $e');
     }
   }
+
+  // Update a message (e.g., mark as handled)
+  Future<void> updateMessage(String conversationId, String messageKey, Map<String, dynamic> updates) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+    
+    await _database
+        .ref('users/$userId/conversations/$conversationId/messages/$messageKey')
+        .update(updates);
+  }
   
   // Create a message object from Realtime DB DataSnapshot value (Map)
-  Message fromRealtimeDB(Map<dynamic, dynamic> data) {
+  Message fromRealtimeDB(Map<dynamic, dynamic> data, {String? key}) {
     return Message(
+      key: key,
       text: data['text']?.toString() ?? '',
       isAi: data['is_ai'] == true,
       timestamp: data['timestamp'] != null 
           ? DateTime.fromMillisecondsSinceEpoch(data['timestamp'] as int) 
           : DateTime.now(),
       isGenUI: data['is_gen_ui'] == true,
+      isHandled: data['is_handled'] == true,
       data: data['data'] != null ? Map<String, dynamic>.from(data['data'] as Map) : null,
     );
   }

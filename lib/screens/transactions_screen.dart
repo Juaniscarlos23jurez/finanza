@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
+import '../widgets/native_ad_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -19,18 +20,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   StreamSubscription? _updateSubscription;
   bool _isLoading = true;
   bool _showCharts = false;
-  bool _showCalendar = false;
+  // bool _showCalendar = false; // Removed as requested
   List<dynamic> _allTransactions = [];
   List<dynamic> _filteredTransactions = [];
   String _currentFilter = 'Todos';
   double _currentTotalBalance = 0.0;
 
   // Calendar & Date Range State
-  CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
+
+  int _pieTouchedIndex = -1;
 
   @override
   void initState() {
@@ -189,7 +191,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           children: [
             _buildHeader(),
             _buildFilterTabs(),
-            if (_showCalendar) _buildCalendar(),
+            // Calendar is now a modal
             Expanded(
               child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
@@ -203,71 +205,111 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  Widget _buildCalendar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
-      ),
-      child: TableCalendar(
-        locale: 'es',
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
-        focusedDay: _focusedDay,
-        calendarFormat: _calendarFormat,
-        rangeStartDay: _rangeStart,
-        rangeEndDay: _rangeEnd,
-        rangeSelectionMode: RangeSelectionMode.enforced,
-        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-          });
-        },
-        onRangeSelected: (start, end, focusedDay) {
-          setState(() {
-            _rangeStart = start;
-            _rangeEnd = end;
-            _focusedDay = focusedDay;
-            _applyFilter(_currentFilter);
-          });
-        },
-        onFormatChanged: (format) {
-          setState(() => _calendarFormat = format);
-        },
-        calendarBuilders: CalendarBuilders(
-          defaultBuilder: (context, day, focusedDay) {
-            final color = _getDayColor(day);
-            if (color != null) {
-              return Container(
-                margin: const EdgeInsets.all(4),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: Text('${day.day}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              );
-            }
-            return null;
+  // Calendar Logic moved to Modal
+  void _showCalendarModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Filtrar por Fecha', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: TableCalendar(
+                      locale: 'es',
+                      firstDay: DateTime.utc(2020, 1, 1),
+                      lastDay: DateTime.utc(2030, 12, 31),
+                      focusedDay: _focusedDay,
+                      calendarFormat: CalendarFormat.month,
+                      rangeStartDay: _rangeStart,
+                      rangeEndDay: _rangeEnd,
+                      rangeSelectionMode: RangeSelectionMode.enforced,
+                      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                      onDaySelected: (selectedDay, focusedDay) {
+                         // Update parent state too
+                         setState(() {
+                           _selectedDay = selectedDay;
+                           _focusedDay = focusedDay;
+                         });
+                         // Update local modal state
+                         setModalState(() {
+                            _focusedDay = focusedDay;
+                         });
+                      },
+                      onRangeSelected: (start, end, focusedDay) {
+                        setState(() {
+                          _rangeStart = start;
+                          _rangeEnd = end;
+                          _focusedDay = focusedDay;
+                          _applyFilter(_currentFilter);
+                        });
+                        setModalState(() {
+                           _focusedDay = focusedDay;
+                        });
+                      },
+                      calendarBuilders: CalendarBuilders(
+                        defaultBuilder: (context, day, focusedDay) {
+                          final color = _getDayColor(day);
+                          if (color != null) {
+                            return Container(
+                              margin: const EdgeInsets.all(4),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                              child: Text('${day.day}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            );
+                          }
+                          return null;
+                        },
+                      ),
+                      headerStyle: HeaderStyle(
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                        titleTextStyle: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      calendarStyle: const CalendarStyle(
+                        todayDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+                        rangeHighlightColor: AppTheme.primary,
+                        rangeStartDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+                        rangeEndDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text('Listo', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            );
           },
-        ),
-        headerStyle: HeaderStyle(
-          formatButtonVisible: true,
-          titleCentered: true,
-          formatButtonDecoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          formatButtonTextStyle: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
-        ),
-        calendarStyle: const CalendarStyle(
-          todayDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-          rangeHighlightColor: AppTheme.primary,
-          rangeStartDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-          rangeEndDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -288,10 +330,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           Row(
             children: [
               IconButton(
-                onPressed: () => setState(() => _showCalendar = !_showCalendar),
+                onPressed: _showCalendarModal,
                 icon: Icon(
-                  _showCalendar ? Icons.calendar_today_rounded : Icons.calendar_month_rounded,
-                  color: _showCalendar ? AppTheme.primary : AppTheme.secondary,
+                  Icons.calendar_month_rounded,
+                  color: (_rangeStart != null) ? AppTheme.primary : AppTheme.secondary,
                 ),
               ),
               IconButton(
@@ -372,39 +414,161 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       return Center(child: Text('No hay datos para graficar', style: GoogleFonts.manrope(color: AppTheme.secondary)));
     }
 
-    final pieData = _getPieData();
-    final barData = _getWeeklySpendingData();
+
+    final weeklyExpenses = _getWeeklyData(isExpense: true);
+    final weeklyIncome = _getWeeklyData(isExpense: false);
+    final lineData = _getIncomeExpenseTrend();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 1. Line Chart: Income vs Expenses Trend
           Container(
-            height: 380,
+            height: 350,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15)],
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Distribución', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Tendencia (7 días)', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Row(
+                      children: [
+                        _buildLegendDot(Colors.green, 'Ingresos'),
+                        const SizedBox(width: 8),
+                        _buildLegendDot(Colors.redAccent, 'Gastos'),
+                      ],
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
                 Expanded(
-                  child: PieChart(
-                    PieChartData(
-                      sections: pieData,
-                      centerSpaceRadius: 40,
-                      sectionsSpace: 2,
+                  child: LineChart(
+                    LineChartData(
+                      lineTouchData: LineTouchData(
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipColor: (_) => AppTheme.primary,
+                          getTooltipItems: (touchedSpots) {
+                            return touchedSpots.map((spot) {
+                              return LineTooltipItem(
+                                '\$${spot.y.toStringAsFixed(0)}',
+                                GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                              );
+                            }).toList();
+                          },
+                        ),
+                      ),
+                      gridData: FlGridData(show: false),
+                      titlesData: FlTitlesData(show: false),
+                      borderData: FlBorderData(show: false),
+                      lineBarsData: [
+                        // Income Line
+                        LineChartBarData(
+                          spots: lineData['income']!,
+                          isCurved: true,
+                          color: Colors.green,
+                          barWidth: 4,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                             show: true, 
+                             color: Colors.green.withValues(alpha: 0.1)
+                          ),
+                        ),
+                        // Expense Line
+                        LineChartBarData(
+                          spots: lineData['expense']!,
+                          isCurved: true,
+                          color: Colors.redAccent,
+                          barWidth: 4,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                             show: true, 
+                             color: Colors.redAccent.withValues(alpha: 0.1)
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                _buildLegend(pieData),
               ],
             ),
           ),
+          
           const SizedBox(height: 24),
+
+          // 2. Bar Chart: Weekly Expenses
+          Container(
+            height: 320,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Gastos Semanales', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      borderData: FlBorderData(show: false),
+                      barTouchData: BarTouchData(
+                        touchTooltipData: BarTouchTooltipData(
+                          getTooltipColor: (_) => Colors.black,
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            return BarTooltipItem(
+                              '\$${rod.toY.toStringAsFixed(0)}',
+                              GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                            );
+                          },
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                         show: true,
+                         bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                               final index = value.toInt();
+                               if (index >= 0 && index < 7) {
+                                 final date = DateTime.now().subtract(Duration(days: 6 - index));
+                                 return Padding(
+                                   padding: const EdgeInsets.only(top: 8),
+                                   child: Text(DateFormat('E').format(date)[0], style: GoogleFonts.manrope(color: Colors.white, fontSize: 12)),
+                                 );
+                               }
+                               return const SizedBox();
+                            },
+                          ),
+                         ),
+                         leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)), // Hide right titles
+                      ),
+                      gridData: FlGridData(show: false), // Hide grid for cleaner look
+                      barGroups: weeklyExpenses,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // 3. Bar Chart: Weekly Income
           Container(
             height: 320,
             padding: const EdgeInsets.all(24),
@@ -415,136 +579,304 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Últimos 7 Días (Gastos)', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Ingresos Semanales', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 24),
                 Expanded(
                   child: BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY: barData.isEmpty ? 100 : barData.map((e) => e.barRods.first.toY).fold(0.0, (p, c) => p > c ? p : c) * 1.3,
+                      borderData: FlBorderData(show: false),
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
-                          getTooltipColor: (group) => AppTheme.primary,
-                          tooltipBorderRadius: BorderRadius.circular(12),
+                          getTooltipColor: (_) => Colors.white,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                             return BarTooltipItem(
-                               '\$${rod.toY.toStringAsFixed(0)}',
-                               GoogleFonts.manrope(
-                                 color: Colors.white, 
-                                 fontWeight: FontWeight.bold,
-                                 fontSize: 14,
-                               ),
-                             );
+                            return BarTooltipItem(
+                              '\$${rod.toY.toStringAsFixed(0)}',
+                              GoogleFonts.manrope(color: Colors.black, fontWeight: FontWeight.bold),
+                            );
                           },
                         ),
                       ),
                       titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
+                         show: true,
+                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 32,
                             getTitlesWidget: (value, meta) {
-                              final index = value.toInt();
-                              if (index >= 0 && index < 7) {
-                                final date = DateTime.now().subtract(Duration(days: 6 - index));
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    DateFormat('E').format(date).substring(0, 1),
-                                    style: GoogleFonts.manrope(
-                                      color: AppTheme.secondary, 
-                                      fontSize: 12, 
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                );
-                              }
-                              return const SizedBox.shrink();
+                               final index = value.toInt();
+                               if (index >= 0 && index < 7) {
+                                 final date = DateTime.now().subtract(Duration(days: 6 - index));
+                                 return Padding(
+                                   padding: const EdgeInsets.only(top: 8),
+                                   child: Text(DateFormat('E').format(date)[0], style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12)),
+                                 );
+                               }
+                               return const SizedBox();
                             },
                           ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 40,
-                            getTitlesWidget: (value, meta) {
-                              if (value == 0) return const SizedBox.shrink();
-                              return Text(
-                                '\$${(value / 1000).toStringAsFixed(1)}k',
-                                style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontSize: 10),
-                              );
-                            },
-                          ),
-                        ),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                         ),
+                         leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                       ),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        getDrawingHorizontalLine: (value) => FlLine(
-                          color: Colors.grey.withValues(alpha: 0.05),
-                          strokeWidth: 1,
-                        ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      barGroups: barData,
+                      gridData: FlGridData(show: false),
+                      barGroups: weeklyIncome,
                     ),
                   ),
                 ),
               ],
             ),
           ),
+
+          const SizedBox(height: 24),
+
+          // 4. Pie Chart
+          _buildPieChartSection(),
+
           const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  List<PieChartSectionData> _getPieData() {
-    Map<String, double> categoryTotals = {};
-    double total = 0.0;
-
-    for (var t in _filteredTransactions) {
-      double amount = double.tryParse(t['amount'].toString()) ?? 0.0;
-      String cat = t['category'] ?? 'Otros';
-      categoryTotals[cat] = (categoryTotals[cat] ?? 0.0) + amount;
-      total += amount;
-    }
-
-    if (total == 0) return [];
-
-    return categoryTotals.entries.map((e) {
-      final isLarge = e.value / total > 0.15;
-      return PieChartSectionData(
-        color: _getCategoryColor(e.key),
-        value: e.value,
-        title: '${(e.value / total * 100).toStringAsFixed(0)}%',
-        radius: isLarge ? 60 : 50,
-        titleStyle: GoogleFonts.manrope(
-          fontSize: isLarge ? 14 : 10,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      );
-    }).toList();
+  Widget _buildLegendDot(Color color, String text) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Text(text, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.bold)),
+      ],
+    );
   }
 
-  List<BarChartGroupData> _getWeeklySpendingData() {
+  Map<String, List<FlSpot>> _getIncomeExpenseTrend() {
+    // Generate spots for last 7 days
+    Map<String, List<FlSpot>> result = {
+      'income': [],
+      'expense': []
+    };
+    
+    DateTime now = DateTime.now();
+    for (int i = 0; i < 7; i++) {
+       DateTime day = now.subtract(Duration(days: 6 - i));
+       String dayStr = DateFormat('yyyy-MM-dd').format(day);
+       
+       double iTotal = 0.0;
+       double eTotal = 0.0;
+
+        for (var t in _allTransactions) {
+          if ((t['date'] ?? '').toString().startsWith(dayStr)) {
+             double amt = double.tryParse(t['amount'].toString()) ?? 0.0;
+             if (t['type'] == 'income') {
+               iTotal += amt;
+             } else {
+               eTotal += amt;
+             }
+          }
+       }
+       result['income']!.add(FlSpot(i.toDouble(), iTotal));
+       result['expense']!.add(FlSpot(i.toDouble(), eTotal));
+    }
+    return result;
+  }
+  
+  List<MapEntry<String, double>> _getCategoryEntries() {
+    Map<String, double> categoryTotals = {};
+    for (var t in _filteredTransactions) {
+      if (t['type'] == 'expense') {
+        double amount = double.tryParse(t['amount'].toString()) ?? 0.0;
+        String cat = t['category'] ?? 'Otros';
+        categoryTotals[cat] = (categoryTotals[cat] ?? 0.0) + amount;
+      }
+    }
+    var entries = categoryTotals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return entries;
+  }
+
+  Widget _buildPieChartSection() {
+    final entries = _getCategoryEntries();
+    final total = entries.fold(0.0, (sum, e) => sum + e.value);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          Text('Por Categoría', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 250,
+            child: PieChart(
+              PieChartData(
+                pieTouchData: PieTouchData(
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          pieTouchResponse == null ||
+                          pieTouchResponse.touchedSection == null) {
+                        _pieTouchedIndex = -1;
+                        return;
+                      }
+                      _pieTouchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                    });
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                sectionsSpace: 2,
+                centerSpaceRadius: 50,
+                sections: List.generate(entries.length, (i) {
+                  final e = entries[i];
+                  final isTouched = i == _pieTouchedIndex;
+                  final fontSize = isTouched ? 20.0 : 14.0;
+                  final radius = isTouched ? 60.0 : 50.0;
+                  const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+                  final percentage = (e.value / total) * 100;
+
+                  return PieChartSectionData(
+                    color: _getCategoryColor(e.key),
+                    value: e.value,
+                    title: '${percentage.toStringAsFixed(0)}%',
+                    radius: radius,
+                    titleStyle: GoogleFonts.manrope(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: shadows,
+                    ),
+                    badgeWidget: isTouched 
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              e.key,
+                              style: GoogleFonts.manrope(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ) 
+                        : null,
+                    badgePositionPercentageOffset: 1.3,
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          _buildPieLegend(entries, total),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPieLegend(List<MapEntry<String, double>> entries, double total) {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
+      children: entries.asMap().entries.map((entry) {
+        final index = entry.key;
+        final e = entry.value;
+        final isTouched = index == _pieTouchedIndex;
+        final percentage = (e.value / total) * 100;
+        
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _pieTouchedIndex = isTouched ? -1 : index;
+            });
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isTouched 
+                  ? _getCategoryColor(e.key).withValues(alpha: 0.1) 
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              border: isTouched 
+                  ? Border.all(color: _getCategoryColor(e.key), width: 1)
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: _getCategoryColor(e.key),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getCategoryColor(e.key).withValues(alpha: 0.4),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  e.key,
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: isTouched ? FontWeight.w800 : FontWeight.w600,
+                    color: isTouched ? AppTheme.primary : AppTheme.secondary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '(${percentage.toStringAsFixed(0)}%)',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: isTouched ? FontWeight.w800 : FontWeight.normal,
+                    color: isTouched ? AppTheme.primary : AppTheme.secondary.withValues(alpha: 0.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  
+  List<BarChartGroupData> _getWeeklyData({required bool isExpense}) {
     List<BarChartGroupData> barGroups = [];
     DateTime now = DateTime.now();
     
-    // We want the last 7 days, 0..6
     for (int i = 0; i < 7; i++) {
-        // x=0 maps to 6 days ago, x=6 maps to today
-        // i goes 0 to 6
         DateTime day = now.subtract(Duration(days: 6 - i));
         String dayStr = DateFormat('yyyy-MM-dd').format(day);
 
         double dailyTotal = 0.0;
         for (var t in _allTransactions) {
-          if (t['type'] == 'expense' && (t['date'] ?? '').toString().startsWith(dayStr)) {
+          bool typeMatch = isExpense ? t['type'] == 'expense' : t['type'] == 'income';
+          if (typeMatch && (t['date'] ?? '').toString().startsWith(dayStr)) {
              dailyTotal += double.tryParse(t['amount'].toString()) ?? 0.0;
           }
         }
@@ -555,17 +887,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           barRods: [
             BarChartRodData(
               toY: dailyTotal,
-              gradient: LinearGradient(
-                colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.7)],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-              ),
-              width: 16,
+              color: isExpense ? Colors.white : null,
+              gradient: isExpense 
+                  ? null
+                  : LinearGradient(
+                      colors: [Colors.green, Colors.green.withValues(alpha: 0.6)],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+              width: 12,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
-                toY: 10, // Small base for zero data
-                color: Colors.grey.withValues(alpha: 0.05),
+                toY: 10, 
+                color: isExpense 
+                    ? Colors.grey.withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.05),
               ),
             ),
           ],
@@ -575,35 +912,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return barGroups;
   }
 
-  Widget _buildLegend(List<PieChartSectionData> sections) {
-    Map<String, double> categoryTotals = {};
-    for (var t in _filteredTransactions) {
-      double amount = double.tryParse(t['amount'].toString()) ?? 0.0;
-      String cat = t['category'] ?? 'Otros';
-      categoryTotals[cat] = (categoryTotals[cat] ?? 0.0) + amount;
-    }
-    
-    return Wrap(
-      spacing: 16,
-      runSpacing: 12,
-      children: categoryTotals.entries.map((e) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 12, height: 12,
-              decoration: BoxDecoration(color: _getCategoryColor(e.key), shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              e.key,
-              style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ],
-        );
-      }).toList(),
-    );
-  }
+
 
   Widget _buildTransactionsList() {
     if (_filteredTransactions.isEmpty) {
@@ -630,34 +939,64 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       groupedResponse[key]!.add(transaction);
     }
 
+    // List with Ads logic
+    final List<dynamic> flatList = [];
+    int counter = 0;
+    
+    // Flatten grouped data into a linear list + Separators
+    // We do this to easily inject ads
+    for (var i = 0; i < groupedResponse.length; i++) {
+      String key = groupedResponse.keys.elementAt(i);
+      List<dynamic> items = groupedResponse[key]!;
+      final balances = dailyBalances[key];
+
+      // Add Date Header
+      flatList.add({'type': 'header', 'data': key, 'balance': balances?['close']});
+      
+      // Add Transactions
+      for (var item in items) {
+        flatList.add({'type': 'item', 'data': item});
+        counter++;
+        
+        // Inject Ad every 6 transactions
+        if (counter % 6 == 0) {
+          flatList.add({'type': 'ad'});
+        }
+      }
+
+      // Add Daily Summary footer if exists
+      if (balances?['open'] != null) {
+        flatList.add({'type': 'footer', 'open': balances!['open']});
+      }
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: groupedResponse.length,
+      itemCount: flatList.length,
       itemBuilder: (context, index) {
-        String key = groupedResponse.keys.elementAt(index);
-        List<dynamic> items = groupedResponse[key]!;
-        final balances = dailyBalances[key]; // {'open': X, 'close': Y}
+        final item = flatList[index];
         
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDateSeparator(key, balance: balances?['close']),
-            ...items.map((item) => _buildTransactionItem(item)),
-            if (balances?['open'] != null)
-              Padding(
+        if (item['type'] == 'header') {
+           return _buildDateSeparator(item['data'], balance: item['balance']);
+        } else if (item['type'] == 'footer') {
+           return Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 24, right: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _buildSmallBalance('Abre:', balances!['open']!),
+                    _buildSmallBalance('Abre:', item['open']),
                   ],
                 ),
-              ),
-          ],
-        );
+              );
+        } else if (item['type'] == 'ad') {
+          return const NativeAdWidget();
+        }
+        
+        return _buildTransactionItem(item['data']);
       },
     );
   }
+
 
   Widget _buildDateSeparator(String label, {double? balance}) {
     return Padding(
@@ -965,21 +1304,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               
               try {
                 await _financeService.deleteRecord(item['id']);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Movimiento eliminado'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Movimiento eliminado'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 // Refresh happens automatically via stream
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al eliminar: $e')),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al eliminar: $e')),
+                );
               }
             },
             style: ElevatedButton.styleFrom(

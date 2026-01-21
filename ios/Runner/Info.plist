@@ -60,5 +60,14 @@
 	<string>Esta app usa reconocimiento de voz para registrar tus gastos e ingresos hablando.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Esta app necesita acceso al micrófono para convertir tu voz en texto.</string>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 </dict>
 </plist>
