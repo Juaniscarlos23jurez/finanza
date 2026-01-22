@@ -75,14 +75,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 48),
                   _buildProfileHeader(),
                   const SizedBox(height: 32),
-                  _buildCalendar(),
-                  const SizedBox(height: 48),
                   _buildMenuSection('CUENTA', [
                     _buildMenuItem(Icons.person_outline_rounded, 'Información Personal', onTap: () => _showPersonalInfoModal(context)),
                     _buildMenuItem(Icons.email_outlined, 'Programar Envío de Reporte', onTap: () => _showScheduleReportModal(context)),
                     //_buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
                    // _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
                   ]),
+                  const SizedBox(height: 32),
+                  _buildCalendar(),
                  
                   const SizedBox(height: 32),
                   _buildMenuSection('OTRO', [

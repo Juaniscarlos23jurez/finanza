@@ -8,6 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/auth_service.dart';
+import 'category_details_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -369,11 +370,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final bool isIncome = item['type'] == 'income';
     final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
     
+    // Parse Date
+    String formattedDate = '';
+    try {
+      final dateStr = item['date'] ?? ''; 
+      if (dateStr.isNotEmpty) {
+        final date = DateTime.parse(dateStr).toLocal();
+        formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(date);
+      }
+    } catch (_) {
+      formattedDate = item['date'] ?? '';
+    }
+
     // Simple icon logic (reused conceptualy)
     IconData icon = Icons.attach_money;
     if (category.toLowerCase().contains('comida')) icon = Icons.restaurant;
     if (category.toLowerCase().contains('transporte')) icon = Icons.directions_car;
-    
+    // ... add more if needed or use a helper function
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -405,7 +419,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
                 Text(
-                  item['date'] ?? '',
+                  formattedDate,
                   style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
                 ),
               ],
@@ -1349,12 +1363,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     var sortedEntries = _categoryStats.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     
-    // Take top 5 for display
-    final displayEntries = sortedEntries.take(5).toList();
+    // Group small values into "Otros" if we have too many
+    List<MapEntry<String, double>> displayEntries = [];
+    if (sortedEntries.length > 5) {
+      displayEntries = sortedEntries.take(4).toList();
+      double othersValue = sortedEntries.skip(4).fold(0.0, (sum, item) => sum + item.value);
+      displayEntries.add(MapEntry('Otros', othersValue));
+    } else {
+      displayEntries = sortedEntries.toList();
+    }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: const EdgeInsets.only(top: 24, bottom: 32, left: 24, right: 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
@@ -1368,6 +1389,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Column(
         children: [
+          // Header with Title and "Ver completo" button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Distribución',
+                style: GoogleFonts.manrope(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primary,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CategoryDetailsScreen()),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Ver completo',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppTheme.primary),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          
+          // Chart
           SizedBox(
             height: 250,
             child: PieChart(
@@ -1395,10 +1460,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final radius = isTouched ? 60.0 : 50.0;
                   const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
 
+                  // Only show label if percentage is significant or if touched
+                  final showLabel = e.value >= 5.0 || isTouched;
+
                   return PieChartSectionData(
                     color: _getChartColor(e.key),
                     value: e.value,
-                    title: '${e.value.toStringAsFixed(0)}%',
+                    title: showLabel ? '${e.value.toStringAsFixed(0)}%' : '',
                     radius: radius,
                     titleStyle: GoogleFonts.manrope(
                       fontSize: fontSize,

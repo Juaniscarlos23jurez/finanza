@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
+import 'category_details_screen.dart';
 import '../widgets/native_ad_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -525,12 +526,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       alignment: BarChartAlignment.spaceAround,
                       borderData: FlBorderData(show: false),
                       barTouchData: BarTouchData(
+                        enabled: false, // Disable touch interaction since we show checks permanently
                         touchTooltipData: BarTouchTooltipData(
-                          getTooltipColor: (_) => Colors.black,
+                          getTooltipColor: (_) => Colors.transparent,
+                          tooltipPadding: EdgeInsets.zero,
+                          tooltipMargin: 8,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             return BarTooltipItem(
                               '\$${rod.toY.toStringAsFixed(0)}',
-                              GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                              GoogleFonts.manrope(
+                                color: Colors.white, 
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 10,
+                              ),
                             );
                           },
                         ),
@@ -587,12 +595,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       alignment: BarChartAlignment.spaceAround,
                       borderData: FlBorderData(show: false),
                       barTouchData: BarTouchData(
+                        enabled: false, // Disable touch interaction since we show checks permanently
                         touchTooltipData: BarTouchTooltipData(
-                          getTooltipColor: (_) => Colors.white,
+                          getTooltipColor: (_) => Colors.transparent,
+                          tooltipPadding: EdgeInsets.zero,
+                          tooltipMargin: 8,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             return BarTooltipItem(
                               '\$${rod.toY.toStringAsFixed(0)}',
-                              GoogleFonts.manrope(color: Colors.black, fontWeight: FontWeight.bold),
+                              GoogleFonts.manrope(
+                                color: Colors.black, 
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
                             );
                           },
                         ),
@@ -695,12 +710,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   Widget _buildPieChartSection() {
-    final entries = _getCategoryEntries();
-    final total = entries.fold(0.0, (sum, e) => sum + e.value);
+    var sortedEntries = _getCategoryEntries();
+    // Group small values into "Otros" if we have too many
+    List<MapEntry<String, double>> displayEntries = [];
+    if (sortedEntries.length > 5) {
+      displayEntries = sortedEntries.take(4).toList();
+      double othersValue = sortedEntries.skip(4).fold(0.0, (sum, item) => sum + item.value);
+      displayEntries.add(MapEntry('Otros', othersValue));
+    } else {
+      displayEntries = sortedEntries.toList();
+    }
+    
+    final total = sortedEntries.fold(0.0, (sum, e) => sum + e.value);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: const EdgeInsets.only(top: 24, bottom: 32, left: 24, right: 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
@@ -714,7 +739,46 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       ),
       child: Column(
         children: [
-          Text('Por Categoría', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Por Categoría',
+                style: GoogleFonts.manrope(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primary,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CategoryDetailsScreen()),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Ver completo',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppTheme.primary),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 24),
           SizedBox(
             height: 250,
@@ -736,18 +800,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 borderData: FlBorderData(show: false),
                 sectionsSpace: 2,
                 centerSpaceRadius: 50,
-                sections: List.generate(entries.length, (i) {
-                  final e = entries[i];
+                sections: List.generate(displayEntries.length, (i) {
+                  final e = displayEntries[i];
                   final isTouched = i == _pieTouchedIndex;
                   final fontSize = isTouched ? 20.0 : 14.0;
                   final radius = isTouched ? 60.0 : 50.0;
                   const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
-                  final percentage = (e.value / total) * 100;
+                  final percentage = total > 0 ? (e.value / total) * 100 : 0.0;
+                  
+                  // Only show label if percentage is significant or if touched
+                  final showLabel = percentage >= 5.0 || isTouched;
 
                   return PieChartSectionData(
                     color: _getCategoryColor(e.key),
                     value: e.value,
-                    title: '${percentage.toStringAsFixed(0)}%',
+                    title: showLabel ? '${percentage.toStringAsFixed(0)}%' : '',
                     radius: radius,
                     titleStyle: GoogleFonts.manrope(
                       fontSize: fontSize,
@@ -785,7 +852,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
           ),
           const SizedBox(height: 32),
-          _buildPieLegend(entries, total),
+          _buildPieLegend(displayEntries, total),
         ],
       ),
     );
@@ -884,6 +951,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         barGroups.add(
         BarChartGroupData(
           x: i,
+          showingTooltipIndicators: dailyTotal > 0 ? [0] : [],
           barRods: [
             BarChartRodData(
               toY: dailyTotal,
@@ -1332,22 +1400,100 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   IconData _getCategoryIcon(String category) {
     final cat = category.toLowerCase();
-    if (cat.contains('code') || cat.contains('dev') || cat.contains('trabajo')) return Icons.code_rounded;
-    if (cat.contains('comida') || cat.contains('restaurante')) return Icons.restaurant_rounded;
-    if (cat.contains('café') || cat.contains('coffee')) return Icons.coffee_rounded;
-    if (cat.contains('transporte') || cat.contains('uber')) return Icons.directions_car_rounded;
-    if (cat.contains('ocio') || cat.contains('flix')) return Icons.movie_creation_outlined;
-    if (cat.contains('tech') || cat.contains('apple')) return Icons.laptop_mac_rounded;
+    
+    // Ingresos
+    if (cat.contains('salario') || cat.contains('nomina') || cat.contains('sueldo')) return Icons.monetization_on_rounded;
+    if (cat.contains('inversíon') || cat.contains('crypto') || cat.contains('stocks')) return Icons.trending_up_rounded;
+    if (cat.contains('negocio') || cat.contains('venta')) return Icons.store_rounded;
+
+    // Gastos - Pareja & Amor
+    if (cat.contains('novia') || cat.contains('novio') || cat.contains('pareja') || cat.contains('amor')) return Icons.favorite_rounded;
+    if (cat.contains('cita') || cat.contains('date') || cat.contains('romantico') || cat.contains('cena')) return Icons.dining_rounded;
+    if (cat.contains('aniversario') || cat.contains('boda')) return Icons.volunteer_activism_rounded;
+    if (cat.contains('flores') || cat.contains('rosas') || cat.contains('ramo')) return Icons.local_florist_rounded;
+    if (cat.contains('motel') || cat.contains('hotel')) return Icons.bed_rounded;
+
+    // Gastos - Hogar & Servicios
+    if (cat.contains('casa') || cat.contains('hogar') || cat.contains('renta') || cat.contains('alquiler')) return Icons.home_rounded;
+    if (cat.contains('servicios') || cat.contains('luz') || cat.contains('agua') || cat.contains('internet')) return Icons.electric_bolt_rounded;
+    if (cat.contains('mantenimiento') || cat.contains('reparación')) return Icons.build_rounded;
+
+    // Gastos - Comida & Super
+    if (cat.contains('super') || cat.contains('despensa') || cat.contains('walmart')) return Icons.shopping_cart_rounded;
+    if (cat.contains('comida') || cat.contains('restaurante') || cat.contains('food')) return Icons.restaurant_rounded;
+    if (cat.contains('café') || cat.contains('coffee') || cat.contains('starbucks')) return Icons.coffee_rounded;
+    if (cat.contains('bebida') || cat.contains('bar') || cat.contains('fiesta') || cat.contains('cerveza') || cat.contains('alcohol')) return Icons.local_bar_rounded;
+
+    // Gastos - Transporte
+    if (cat.contains('transporte') || cat.contains('uber') || cat.contains('taxi') || cat.contains('metro')) return Icons.directions_car_rounded;
+    if (cat.contains('gasolina') || cat.contains('combustible')) return Icons.local_gas_station_rounded;
+    if (cat.contains('viajes') || cat.contains('vuelo') || cat.contains('avión')) return Icons.flight_takeoff_rounded;
+
+    // Gastos - Personal & Salud
+    if (cat.contains('salud') || cat.contains('medico') || cat.contains('farmacia') || cat.contains('doctor')) return Icons.medical_services_rounded;
+    if (cat.contains('gym') || cat.contains('deporte') || cat.contains('fitness') || cat.contains('entrenamiento')) return Icons.fitness_center_rounded;
+    if (cat.contains('ropa') || cat.contains('compras') || cat.contains('shopping') || cat.contains('moda')) return Icons.shopping_bag_rounded;
+    if (cat.contains('cuidado') || cat.contains('belleza') || cat.contains('peluqueria') || cat.contains('barberia')) return Icons.face_rounded;
+
+    // Gastos - Educación & Trabajo
+    if (cat.contains('educacion') || cat.contains('escuela') || cat.contains('curso') || cat.contains('universidad')) return Icons.school_rounded;
+    if (cat.contains('code') || cat.contains('dev') || cat.contains('trabajo') || cat.contains('software')) return Icons.code_rounded;
+    if (cat.contains('tech') || cat.contains('apple') || cat.contains('electrónica') || cat.contains('gadget')) return Icons.laptop_mac_rounded;
+
+    // Gastos - Ocio & Varios
+    if (cat.contains('ocio') || cat.contains('flix') || cat.contains('cine') || cat.contains('streaming')) return Icons.movie_creation_rounded;
+    if (cat.contains('juegos') || cat.contains('videojuegos') || cat.contains('steam') || cat.contains('psn')) return Icons.sports_esports_rounded;
+    if (cat.contains('musica') || cat.contains('spotify') || cat.contains('concierto')) return Icons.music_note_rounded;
+    if (cat.contains('mascota') || cat.contains('veterinario')) return Icons.pets_rounded;
+    if (cat.contains('regalo') || cat.contains('donacion')) return Icons.card_giftcard_rounded;
+    if (cat.contains('banco') || cat.contains('transferencia') || cat.contains('comisión')) return Icons.account_balance_rounded;
     if (cat.contains('ahorro')) return Icons.savings_rounded;
-    return Icons.account_balance_wallet_outlined;
+    if (cat.contains('seguro')) return Icons.security_rounded;
+
+    return Icons.receipt_long_rounded; 
   }
 
   Color _getCategoryColor(String category) {
     final cat = category.toLowerCase();
-    if (cat.contains('income') || cat.contains('trabajo')) return Colors.green;
-    if (cat.contains('ocio')) return Colors.purpleAccent;
-    if (cat.contains('comida')) return Colors.orangeAccent;
-    if (cat.contains('tech')) return Colors.blueGrey;
+    
+    // Ingresos
+    if (cat.contains('salario') || cat.contains('nomina') || cat.contains('sueldo')) return Colors.green[700]!;
+    if (cat.contains('inversíon') || cat.contains('crypto')) return Colors.teal[700]!;
+    if (cat.contains('negocio') || cat.contains('venta')) return Colors.blue[800]!;
+    if (cat.contains('income')) return Colors.green;
+
+    // Pareja
+    if (cat.contains('novia') || cat.contains('novio') || cat.contains('amor')) return Colors.pinkAccent;
+    if (cat.contains('cita') || cat.contains('romantico') || cat.contains('cena')) return Colors.redAccent;
+    if (cat.contains('flores') || cat.contains('regalo')) return Colors.pink[400]!;
+    if (cat.contains('motel')) return Colors.deepPurple;
+
+    // Gastos
+    if (cat.contains('casa') || cat.contains('hogar') || cat.contains('renta')) return Colors.brown;
+    if (cat.contains('servicios') || cat.contains('luz') || cat.contains('agua')) return Colors.amber[700]!;
+    
+    if (cat.contains('super') || cat.contains('despensa')) return Colors.lightGreen[600]!;
+    if (cat.contains('comida') || cat.contains('restaurante')) return Colors.orangeAccent;
+    if (cat.contains('café') || cat.contains('coffee')) return Colors.brown[300]!;
+    if (cat.contains('bebida') || cat.contains('fiesta') || cat.contains('cerveza')) return Colors.purpleAccent;
+
+    if (cat.contains('transporte') || cat.contains('uber')) return Colors.blueAccent;
+    if (cat.contains('gasolina')) return Colors.deepOrange;
+    if (cat.contains('viajes') || cat.contains('avión')) return Colors.lightBlueAccent;
+
+    if (cat.contains('salud') || cat.contains('medico')) return Colors.red;
+    if (cat.contains('gym') || cat.contains('fitness')) return Colors.black87;
+    if (cat.contains('ropa') || cat.contains('shopping')) return Colors.purple;
+
+    if (cat.contains('educacion') || cat.contains('escuela')) return Colors.indigo;
+    if (cat.contains('tech') || cat.contains('apple')) return Colors.grey[800]!;
+    if (cat.contains('code') || cat.contains('dev')) return Colors.black;
+
+    if (cat.contains('ocio') || cat.contains('cine')) return Colors.deepPurpleAccent;
+    if (cat.contains('juegos') || cat.contains('steam')) return Colors.indigoAccent;
+    if (cat.contains('mascota')) return Colors.orange[800]!;
+    if (cat.contains('ahorro')) return Colors.teal;
+
     return AppTheme.primary;
   }
 }
