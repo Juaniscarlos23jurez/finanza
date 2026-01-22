@@ -1156,6 +1156,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   title,
                   style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 14),
                 ),
+                Text(
+                  (transactionDate != null) 
+                      ? DateFormat('dd/MM/yyyy HH:mm').format(transactionDate) 
+                      : (dateStr.isNotEmpty ? dateStr : ''),
+                  style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 10),
+                ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
@@ -1163,26 +1169,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       category,
                       style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
-                    if (timeStr.isNotEmpty) ...[
-                      Text(
-                        '  •  ',
-                        style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontSize: 12),
-                      ),
-                      Icon(
-                        Icons.access_time_rounded,
-                        size: 12,
-                        color: AppTheme.secondary.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        timeStr,
-                        style: GoogleFonts.manrope(
-                          color: AppTheme.secondary.withValues(alpha: 0.7),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ],
