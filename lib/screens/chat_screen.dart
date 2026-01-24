@@ -212,28 +212,132 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildWelcomeMessage() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(FontAwesomeIcons.robot, size: 48, color: AppTheme.primary),
             ),
-            child: const Icon(FontAwesomeIcons.robot, size: 40, color: AppTheme.primary),
+            const SizedBox(height: 24),
+            Text(
+              '¡Hola! Soy tu asistente financiero.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                color: AppTheme.secondary,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 48),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'EJEMPLOS DE PREGUNTAS',
+                style: GoogleFonts.manrope(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: AppTheme.secondary.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSuggestionChip(
+              icon: Icons.receipt_long_rounded,
+              label: 'Hoy gané 3000 y gasté 50 en café',
+              onTap: () => _useSuggestion('Hoy gané 3000 y gasté 50 en café'),
+            ),
+            _buildSuggestionChip(
+              icon: Icons.flag_rounded,
+              label: 'Quiero ahorrar para un viaje',
+              onTap: () => _useSuggestion('Quiero ahorrar para un viaje'),
+            ),
+            _buildSuggestionChip(
+              icon: Icons.auto_awesome_rounded,
+              label: 'Análisis de mis finanzas a 6 meses',
+              onTap: () => _useSuggestion('Hazme un análisis estratégico de mis finanzas para los próximos 6 meses'),
+            ),
+            _buildSuggestionChip(
+              icon: Icons.file_download_rounded,
+              label: 'Exportar mis movimientos a CSV',
+              onTap: () => _useSuggestion('Exportar mis movimientos a CSV'),
+            ),
+            _buildSuggestionChip(
+              icon: Icons.account_balance_wallet_rounded,
+              label: 'Ver mi balance actual',
+              onTap: () => _useSuggestion('¿Cuál es mi balance actual?'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _useSuggestion(String text) {
+    _messageController.text = text;
+    _handleSend();
+  }
+
+  Widget _buildSuggestionChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Hola! Soy tu asistente financiero.',
-            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: AppTheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.secondary,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded, size: 14, color: AppTheme.secondary.withValues(alpha: 0.3)),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Inicia una conversación para comenzar.',
-            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -274,9 +378,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             child: Container(
+              minHeight: 56,
               decoration: BoxDecoration(
                 color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
                 borderRadius: BorderRadius.circular(28),
@@ -292,25 +398,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      onSubmitted: (_) => _handleSend(),
-                      decoration: InputDecoration(
-                        hintText: _isListening 
-                            ? "Escuchando..." 
-                            : "Pregunta sobre tus finanzas...",
-                        hintStyle: GoogleFonts.manrope(
-                          color: _isListening ? AppTheme.primary : AppTheme.secondary,
-                          fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      ),
-                    ),
-                  ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(
                       _isListening ? Icons.mic : Icons.mic_none_outlined,
@@ -318,7 +408,29 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     onPressed: _toggleListening,
                   ),
-                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 120),
+                      child: TextField(
+                        controller: _messageController,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                          hintText: _isListening 
+                              ? "Escuchando..." 
+                              : "Pregunta sobre tus finanzas...",
+                          hintStyle: GoogleFonts.manrope(
+                            color: _isListening ? AppTheme.primary : AppTheme.secondary,
+                            fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                 ],
               ),
             ),
@@ -327,6 +439,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Container(
             height: 56,
             width: 56,
+            margin: const EdgeInsets.only(bottom: 0),
             decoration: BoxDecoration(
               color: _isListening ? Colors.red : AppTheme.primary,
               shape: BoxShape.circle,
@@ -389,21 +502,19 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
       await _markAsHandled();
 
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Movimiento registrado correctamente')),
-        );
-      }
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Movimiento registrado correctamente')),
+      );
     } catch (e) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
-        );
-      }
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: $e')),
+      );
     }
   }
 
@@ -761,6 +872,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       final file = File('${directory.path}/$filename');
       await file.writeAsString(data);
       
+      if (!mounted) return;
       final box = context.findRenderObject() as RenderBox?;
       final Rect? sharePositionOrigin = box != null 
           ? box.localToGlobal(Offset.zero) & box.size 
@@ -774,11 +886,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         ),
       );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al compartir CSV: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al compartir CSV: $e')),
+      );
     }
   }
 

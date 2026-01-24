@@ -1110,15 +1110,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final bool isIncome = item['type'] == 'income';
     final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
     
-    // Parse date and format time
+    // Parse date
     final String dateStr = item['date'] ?? DateTime.now().toIso8601String();
     DateTime? transactionDate;
-    String timeStr = '';
     try {
       transactionDate = DateTime.parse(dateStr);
-      timeStr = DateFormat('HH:mm').format(transactionDate); // 24h format, e.g., "14:30"
     } catch (_) {
-      timeStr = '';
+      // ignore
     }
     
     final IconData icon = _getCategoryIcon(category);

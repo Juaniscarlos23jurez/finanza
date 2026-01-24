@@ -107,24 +107,32 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               try {
                 if (isDeposit) {
                   await _financeService.contributeToGoal(_goal['id'], val);
-                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ahorro añadido exitosamente'), backgroundColor: Colors.green));
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Ahorro añadido exitosamente'), backgroundColor: Colors.green));
                 } else {
-                   // Validate withdrawal
-                   final current = double.tryParse(_goal['current_amount'].toString()) ?? 0.0;
-                   if (val > current) {
-                     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fondos insuficientes'), backgroundColor: Colors.red));
-                     setState(() => _isLoading = false);
-                     return;
-                   }
+                  // Validate withdrawal
+                  final current = double.tryParse(_goal['current_amount'].toString()) ?? 0.0;
+                  if (val > current) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Fondos insuficientes'), backgroundColor: Colors.red));
+                    setState(() => _isLoading = false);
+                    return;
+                  }
                   await _financeService.withdrawFromGoal(_goal['id'], val);
-                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Retiro realizado exitosamente'), backgroundColor: Colors.orange));
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Retiro realizado exitosamente'), backgroundColor: Colors.orange));
                 }
                 
                 await _refreshGoal();
                 // Notify other collaborators via Firebase
                 await _firebaseService.notifyGoalUpdate(_goal['id']);
               } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
               } finally {
                 if (mounted) setState(() => _isLoading = false);
               }
@@ -147,6 +155,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final double progress = (current / target).clamp(0.0, 1.0);
     final int percentage = (progress * 100).round();
     final String title = _goal['title'] ?? 'Meta';
+    final List<dynamic> transactionsList = (_goal['transactions'] ?? _goal['history'] ?? _goal['records'] ?? _goal['contributions'] ?? []) as List<dynamic>;
+    
+    // Sort transactions by date descending
+    final List<dynamic> transactions = List.from(transactionsList);
+    transactions.sort((a, b) {
+      final dateA = DateTime.tryParse(a['created_at']?.toString() ?? a['date']?.toString() ?? '') ?? DateTime(2000);
+      final dateB = DateTime.tryParse(b['created_at']?.toString() ?? b['date']?.toString() ?? '') ?? DateTime(2000);
+      return dateB.compareTo(dateA);
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -292,20 +309,37 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Placeholder List
               Expanded(
-                child: ListView(
-                  children: [
-                    _buildGoalTransactionItem(
-                      date: DateTime.now(), // Display "Now"
-                      amount: 0.0, // Initial state often 0
-                      isIncome: true,
-                      description: 'Creación de meta',
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      if (transactions.isNotEmpty)
+                        ...transactions.map((t) {
+                          final bool isContribution = t['type'] == 'contribution' ||
+                              t['type'] == 'deposit' ||
+                              (double.tryParse(t['amount']?.toString() ?? '0') ?? 0) > 0;
+                          final double amount = (double.tryParse(t['amount']?.toString() ?? '0') ?? 0).abs();
+
+                          return _buildGoalTransactionItem(
+                            date: DateTime.tryParse(t['created_at']?.toString() ?? t['date']?.toString() ?? '') ??
+                                DateTime.now(),
+                            amount: amount,
+                            isIncome: isContribution,
+                            description: t['description'] ?? (isContribution ? 'Contribución' : 'Retiro'),
+                          );
+                        })
+                      else
+                        _buildGoalTransactionItem(
+                          date: DateTime.now(),
+                          amount: 0.0,
+                          isIncome: true,
+                          description: 'Creación de meta',
+                        ),
+                    ],
+                  ),
                 ),
               ),
-              
+
               // Ad Banner at Bottom
               const Padding(
                 padding: EdgeInsets.only(top: 16, bottom: 8),
@@ -428,6 +462,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       if (!mounted) return;
                       
                       if (result['success'] == true) {
+                        if (!context.mounted) return;
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -437,6 +472,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                         );
                       } else {
                         setModalState(() => isSending = false);
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(result['message'] ?? 'Error al enviar invitación'),
