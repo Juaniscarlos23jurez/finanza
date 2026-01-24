@@ -130,6 +130,9 @@ class AuthService {
     if (user['name'] != null) {
       await prefs.setString('user_name', user['name']);
     }
+    if (user['email'] != null) {
+      await prefs.setString('user_email', user['email']);
+    }
   }
 
   Future<String?> getUserId() async {
@@ -147,6 +150,30 @@ class AuthService {
       } catch (_) {}
     }
     return id;
+  }
+
+  Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_email');
+  }
+
+  Future<String?> getOrCreateUserCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? code = prefs.getString('user_invite_code');
+    
+    if (code == null) {
+      final String? name = prefs.getString('user_name');
+      final String? userId = prefs.getString('user_id');
+      
+      if (name != null && userId != null) {
+        // Simple code generator: NAME-ID (shortened)
+        final String prefix = name.split(' ')[0].toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '');
+        final String suffix = userId.length > 4 ? userId.substring(userId.length - 4) : userId;
+        code = '$prefix-$suffix';
+        await prefs.setString('user_invite_code', code);
+      }
+    }
+    return code;
   }
 
   Future<Map<String, dynamic>> getProfile() async {

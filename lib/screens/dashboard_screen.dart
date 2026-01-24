@@ -8,7 +8,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/auth_service.dart';
+import '../services/firebase_service.dart';
 import 'category_details_screen.dart';
+import 'goal_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,7 +22,9 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final FinanceService _financeService = FinanceService();
   final AuthService _authService = AuthService();
+  final FirebaseService _firebaseService = FirebaseService();
   StreamSubscription? _updateSubscription;
+  StreamSubscription? _invitationSubscription;
   bool _isLoading = true;
   Map<String, dynamic> _summary = {
     'total_income': 0.0,
@@ -33,6 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _recentTransactions = [];
   List<FlSpot> _balanceHistory = [];
   String _userName = '';
+  String _userCode = '';
 
   @override
   void initState() {
@@ -43,6 +48,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchFinanceData();
     });
+    _setupInvitationListener();
+  }
+
+  Future<void> _setupInvitationListener() async {
+    final email = await _authService.getUserEmail();
+    if (email != null) {
+      _invitationSubscription = _firebaseService.listenToInvitations(email).listen((event) {
+        if (event.snapshot.value != null) {
+          final data = event.snapshot.value as Map<dynamic, dynamic>;
+          data.forEach((key, value) {
+            if (value['status'] == 'pending') {
+              _showInvitationDialog(key.toString(), value as Map<dynamic, dynamic>);
+            }
+          });
+        }
+      });
+    }
+  }
+
+  void _showInvitationDialog(String key, Map<dynamic, dynamic> invitation) async {
+    final String fromName = invitation['fromName'] ?? 'Alguien';
+    final String goalName = invitation['goalName'] ?? 'una meta';
+    final email = await _authService.getUserEmail();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(Icons.people_alt_rounded, color: AppTheme.primary),
+            const SizedBox(width: 12),
+            Text('¡Invitación!', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: TextSpan(
+                style: GoogleFonts.manrope(color: AppTheme.primary, fontSize: 16),
+                children: [
+                  TextSpan(text: fromName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const TextSpan(text: ' te ha invitado a colaborar en la meta: '),
+                  TextSpan(text: goalName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.purpleAccent)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '¿Deseas aceptar esta invitación y compartir el progreso?',
+              style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              if (email != null) await _firebaseService.removeInvitation(email, key);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: Text('Rechazar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // TODO: Call Laravel API to link user to goal
+              // For now, we simulate acceptance by removing from RTDB
+              if (email != null) await _firebaseService.removeInvitation(email, key);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Invitación aceptada'), backgroundColor: Colors.green),
+                );
+                _fetchFinanceData(); // Refresh to see new goal if it was linked in backend
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('Aceptar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _fetchUserProfile() async {
@@ -54,6 +148,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _userName = data['name'] ?? '';
           });
+          // Also fetch/create invitation code
+          final code = await _authService.getOrCreateUserCode();
+          final email = await _authService.getUserEmail();
+          if (code != null && email != null && mounted) {
+            setState(() {
+              _userCode = code;
+            });
+            // Register mapping in Firebase
+            await _firebaseService.registerUserCode(email, code);
+          }
         }
       }
     } catch (e) {
@@ -64,6 +168,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     _updateSubscription?.cancel();
+    _invitationSubscription?.cancel();
     super.dispose();
   }
 
@@ -451,13 +556,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        Text(
-          'Panel de Control',
-          style: GoogleFonts.manrope(
-            fontSize: 24,
-            color: AppTheme.primary,
-            fontWeight: FontWeight.w900,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Panel de Control',
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                color: AppTheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            if (_userCode.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.purpleAccent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.qr_code_2_rounded, size: 14, color: Colors.purpleAccent),
+                    const SizedBox(width: 6),
+                    Text(
+                      _userCode,
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purpleAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ],
     );
@@ -698,7 +831,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     return GestureDetector(
-      onTap: goalId != null ? () => _showContributeToGoalDialog(goal) : null,
+      onTap: goalId != null ? () {
+        Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (context) => GoalDetailScreen(goal: goal))
+        ).then((_) => _fetchFinanceData()); // Refresh on return
+      } : null,
       child: Container(
         width: 220,
         margin: const EdgeInsets.only(right: 20, bottom: 20, top: 10), // Margin for shadow
