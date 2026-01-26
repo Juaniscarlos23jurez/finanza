@@ -1218,6 +1218,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     
     final descController = TextEditingController(text: item['description']);
     final amountController = TextEditingController(text: item['amount'].toString());
+    
+    DateTime selectedDate = DateTime.now();
+    if (item['date'] != null) {
+      try {
+        selectedDate = DateTime.parse(item['date']);
+      } catch (_) {}
+    }
+
     bool isSaving = false;
 
     showDialog(
@@ -1238,6 +1246,56 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 decoration: const InputDecoration(labelText: 'Monto'),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: AppTheme.primary,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setDialogState(() {
+                      selectedDate = DateTime(
+                        picked.year,
+                        picked.month,
+                        picked.day,
+                        selectedDate.hour,
+                        selectedDate.minute,
+                        selectedDate.second,
+                      );
+                    });
+                  }
+                },
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Fecha',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        DateFormat('dd/MM/yyyy').format(selectedDate),
+                        style: GoogleFonts.manrope(fontSize: 16),
+                      ),
+                      const Icon(Icons.calendar_today_rounded, size: 20, color: AppTheme.primary),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           actions: [
@@ -1256,10 +1314,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   await _financeService.updateRecord(item['id'], {
                     'description': descController.text,
                     'amount': amount,
-                    // Keep existing values for others
                     'category': item['category'],
                     'type': item['type'],
-                    'date': item['date'],
+                    'date': selectedDate.toIso8601String(),
                   });
                   if (!context.mounted) return;
                   Navigator.pop(context);

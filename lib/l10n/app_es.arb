@@ -1,0 +1,44 @@
+{
+    "@@locale": "es",
+    "accountSection": "CUENTA",
+    "personalInfo": "Información Personal",
+    "scheduleReport": "Programar Envío de Reporte",
+    "otherSection": "OTRO",
+    "feedback": "Feedback",
+    "termsConditions": "Términos y Condiciones",
+    "privacyPolicy": "Política de Privacidad",
+    "logout": "Cerrar Sesión",
+    "deleteAccount": "Eliminar mi cuenta permanentemente",
+    "deleteAccountTitle": "¿Eliminar cuenta?",
+    "deleteAccountContent": "Esta acción cerrará tu sesión actual.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "feedbackTitle": "Danos tu Feedback",
+    "feedbackSubtitle": "Tu opinión nos ayuda a mejorar la experiencia para todos.",
+    "feedbackTypeQuestion": "¿De qué trata tu comentario?",
+    "typeSuggestion": "Sugerencia",
+    "typeError": "Error",
+    "typeCompliment": "Felicitación",
+    "feedbackHint": "Cuéntanos qué te gusta o qué podemos mejorar...",
+    "sendFeedback": "Enviar Comentarios",
+    "feedbackSuccess": "¡Gracias por tu feedback!",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "userId": "ID de Usuario",
+    "close": "Cerrar",
+    "scheduleReportTitle": "Programar Reporte",
+    "reportDescription": "Recibirás un Excel con tus movimientos y un análisis financiero generado por IA.",
+    "sendReportTo": "Enviar reporte a:",
+    "frequencyQuestion": "¿Cada cuántos días?",
+    "daysLoop": "{count} días",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "Confirmar y Programar",
+    "configSaved": "¡Configuración guardada con éxito!",
+    "language": "Idioma"
+}

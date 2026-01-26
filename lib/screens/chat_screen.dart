@@ -531,7 +531,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         'amount': double.tryParse(data['amount'].toString()) ?? 0.0,
         'category': data['category'] ?? 'General',
         'type': isExpense ? 'expense' : 'income',
-        'date': DateTime.now().toIso8601String().split('T')[0],
+        'date': data['date'] ?? DateTime.now().toIso8601String().split('T')[0],
         'description': data['description'] ?? 'Transacción AI',
       });
 
@@ -840,6 +840,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Widget _buildCsvExportCard(Map<String, dynamic> data) {
+    final bool isUnlocked = widget.message.isHandled;
     final String filename = data['filename'] ?? 'export.csv';
     final String csvData = data['data'] ?? '';
 
@@ -863,38 +864,59 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.1),
+              color: (isUnlocked ? Colors.green : Colors.orangeAccent).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.description_outlined, color: Colors.green, size: 32),
+            child: Icon(
+              isUnlocked ? Icons.description_outlined : Icons.lock_clock_rounded, 
+              color: isUnlocked ? Colors.green : Colors.orangeAccent, 
+              size: 32,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
-            'Reporte CSV Listo',
+            isUnlocked ? 'Reporte Excel/CSV Listo' : 'Reporte Bloqueado',
             style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            filename,
+            isUnlocked ? filename : 'Ve un anuncio para descargar',
             style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
           ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _shareCsv(filename, csvData),
-              icon: const Icon(Icons.share_rounded, size: 18),
-              label: Text(
-                'Compartir / Guardar CSV',
-                style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-            ),
+            child: isUnlocked 
+              ? ElevatedButton.icon(
+                  onPressed: () => _shareCsv(filename, csvData),
+                  icon: const Icon(Icons.share_rounded, size: 18),
+                  label: Text(
+                    'Compartir / Guardar CSV',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                )
+              : ElevatedButton.icon(
+                  onPressed: _isSaving ? null : _showRewardedAd,
+                  icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
+                  label: _isSaving 
+                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                     : Text(
+                          'Ver Anuncio para Desbloquear',
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+                        ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
           ),
         ],
       ),
@@ -1339,7 +1361,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           'amount': double.tryParse(t['amount'].toString()) ?? 0.0,
           'category': t['category'] ?? 'General',
           'type': isExpense ? 'expense' : 'income',
-          'date': DateTime.now().toIso8601String().split('T')[0],
+          'date': t['date'] ?? DateTime.now().toIso8601String().split('T')[0],
           'description': t['description'] ?? 'Transacción AI',
         });
       }
