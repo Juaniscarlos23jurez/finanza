@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import 'category_details_screen.dart';
@@ -24,7 +25,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   // bool _showCalendar = false; // Removed as requested
   List<dynamic> _allTransactions = [];
   List<dynamic> _filteredTransactions = [];
-  String _currentFilter = 'Todos';
+  String _currentFilter = 'all';
   double _currentTotalBalance = 0.0;
 
   // Calendar & Date Range State
@@ -89,8 +90,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       _currentFilter = filter;
       _filteredTransactions = _allTransactions.where((t) {
         bool matchesType = true;
-        if (filter == 'Ingresos') matchesType = t['type'] == 'income';
-        if (filter == 'Gastos') matchesType = t['type'] == 'expense';
+        if (filter == 'income') matchesType = t['type'] == 'income';
+        if (filter == 'expense') matchesType = t['type'] == 'expense';
 
         bool matchesDate = true;
         if (_rangeStart != null) {
@@ -135,14 +136,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final yesterday = today.subtract(const Duration(days: 1));
     final checkDate = DateTime(date.year, date.month, date.day);
 
-    if (checkDate == today) return 'Hoy';
-    if (checkDate == yesterday) return 'Ayer';
+    if (checkDate == today) return AppLocalizations.of(context)!.today;
+    if (checkDate == yesterday) return AppLocalizations.of(context)!.yesterday;
     // Simplified date format without locale dependency issues if 'es' not loaded
     return '${date.day}/${date.month}/${date.year}'; 
   }
 
   Map<String, Map<String, double>> _calculateDailyBalances() {
-    if (_currentFilter != 'Todos') return {}; // Only sensible for 'Todos'
+    if (_currentFilter != 'all') return {}; // Only sensible for 'Todos'
 
     Map<String, Map<String, double>> dailyBalances = {};
     double runningBalance = _currentTotalBalance;
@@ -229,11 +230,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
                   ),
                   const SizedBox(height: 16),
-                  Text('Filtrar por Fecha', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text(AppLocalizations.of(context)!.filterByDate, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 16),
                   Expanded(
                     child: TableCalendar(
-                      locale: 'es',
+                      locale: Localizations.localeOf(context).languageCode,
                       firstDay: DateTime.utc(2020, 1, 1),
                       lastDay: DateTime.utc(2030, 12, 31),
                       focusedDay: _focusedDay,
@@ -302,7 +303,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: Text('Listo', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                      child: Text(AppLocalizations.of(context)!.ready, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -321,7 +322,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Movimientos',
+            AppLocalizations.of(context)!.transactions,
             style: GoogleFonts.manrope(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -359,14 +360,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
-          ...['Todos', 'Ingresos', 'Gastos'].map((filter) {
-            final isSelected = _currentFilter == filter;
+          ...['all', 'income', 'expense'].map((filterKey) {
+            final isSelected = _currentFilter == filterKey;
+            String label = '';
+            final l10n = AppLocalizations.of(context)!;
+            switch(filterKey) {
+               case 'all': label = l10n.all; break;
+               case 'income': label = l10n.incomes; break;
+               case 'expense': label = l10n.expenses; break;
+            }
             return Padding(
               padding: const EdgeInsets.only(right: 12),
               child: FilterChip(
                 selected: isSelected,
-                label: Text(filter),
-                onSelected: (_) => _applyFilter(filter),
+                label: Text(label),
+                onSelected: (_) => _applyFilter(filterKey),
                 backgroundColor: Colors.white,
                 selectedColor: AppTheme.primary,
                 checkmarkColor: Colors.white,
@@ -396,7 +404,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                },
                icon: const Icon(Icons.close_rounded, size: 16, color: Colors.redAccent),
                label: Text(
-                 'Limpiar Fecha', 
+                 AppLocalizations.of(context)!.clearDate, 
                  style: GoogleFonts.manrope(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12)
                ),
                style: TextButton.styleFrom(
@@ -412,7 +420,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   Widget _buildChartsView() {
     if (_filteredTransactions.isEmpty) {
-      return Center(child: Text('No hay datos para graficar', style: GoogleFonts.manrope(color: AppTheme.secondary)));
+      return Center(child: Text(AppLocalizations.of(context)!.noDataChart, style: GoogleFonts.manrope(color: AppTheme.secondary)));
     }
 
 
@@ -440,12 +448,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Tendencia (7 días)', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(AppLocalizations.of(context)!.trend, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
                     Row(
                       children: [
-                        _buildLegendDot(Colors.green, 'Ingresos'),
+                        _buildLegendDot(Colors.green, AppLocalizations.of(context)!.incomes),
                         const SizedBox(width: 8),
-                        _buildLegendDot(Colors.redAccent, 'Gastos'),
+                        _buildLegendDot(Colors.redAccent, AppLocalizations.of(context)!.expenses),
                       ],
                     ),
                   ],
@@ -518,7 +526,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Gastos Semanales', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                Text(AppLocalizations.of(context)!.weeklyExpenses, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                 const SizedBox(height: 24),
                 Expanded(
                   child: BarChart(
@@ -587,7 +595,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Ingresos Semanales', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(AppLocalizations.of(context)!.weeklyIncome, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 24),
                 Expanded(
                   child: BarChart(
@@ -716,7 +724,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (sortedEntries.length > 5) {
       displayEntries = sortedEntries.take(4).toList();
       double othersValue = sortedEntries.skip(4).fold(0.0, (sum, item) => sum + item.value);
-      displayEntries.add(MapEntry('Otros', othersValue));
+      displayEntries.add(MapEntry(AppLocalizations.of(context)!.others, othersValue));
     } else {
       displayEntries = sortedEntries.toList();
     }
@@ -743,7 +751,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Por Categoría',
+                AppLocalizations.of(context)!.byCategory,
                 style: GoogleFonts.manrope(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -765,7 +773,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 child: Row(
                   children: [
                     Text(
-                      'Ver completo',
+                      AppLocalizations.of(context)!.seeFull,
                       style: GoogleFonts.manrope(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -986,7 +994,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (_filteredTransactions.isEmpty) {
       return Center(
         child: Text(
-          'No hay movimientos',
+          AppLocalizations.of(context)!.noTransactions,
           style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 16),
         ),
       );
@@ -1052,7 +1060,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _buildSmallBalance('Abre:', item['open']),
+                    _buildSmallBalance(AppLocalizations.of(context)!.opens, item['open']),
                   ],
                 ),
               );
@@ -1082,7 +1090,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
           ),
           if (balance != null)
-            _buildSmallBalance('Cierra:', balance),
+            _buildSmallBalance(AppLocalizations.of(context)!.closes, balance),
         ],
       ),
     );
@@ -1104,8 +1112,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   Widget _buildTransactionItem(Map<String, dynamic> item) {
-    final String title = item['description'] ?? 'Sin descripción';
-    final String category = item['category'] ?? 'General';
+    final String title = item['description'] ?? AppLocalizations.of(context)!.noDescription;
+    final String category = item['category'] ?? AppLocalizations.of(context)!.general;
     final double amountVal = double.tryParse(item['amount'].toString()) ?? 0.0;
     final bool isIncome = item['type'] == 'income';
     final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
@@ -1232,18 +1240,18 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Editar Movimiento', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          title: Text(AppLocalizations.of(context)!.editTransaction, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: descController,
-                decoration: const InputDecoration(labelText: 'Descripción'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.description),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: amountController,
-                decoration: const InputDecoration(labelText: 'Monto'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.amount),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 16),
@@ -1279,10 +1287,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   }
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Fecha',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.date,
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1301,7 +1309,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: isSaving ? null : () async {
@@ -1324,12 +1332,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 } catch (e) {
                   if (!context.mounted) return;
                   setDialogState(() => isSaving = false);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
                 }
               },
               child: isSaving 
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
-                : const Text('Guardar'),
+                : Text(AppLocalizations.of(context)!.save),
             ),
           ],
         ),
@@ -1359,7 +1367,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
             ),
             const SizedBox(width: 12),
-            Text('Eliminar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+            Text(AppLocalizations.of(context)!.delete, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -1367,7 +1375,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Estás seguro de eliminar este movimiento?',
+              AppLocalizations.of(context)!.deleteTransactionConfirm,
               style: GoogleFonts.manrope(fontSize: 14),
             ),
             const SizedBox(height: 16),
@@ -1405,7 +1413,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1415,8 +1423,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 await _financeService.deleteRecord(item['id']);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Movimiento eliminado'),
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.transactionDeleted),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -1424,7 +1432,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               } catch (e) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al eliminar: $e')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.deleteError(e.toString()))),
                 );
               }
             },
@@ -1432,7 +1440,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               backgroundColor: Colors.redAccent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Eliminar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.delete, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

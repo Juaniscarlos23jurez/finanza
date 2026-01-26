@@ -108,5 +108,111 @@
     "today": "Aujourd'hui",
     "yesterday": "Hier",
     "general": "Général",
-    "others": "Autres"
+    "others": "Autres",
+    "dashboard": "Tableau de Bord",
+    "balanceTrend": "Tendance du Solde",
+    "yourGoals": "Vos Objectifs",
+    "expensesByCategory": "Dépenses par Catégorie",
+    "recentTransactions": "Transactions Récentes",
+    "noRecentActivity": "Aucune activité récente",
+    "hello": "Bonjour, {name}",
+    "@hello": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "helloSimple": "Bonjour",
+    "totalBalance": "SOLDE TOTAL",
+    "newGoal": "Nouvel Objectif",
+    "goalNameHint": "Nom de l'objectif (ex. Voyage)",
+    "targetAmountHint": "Montant cible ($)",
+    "noActiveGoals": "Aucun objectif actif",
+    "goal": "Objectif",
+    "deposit": "Déposer",
+    "withdraw": "Retirer",
+    "withdrawFromGoal": "Retirer de l'objectif",
+    "depositToGoal": "Déposer sur l'objectif",
+    "available": "Disponible",
+    "saved": "Économisé",
+    "remaining": "Restant",
+    "amountToWithdraw": "Montant à retirer",
+    "amountToDeposit": "Montant à déposer",
+    "allAmount": "Tout",
+    "enterValidAmount": "Entrez un montant valide",
+    "cannotWithdrawMore": "Impossible de retirer plus de ${amount}",
+    "@cannotWithdrawMore": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "withdrewAmount": "Vous avez retiré ${amount} de \"{goal}\"",
+    "@withdrewAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "depositedAmount": "Vous avez déposé ${amount} sur \"{goal}\" !",
+    "@depositedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteGoal": "Supprimer l'objectif",
+    "deleteGoalConfirm": "Êtes-vous sûr de vouloir supprimer cet objectif ?",
+    "goalAlreadySavedWarning": "Vous avez déjà économisé ${amount} pour cet objectif.",
+    "@goalAlreadySavedWarning": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "goalDeleted": "Objectif \"{goal}\" supprimé",
+    "@goalDeleted": {
+        "placeholders": {
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "distribution": "Distribution",
+    "noExpensesRegistered": "Aucune dépense enregistrée",
+    "invitationTitle": "Invitation !",
+    "invitationBody": "{name} vous a invité à collaborer sur : {goal}",
+    "@invitationBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "invitationQuestion": "Voulez-vous accepter cette invitation et partager la progression ?",
+    "reject": "Refuser",
+    "accept": "Accepter",
+    "invitationAccepted": "Invitation acceptée",
+    "errorGeneric": "Erreur : {error}",
+    "@errorGeneric": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    }
 }

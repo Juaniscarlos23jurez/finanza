@@ -108,5 +108,111 @@
     "today": "Oggi",
     "yesterday": "Ieri",
     "general": "Generale",
-    "others": "Altri"
+    "others": "Altri",
+    "dashboard": "Dashboard",
+    "balanceTrend": "Tendenza del Saldo",
+    "yourGoals": "I Tuoi Obiettivi",
+    "expensesByCategory": "Spese per Categoria",
+    "recentTransactions": "Transazioni Recenti",
+    "noRecentActivity": "Nessuna attività recente",
+    "hello": "Ciao, {name}",
+    "@hello": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "helloSimple": "Ciao",
+    "totalBalance": "SALDO TOTALE",
+    "newGoal": "Nuovo Obiettivo",
+    "goalNameHint": "Nome Obiettivo (es. Viaggio)",
+    "targetAmountHint": "Importo Target ($)",
+    "noActiveGoals": "Nessun obiettivo attivo",
+    "goal": "Obiettivo",
+    "deposit": "Deposita",
+    "withdraw": "Preleva",
+    "withdrawFromGoal": "Preleva dall'Obiettivo",
+    "depositToGoal": "Deposita nell'Obiettivo",
+    "available": "Disponibile",
+    "saved": "Risparmiato",
+    "remaining": "Rimanente",
+    "amountToWithdraw": "Importo da prelevare",
+    "amountToDeposit": "Importo da depositare",
+    "allAmount": "Tutto",
+    "enterValidAmount": "Inserisci un importo valido",
+    "cannotWithdrawMore": "Non puoi prelevare più di ${amount}",
+    "@cannotWithdrawMore": {
+         "placeholders": {
+             "amount": {
+                 "type": "String"
+             }
+         }
+    },
+    "withdrewAmount": "Prelevati ${amount} da \"{goal}\"",
+    "@withdrewAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "depositedAmount": "Depositati ${amount} in \"{goal}\"!",
+    "@depositedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteGoal": "Elimina Obiettivo",
+    "deleteGoalConfirm": "Sei sicuro di voler eliminare questo obiettivo?",
+    "goalAlreadySavedWarning": "Hai già risparmiato ${amount} in questo obiettivo.",
+    "@goalAlreadySavedWarning": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "goalDeleted": "Obiettivo \"{goal}\" eliminato",
+    "@goalDeleted": {
+        "placeholders": {
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "distribution": "Distribuzione",
+    "noExpensesRegistered": "Nessuna spesa registrata",
+    "invitationTitle": "Invito!",
+    "invitationBody": "{name} ti ha invitato a collaborare a: {goal}",
+    "@invitationBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "invitationQuestion": "Vuoi accettare questo invito e condividere i progressi?",
+    "reject": "Rifiuta",
+    "accept": "Accetta",
+    "invitationAccepted": "Invito accettato",
+    "errorGeneric": "Errore: {error}",
+    "@errorGeneric": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    }
 }

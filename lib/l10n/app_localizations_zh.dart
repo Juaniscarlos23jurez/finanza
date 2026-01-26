@@ -258,4 +258,143 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get others => '其他';
+
+  @override
+  String get dashboard => '仪表板';
+
+  @override
+  String get balanceTrend => '余额趋势';
+
+  @override
+  String get yourGoals => '您的目标';
+
+  @override
+  String get expensesByCategory => '按类别支出';
+
+  @override
+  String get recentTransactions => '最近交易';
+
+  @override
+  String get noRecentActivity => '无近期活动';
+
+  @override
+  String hello(String name) {
+    return '你好，$name';
+  }
+
+  @override
+  String get helloSimple => '你好';
+
+  @override
+  String get totalBalance => '总余额';
+
+  @override
+  String get newGoal => '新目标';
+
+  @override
+  String get goalNameHint => '目标名称（例如：旅行）';
+
+  @override
+  String get targetAmountHint => '目标金额（\$）';
+
+  @override
+  String get noActiveGoals => '无活跃目标';
+
+  @override
+  String get goal => '目标';
+
+  @override
+  String get deposit => '存入';
+
+  @override
+  String get withdraw => '取出';
+
+  @override
+  String get withdrawFromGoal => '从目标取出';
+
+  @override
+  String get depositToGoal => '存入目标';
+
+  @override
+  String get available => '可用';
+
+  @override
+  String get saved => '已存';
+
+  @override
+  String get remaining => '剩余';
+
+  @override
+  String get amountToWithdraw => '提取金额';
+
+  @override
+  String get amountToDeposit => '存入金额';
+
+  @override
+  String get allAmount => '全部';
+
+  @override
+  String get enterValidAmount => '请输入有效金额';
+
+  @override
+  String cannotWithdrawMore(String amount) {
+    return '提取金额不能超过 \$$amount';
+  }
+
+  @override
+  String withdrewAmount(String amount, String goal) {
+    return '从 \"$goal\" 提取了 \$$amount';
+  }
+
+  @override
+  String depositedAmount(String amount, String goal) {
+    return '向 \"$goal\" 存入了 \$$amount！';
+  }
+
+  @override
+  String get deleteGoal => '删除目标';
+
+  @override
+  String get deleteGoalConfirm => '您确定要删除此目标吗？';
+
+  @override
+  String goalAlreadySavedWarning(String amount) {
+    return '您已在此目标中存入 \$$amount。';
+  }
+
+  @override
+  String goalDeleted(String goal) {
+    return '目标 \"$goal\" 已删除';
+  }
+
+  @override
+  String get distribution => '分布';
+
+  @override
+  String get noExpensesRegistered => '无支出记录';
+
+  @override
+  String get invitationTitle => '邀请！';
+
+  @override
+  String invitationBody(String name, String goal) {
+    return '$name 邀请您协作目标：$goal';
+  }
+
+  @override
+  String get invitationQuestion => '您想接受此邀请并分享进度吗？';
+
+  @override
+  String get reject => '拒绝';
+
+  @override
+  String get accept => '接受';
+
+  @override
+  String get invitationAccepted => '邀请已接受';
+
+  @override
+  String errorGeneric(String error) {
+    return '错误: $error';
+  }
 }

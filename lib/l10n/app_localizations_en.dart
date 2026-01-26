@@ -262,4 +262,144 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get others => 'Others';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get balanceTrend => 'Balance Trend';
+
+  @override
+  String get yourGoals => 'Your Goals';
+
+  @override
+  String get expensesByCategory => 'Expenses by Category';
+
+  @override
+  String get recentTransactions => 'Recent Transactions';
+
+  @override
+  String get noRecentActivity => 'No recent activity';
+
+  @override
+  String hello(String name) {
+    return 'Hello, $name';
+  }
+
+  @override
+  String get helloSimple => 'Hello';
+
+  @override
+  String get totalBalance => 'TOTAL BALANCE';
+
+  @override
+  String get newGoal => 'New Goal';
+
+  @override
+  String get goalNameHint => 'Goal Name (e.g. Trip)';
+
+  @override
+  String get targetAmountHint => 'Target Amount (\$)';
+
+  @override
+  String get noActiveGoals => 'No active goals';
+
+  @override
+  String get goal => 'Goal';
+
+  @override
+  String get deposit => 'Deposit';
+
+  @override
+  String get withdraw => 'Withdraw';
+
+  @override
+  String get withdrawFromGoal => 'Withdraw from Goal';
+
+  @override
+  String get depositToGoal => 'Deposit to Goal';
+
+  @override
+  String get available => 'Available';
+
+  @override
+  String get saved => 'Saved';
+
+  @override
+  String get remaining => 'Remaining';
+
+  @override
+  String get amountToWithdraw => 'Amount to withdraw';
+
+  @override
+  String get amountToDeposit => 'Amount to deposit';
+
+  @override
+  String get allAmount => 'All';
+
+  @override
+  String get enterValidAmount => 'Enter a valid amount';
+
+  @override
+  String cannotWithdrawMore(String amount) {
+    return 'Cannot withdraw more than \$$amount';
+  }
+
+  @override
+  String withdrewAmount(String amount, String goal) {
+    return 'Withdrew \$$amount from \"$goal\"';
+  }
+
+  @override
+  String depositedAmount(String amount, String goal) {
+    return 'Deposited \$$amount to \"$goal\"!';
+  }
+
+  @override
+  String get deleteGoal => 'Delete Goal';
+
+  @override
+  String get deleteGoalConfirm => 'Are you sure you want to delete this goal?';
+
+  @override
+  String goalAlreadySavedWarning(String amount) {
+    return 'You already have \$$amount saved in this goal.';
+  }
+
+  @override
+  String goalDeleted(String goal) {
+    return 'Goal \"$goal\" deleted';
+  }
+
+  @override
+  String get distribution => 'Distribution';
+
+  @override
+  String get noExpensesRegistered => 'No expenses registered';
+
+  @override
+  String get invitationTitle => 'Invitation!';
+
+  @override
+  String invitationBody(String name, String goal) {
+    return '$name invited you to collaborate on: $goal';
+  }
+
+  @override
+  String get invitationQuestion =>
+      'Do you want to accept this invitation and share progress?';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get invitationAccepted => 'Invitation accepted';
+
+  @override
+  String errorGeneric(String error) {
+    return 'Error: $error';
+  }
 }

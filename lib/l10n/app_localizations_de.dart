@@ -263,4 +263,144 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get others => 'Andere';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get balanceTrend => 'Saldo-Trend';
+
+  @override
+  String get yourGoals => 'Deine Ziele';
+
+  @override
+  String get expensesByCategory => 'Ausgaben nach Kategorie';
+
+  @override
+  String get recentTransactions => 'Aktuelle Transaktionen';
+
+  @override
+  String get noRecentActivity => 'Keine aktuellen Aktivitäten';
+
+  @override
+  String hello(String name) {
+    return 'Hallo, $name';
+  }
+
+  @override
+  String get helloSimple => 'Hallo';
+
+  @override
+  String get totalBalance => 'Guthaben';
+
+  @override
+  String get newGoal => 'Neues Ziel';
+
+  @override
+  String get goalNameHint => 'Zielname (z.B. Reise)';
+
+  @override
+  String get targetAmountHint => 'Zielbetrag (\$)';
+
+  @override
+  String get noActiveGoals => 'Keine aktiven Ziele';
+
+  @override
+  String get goal => 'Ziel';
+
+  @override
+  String get deposit => 'Einzahlen';
+
+  @override
+  String get withdraw => 'Abheben';
+
+  @override
+  String get withdrawFromGoal => 'Vom Ziel abheben';
+
+  @override
+  String get depositToGoal => 'Auf Ziel einzahlen';
+
+  @override
+  String get available => 'Verfügbar';
+
+  @override
+  String get saved => 'Gespart';
+
+  @override
+  String get remaining => 'Verbleibend';
+
+  @override
+  String get amountToWithdraw => 'Betrag zum Abheben';
+
+  @override
+  String get amountToDeposit => 'Betrag zum Einzahlen';
+
+  @override
+  String get allAmount => 'Alles';
+
+  @override
+  String get enterValidAmount => 'Bitte geben Sie einen gültigen Betrag ein';
+
+  @override
+  String cannotWithdrawMore(String amount) {
+    return 'Sie können nicht mehr als \$$amount abheben';
+  }
+
+  @override
+  String withdrewAmount(String amount, String goal) {
+    return 'Sie haben \$$amount von \"$goal\" abgehoben';
+  }
+
+  @override
+  String depositedAmount(String amount, String goal) {
+    return 'Sie haben \$$amount auf \"$goal\" eingezahlt!';
+  }
+
+  @override
+  String get deleteGoal => 'Ziel löschen';
+
+  @override
+  String get deleteGoalConfirm => 'Möchten Sie dieses Ziel wirklich löschen?';
+
+  @override
+  String goalAlreadySavedWarning(String amount) {
+    return 'Sie haben bereits \$$amount für dieses Ziel gespart.';
+  }
+
+  @override
+  String goalDeleted(String goal) {
+    return 'Ziel \"$goal\" gelöscht';
+  }
+
+  @override
+  String get distribution => 'Verteilung';
+
+  @override
+  String get noExpensesRegistered => 'Keine Ausgaben registriert';
+
+  @override
+  String get invitationTitle => 'Einladung!';
+
+  @override
+  String invitationBody(String name, String goal) {
+    return '$name hat Sie eingeladen, an folgendem Ziel mitzuarbeiten: $goal';
+  }
+
+  @override
+  String get invitationQuestion =>
+      'Möchten Sie diese Einladung annehmen und den Fortschritt teilen?';
+
+  @override
+  String get reject => 'Ablehnen';
+
+  @override
+  String get accept => 'Annehmen';
+
+  @override
+  String get invitationAccepted => 'Einladung angenommen';
+
+  @override
+  String errorGeneric(String error) {
+    return 'Fehler: $error';
+  }
 }

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/auth_service.dart';
@@ -83,7 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             const Icon(Icons.people_alt_rounded, color: AppTheme.primary),
             const SizedBox(width: 12),
-            Text('¡Invitación!', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+            Text(AppLocalizations.of(context)!.invitationTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -94,15 +95,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               text: TextSpan(
                 style: GoogleFonts.manrope(color: AppTheme.primary, fontSize: 16),
                 children: [
-                  TextSpan(text: fromName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const TextSpan(text: ' te ha invitado a colaborar en la meta: '),
-                  TextSpan(text: goalName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.purpleAccent)),
+                  TextSpan(text: AppLocalizations.of(context)!.invitationBody(fromName, goalName)),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              '¿Deseas aceptar esta invitación y compartir el progreso?',
+              AppLocalizations.of(context)!.invitationQuestion,
               style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 14),
             ),
           ],
@@ -113,7 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (email != null) await _firebaseService.removeInvitation(email, key);
               if (context.mounted) Navigator.pop(context);
             },
-            child: Text('Rechazar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(AppLocalizations.of(context)!.reject, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -123,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invitación aceptada'), backgroundColor: Colors.green),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.invitationAccepted), backgroundColor: Colors.green),
                 );
                 _fetchFinanceData(); // Refresh to see new goal if it was linked in backend
               }
@@ -132,7 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               backgroundColor: AppTheme.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Aceptar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.accept, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -200,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       for (var record in records) {
         if (record['type'] == 'expense') {
           final double amount = double.tryParse(record['amount'].toString()) ?? 0.0;
-          final String category = record['category'] ?? 'General';
+          final String category = record['category'] ?? AppLocalizations.of(context)!.general;
           
           stats[category] = (stats[category] ?? 0.0) + amount;
           totalExpense += amount;
@@ -323,19 +322,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 32),
                     _buildBalanceCard(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Movimiento de Balance'),
+                    _buildSectionTitle(AppLocalizations.of(context)!.balanceTrend),
                     const SizedBox(height: 16),
                     _buildHistoryChart(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Tus Metas', onAdd: _showAddGoalDialog),
+                    _buildSectionTitle(AppLocalizations.of(context)!.yourGoals, onAdd: _showAddGoalDialog),
                     const SizedBox(height: 16),
                     _buildGoalsList(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Gastos por Categoría'),
+                    _buildSectionTitle(AppLocalizations.of(context)!.expensesByCategory),
                     const SizedBox(height: 16),
                     _buildCategoryChart(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Movimientos Recientes'),
+                    _buildSectionTitle(AppLocalizations.of(context)!.recentTransactions),
                     const SizedBox(height: 16),
                     _buildRecentTransactions(),
                   ],
@@ -355,7 +354,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(24),
         width: double.infinity,
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-        child: Center(child: Text('Sin actividad reciente', style: GoogleFonts.manrope(color: AppTheme.secondary))),
+        child: Center(child: Text(AppLocalizations.of(context)!.noRecentActivity, style: GoogleFonts.manrope(color: AppTheme.secondary))),
       );
     }
 
@@ -469,8 +468,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTransactionItem(Map<String, dynamic> item) {
-    final String title = item['description'] ?? 'Sin descripción';
-    final String category = item['category'] ?? 'General';
+    final String title = item['description'] ?? AppLocalizations.of(context)!.noDescription;
+    final String category = item['category'] ?? AppLocalizations.of(context)!.general;
     final double amountVal = double.tryParse(item['amount'].toString()) ?? 0.0;
     final bool isIncome = item['type'] == 'income';
     final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
@@ -549,7 +548,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _userName.isNotEmpty ? 'Hola, $_userName' : 'Hola',
+          _userName.isNotEmpty ? AppLocalizations.of(context)!.hello(_userName) : AppLocalizations.of(context)!.helloSimple,
           style: GoogleFonts.manrope(
             fontSize: 14,
             color: AppTheme.secondary,
@@ -560,7 +559,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Panel de Control',
+              AppLocalizations.of(context)!.dashboard,
               style: GoogleFonts.manrope(
                 fontSize: 24,
                 color: AppTheme.primary,
@@ -615,7 +614,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SALDO TOTAL',
+            AppLocalizations.of(context)!.totalBalance,
             style: GoogleFonts.manrope(
               fontSize: 12,
               color: Colors.white.withValues(alpha: 0.6),
@@ -636,13 +635,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             children: [
               _buildMiniStat(
-                'Ingresos', 
+                AppLocalizations.of(context)!.incomes, 
                 '+\$${(_summary['total_income'] ?? 0).toStringAsFixed(0)}', 
                 Colors.greenAccent
               ),
               const SizedBox(width: 32),
               _buildMiniStat(
-                'Egresos', 
+                AppLocalizations.of(context)!.expenses, 
                 '-\$${(_summary['total_expense'] ?? 0).toStringAsFixed(0)}', 
                 Colors.redAccent
               ),
@@ -721,18 +720,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Nueva Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          title: Text(AppLocalizations.of(context)!.newGoal, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Nombre de la meta (ej. Viaje)'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.goalNameHint),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: amountController,
-                decoration: const InputDecoration(labelText: 'Monto objetivo (\$)', prefixText: '\$'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.targetAmountHint, prefixText: '\$'),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
             ],
@@ -740,7 +739,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: isSaving ? null : () async {
@@ -762,12 +761,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 } catch (e) {
                   if (!context.mounted) return;
                   setDialogState(() => isSaving = false);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString()))));
                 }
               },
               child: isSaving 
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
-                : const Text('Guardar'),
+                : Text(AppLocalizations.of(context)!.save),
             ),
           ],
         ),
@@ -787,7 +786,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: Center(
           child: Text(
-            'No tienes metas activas',
+            AppLocalizations.of(context)!.noActiveGoals,
             style: GoogleFonts.manrope(color: AppTheme.secondary),
           ),
         ),
@@ -811,7 +810,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
     final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
     final double progress = (current / target).clamp(0.0, 1.0);
-    final String title = goal['title'] ?? 'Meta';
+    final String title = goal['title'] ?? AppLocalizations.of(context)!.goal;
     final int? goalId = goal['id'];
     final int percentage = (progress * 100).round();
     
@@ -1019,7 +1018,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const Icon(Icons.add_circle_outline_rounded, size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              'Abonar',
+                              AppLocalizations.of(context)!.deposit,
                               style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                           ],
@@ -1044,7 +1043,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
     final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
     final double remaining = target - current;
-    final String title = goal['title'] ?? 'Meta';
+    final String title = goal['title'] ?? AppLocalizations.of(context)!.goal;
     final int? goalId = goal['id'];
 
     showDialog(
@@ -1073,7 +1072,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isWithdrawMode ? 'Retirar de Meta' : 'Abonar a Meta',
+                      isWithdrawMode ? AppLocalizations.of(context)!.withdrawFromGoal : AppLocalizations.of(context)!.depositToGoal,
                       style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     Text(
@@ -1118,7 +1117,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Abonar',
+                                AppLocalizations.of(context)!.deposit,
                                 style: GoogleFonts.manrope(
                                   fontWeight: FontWeight.bold,
                                   color: !isWithdrawMode ? Colors.white : AppTheme.secondary,
@@ -1153,7 +1152,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Retirar',
+                                AppLocalizations.of(context)!.withdraw,
                                 style: GoogleFonts.manrope(
                                   fontWeight: FontWeight.bold,
                                   color: isWithdrawMode 
@@ -1184,7 +1183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isWithdrawMode ? 'Disponible' : 'Ahorrado',
+                          isWithdrawMode ? AppLocalizations.of(context)!.available : AppLocalizations.of(context)!.saved,
                           style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
                         ),
                         Text(
@@ -1201,7 +1200,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          isWithdrawMode ? 'Meta' : 'Restante',
+                          isWithdrawMode ? AppLocalizations.of(context)!.goal : AppLocalizations.of(context)!.remaining,
                           style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
                         ),
                         Text(
@@ -1223,7 +1222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: amountController,
                 decoration: InputDecoration(
-                  labelText: isWithdrawMode ? 'Monto a retirar' : 'Monto a abonar',
+                  labelText: isWithdrawMode ? AppLocalizations.of(context)!.amountToWithdraw : AppLocalizations.of(context)!.amountToDeposit,
                   prefixText: '\$ ',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   filled: true,
@@ -1241,7 +1240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     : [100, 500, 1000]
                 ).map((amount) {
                   return ActionChip(
-                    label: Text(amount == current.toInt() && isWithdrawMode ? 'Todo' : '\$$amount'),
+                    label: Text(amount == current.toInt() && isWithdrawMode ? AppLocalizations.of(context)!.allAmount : '\$$amount'),
                     onPressed: () {
                       amountController.text = amount.toString();
                     },
@@ -1259,7 +1258,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+              child: Text(AppLocalizations.of(context)!.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -1272,7 +1271,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 final double? amount = double.tryParse(amountController.text);
                 if (amount == null || amount <= 0 || goalId == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ingresa un monto válido')),
+                    SnackBar(content: Text(AppLocalizations.of(context)!.enterValidAmount)),
                   );
                   return;
                 }
@@ -1280,7 +1279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (isWithdrawMode && amount > current) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('No puedes retirar más de \$${current.toStringAsFixed(2)}'),
+                      content: Text(AppLocalizations.of(context)!.cannotWithdrawMore(current.toStringAsFixed(2))),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -1296,7 +1295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Retiraste \$${amount.toStringAsFixed(2)} de "$title"'),
+                        content: Text(AppLocalizations.of(context)!.withdrewAmount(amount.toStringAsFixed(2), title)),
                         backgroundColor: Colors.orange,
                       ),
                     );
@@ -1306,7 +1305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('¡Abonaste \$${amount.toStringAsFixed(2)} a "$title"!'),
+                        content: Text(AppLocalizations.of(context)!.depositedAmount(amount.toStringAsFixed(2), title)),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -1316,13 +1315,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (!context.mounted) return;
                   setDialogState(() => isSaving = false);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString())), backgroundColor: Colors.red),
                   );
                 }
               },
               child: isSaving 
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
-                : Text(isWithdrawMode ? 'Retirar' : 'Abonar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                : Text(isWithdrawMode ? AppLocalizations.of(context)!.withdraw : AppLocalizations.of(context)!.deposit, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -1356,7 +1355,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Eliminar Meta',
+                AppLocalizations.of(context)!.deleteGoal,
                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
@@ -1367,7 +1366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Estás seguro de eliminar esta meta?',
+              AppLocalizations.of(context)!.deleteGoalConfirm,
               style: GoogleFonts.manrope(fontSize: 14),
             ),
             const SizedBox(height: 16),
@@ -1423,7 +1422,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Ya tienes \$${current.toStringAsFixed(0)} ahorrados en esta meta.',
+                        AppLocalizations.of(context)!.goalAlreadySavedWarning(current.toStringAsFixed(0)),
                         style: GoogleFonts.manrope(fontSize: 11, color: Colors.orange.shade800),
                       ),
                     ),
@@ -1436,7 +1435,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1447,7 +1446,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Meta "$title" eliminada'),
+                    content: Text(AppLocalizations.of(context)!.goalDeleted(title)),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -1455,7 +1454,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               } catch (e) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString())), backgroundColor: Colors.red),
                 );
               }
             },
@@ -1463,7 +1462,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               backgroundColor: Colors.redAccent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Eliminar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.delete, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1490,7 +1489,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: Center(
           child: Text(
-            'No hay gastos registrados',
+            AppLocalizations.of(context)!.noExpensesRegistered,
             style: GoogleFonts.manrope(color: AppTheme.secondary),
           ),
         ),
@@ -1506,7 +1505,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (sortedEntries.length > 5) {
       displayEntries = sortedEntries.take(4).toList();
       double othersValue = sortedEntries.skip(4).fold(0.0, (sum, item) => sum + item.value);
-      displayEntries.add(MapEntry('Otros', othersValue));
+      displayEntries.add(MapEntry(AppLocalizations.of(context)!.others, othersValue));
     } else {
       displayEntries = sortedEntries.toList();
     }
@@ -1532,7 +1531,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Distribución',
+                AppLocalizations.of(context)!.distribution,
                 style: GoogleFonts.manrope(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -1554,7 +1553,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   children: [
                     Text(
-                      'Ver completo',
+                      AppLocalizations.of(context)!.seeFull,
                       style: GoogleFonts.manrope(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

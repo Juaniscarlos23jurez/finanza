@@ -108,5 +108,111 @@
     "today": "今日",
     "yesterday": "昨日",
     "general": "一般",
-    "others": "その他"
+    "others": "その他",
+    "dashboard": "ダッシュボード",
+    "balanceTrend": "残高推移",
+    "yourGoals": "目標",
+    "expensesByCategory": "カテゴリー別支出",
+    "recentTransactions": "最近の取引",
+    "noRecentActivity": "最近の活動はありません",
+    "hello": "こんにちは、{name}さん",
+    "@hello": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "helloSimple": "こんにちは",
+    "totalBalance": "総残高",
+    "newGoal": "新しい目標",
+    "goalNameHint": "目標名 (例: 旅行)",
+    "targetAmountHint": "目標金額 ($)",
+    "noActiveGoals": "アクティブな目標はありません",
+    "goal": "目標",
+    "deposit": "入金",
+    "withdraw": "出金",
+    "withdrawFromGoal": "目標から出金",
+    "depositToGoal": "目標に入金",
+    "available": "利用可能",
+    "saved": "貯蓄額",
+    "remaining": "残り",
+    "amountToWithdraw": "出金金額",
+    "amountToDeposit": "入金金額",
+    "allAmount": "全額",
+    "enterValidAmount": "有効な金額を入力してください",
+    "cannotWithdrawMore": "${amount}以上は出金できません",
+    "@cannotWithdrawMore": {
+         "placeholders": {
+             "amount": {
+                 "type": "String"
+             }
+         }
+    },
+    "withdrewAmount": "\"{goal}\"から${amount}を出金しました",
+    "@withdrewAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "depositedAmount": "\"{goal}\"に${amount}を入金しました！",
+    "@depositedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteGoal": "目標を削除",
+    "deleteGoalConfirm": "この目標を削除してもよろしいですか？",
+    "goalAlreadySavedWarning": "この目標にはすでに${amount}の貯蓄があります。",
+    "@goalAlreadySavedWarning": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "goalDeleted": "目標\"{goal}\"を削除しました",
+    "@goalDeleted": {
+        "placeholders": {
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "distribution": "内訳",
+    "noExpensesRegistered": "支出の記録はありません",
+    "invitationTitle": "招待！",
+    "invitationBody": "{name}さんが目標「{goal}」への協力を招待しています",
+    "@invitationBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "invitationQuestion": "この招待を受け入れて進捗を共有しますか？",
+    "reject": "拒否",
+    "accept": "承諾",
+    "invitationAccepted": "招待を承諾しました",
+    "errorGeneric": "エラー: {error}",
+    "@errorGeneric": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    }
 }

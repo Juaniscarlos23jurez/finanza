@@ -262,4 +262,144 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get others => 'Outros';
+
+  @override
+  String get dashboard => 'Painel';
+
+  @override
+  String get balanceTrend => 'Tendência do Saldo';
+
+  @override
+  String get yourGoals => 'Suas Metas';
+
+  @override
+  String get expensesByCategory => 'Despesas por Categoria';
+
+  @override
+  String get recentTransactions => 'Transações Recentes';
+
+  @override
+  String get noRecentActivity => 'Nenhuma atividade recente';
+
+  @override
+  String hello(String name) {
+    return 'Olá, $name';
+  }
+
+  @override
+  String get helloSimple => 'Olá';
+
+  @override
+  String get totalBalance => 'SALDO TOTAL';
+
+  @override
+  String get newGoal => 'Nova Meta';
+
+  @override
+  String get goalNameHint => 'Nome da Meta (ex. Viagem)';
+
+  @override
+  String get targetAmountHint => 'Valor Alvo (\$)';
+
+  @override
+  String get noActiveGoals => 'Menhuma meta ativa';
+
+  @override
+  String get goal => 'Meta';
+
+  @override
+  String get deposit => 'Depositar';
+
+  @override
+  String get withdraw => 'Sacar';
+
+  @override
+  String get withdrawFromGoal => 'Sacar da Meta';
+
+  @override
+  String get depositToGoal => 'Depositar na Meta';
+
+  @override
+  String get available => 'Disponível';
+
+  @override
+  String get saved => 'Guardado';
+
+  @override
+  String get remaining => 'Restante';
+
+  @override
+  String get amountToWithdraw => 'Valor a sacar';
+
+  @override
+  String get amountToDeposit => 'Valor a depositar';
+
+  @override
+  String get allAmount => 'Tudo';
+
+  @override
+  String get enterValidAmount => 'Insira um valor válido';
+
+  @override
+  String cannotWithdrawMore(String amount) {
+    return 'Não pode sacar mais de \$$amount';
+  }
+
+  @override
+  String withdrewAmount(String amount, String goal) {
+    return 'Você sacou \$$amount de \"$goal\"';
+  }
+
+  @override
+  String depositedAmount(String amount, String goal) {
+    return 'Você depositou \$$amount em \"$goal\"!';
+  }
+
+  @override
+  String get deleteGoal => 'Excluir Meta';
+
+  @override
+  String get deleteGoalConfirm => 'Tem certeza que deseja excluir esta meta?';
+
+  @override
+  String goalAlreadySavedWarning(String amount) {
+    return 'Você já tem \$$amount guardados nesta meta.';
+  }
+
+  @override
+  String goalDeleted(String goal) {
+    return 'Meta \"$goal\" excluída';
+  }
+
+  @override
+  String get distribution => 'Distribuição';
+
+  @override
+  String get noExpensesRegistered => 'Nenhuma despesa registrada';
+
+  @override
+  String get invitationTitle => 'Convite!';
+
+  @override
+  String invitationBody(String name, String goal) {
+    return '$name convidou você para colaborar em: $goal';
+  }
+
+  @override
+  String get invitationQuestion =>
+      'Deseja aceitar este convite e compartilhar o progresso?';
+
+  @override
+  String get reject => 'Rejeitar';
+
+  @override
+  String get accept => 'Aceitar';
+
+  @override
+  String get invitationAccepted => 'Convite aceito';
+
+  @override
+  String errorGeneric(String error) {
+    return 'Erro: $error';
+  }
 }

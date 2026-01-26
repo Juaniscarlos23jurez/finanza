@@ -258,4 +258,143 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get others => 'その他';
+
+  @override
+  String get dashboard => 'ダッシュボード';
+
+  @override
+  String get balanceTrend => '残高推移';
+
+  @override
+  String get yourGoals => '目標';
+
+  @override
+  String get expensesByCategory => 'カテゴリー別支出';
+
+  @override
+  String get recentTransactions => '最近の取引';
+
+  @override
+  String get noRecentActivity => '最近の活動はありません';
+
+  @override
+  String hello(String name) {
+    return 'こんにちは、$nameさん';
+  }
+
+  @override
+  String get helloSimple => 'こんにちは';
+
+  @override
+  String get totalBalance => '総残高';
+
+  @override
+  String get newGoal => '新しい目標';
+
+  @override
+  String get goalNameHint => '目標名 (例: 旅行)';
+
+  @override
+  String get targetAmountHint => '目標金額 (\$)';
+
+  @override
+  String get noActiveGoals => 'アクティブな目標はありません';
+
+  @override
+  String get goal => '目標';
+
+  @override
+  String get deposit => '入金';
+
+  @override
+  String get withdraw => '出金';
+
+  @override
+  String get withdrawFromGoal => '目標から出金';
+
+  @override
+  String get depositToGoal => '目標に入金';
+
+  @override
+  String get available => '利用可能';
+
+  @override
+  String get saved => '貯蓄額';
+
+  @override
+  String get remaining => '残り';
+
+  @override
+  String get amountToWithdraw => '出金金額';
+
+  @override
+  String get amountToDeposit => '入金金額';
+
+  @override
+  String get allAmount => '全額';
+
+  @override
+  String get enterValidAmount => '有効な金額を入力してください';
+
+  @override
+  String cannotWithdrawMore(String amount) {
+    return '\$$amount以上は出金できません';
+  }
+
+  @override
+  String withdrewAmount(String amount, String goal) {
+    return '\"$goal\"から\$$amountを出金しました';
+  }
+
+  @override
+  String depositedAmount(String amount, String goal) {
+    return '\"$goal\"に\$$amountを入金しました！';
+  }
+
+  @override
+  String get deleteGoal => '目標を削除';
+
+  @override
+  String get deleteGoalConfirm => 'この目標を削除してもよろしいですか？';
+
+  @override
+  String goalAlreadySavedWarning(String amount) {
+    return 'この目標にはすでに\$$amountの貯蓄があります。';
+  }
+
+  @override
+  String goalDeleted(String goal) {
+    return '目標\"$goal\"を削除しました';
+  }
+
+  @override
+  String get distribution => '内訳';
+
+  @override
+  String get noExpensesRegistered => '支出の記録はありません';
+
+  @override
+  String get invitationTitle => '招待！';
+
+  @override
+  String invitationBody(String name, String goal) {
+    return '$nameさんが目標「$goal」への協力を招待しています';
+  }
+
+  @override
+  String get invitationQuestion => 'この招待を受け入れて進捗を共有しますか？';
+
+  @override
+  String get reject => '拒否';
+
+  @override
+  String get accept => '承諾';
+
+  @override
+  String get invitationAccepted => '招待を承諾しました';
+
+  @override
+  String errorGeneric(String error) {
+    return 'エラー: $error';
+  }
 }

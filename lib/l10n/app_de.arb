@@ -108,5 +108,111 @@
     "today": "Heute",
     "yesterday": "Gestern",
     "general": "Allgemein",
-    "others": "Andere"
+    "others": "Andere",
+    "dashboard": "Dashboard",
+    "balanceTrend": "Saldo-Trend",
+    "yourGoals": "Deine Ziele",
+    "expensesByCategory": "Ausgaben nach Kategorie",
+    "recentTransactions": "Aktuelle Transaktionen",
+    "noRecentActivity": "Keine aktuellen Aktivitäten",
+    "hello": "Hallo, {name}",
+    "@hello": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "helloSimple": "Hallo",
+    "totalBalance": "Guthaben",
+    "newGoal": "Neues Ziel",
+    "goalNameHint": "Zielname (z.B. Reise)",
+    "targetAmountHint": "Zielbetrag ($)",
+    "noActiveGoals": "Keine aktiven Ziele",
+    "goal": "Ziel",
+    "deposit": "Einzahlen",
+    "withdraw": "Abheben",
+    "withdrawFromGoal": "Vom Ziel abheben",
+    "depositToGoal": "Auf Ziel einzahlen",
+    "available": "Verfügbar",
+    "saved": "Gespart",
+    "remaining": "Verbleibend",
+    "amountToWithdraw": "Betrag zum Abheben",
+    "amountToDeposit": "Betrag zum Einzahlen",
+    "allAmount": "Alles",
+    "enterValidAmount": "Bitte geben Sie einen gültigen Betrag ein",
+    "cannotWithdrawMore": "Sie können nicht mehr als ${amount} abheben",
+    "@cannotWithdrawMore": {
+         "placeholders": {
+             "amount": {
+                 "type": "String"
+             }
+         }
+    },
+    "withdrewAmount": "Sie haben ${amount} von \"{goal}\" abgehoben",
+    "@withdrewAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "depositedAmount": "Sie haben ${amount} auf \"{goal}\" eingezahlt!",
+    "@depositedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteGoal": "Ziel löschen",
+    "deleteGoalConfirm": "Möchten Sie dieses Ziel wirklich löschen?",
+    "goalAlreadySavedWarning": "Sie haben bereits ${amount} für dieses Ziel gespart.",
+    "@goalAlreadySavedWarning": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "goalDeleted": "Ziel \"{goal}\" gelöscht",
+    "@goalDeleted": {
+        "placeholders": {
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "distribution": "Verteilung",
+    "noExpensesRegistered": "Keine Ausgaben registriert",
+    "invitationTitle": "Einladung!",
+    "invitationBody": "{name} hat Sie eingeladen, an folgendem Ziel mitzuarbeiten: {goal}",
+    "@invitationBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "invitationQuestion": "Möchten Sie diese Einladung annehmen und den Fortschritt teilen?",
+    "reject": "Ablehnen",
+    "accept": "Annehmen",
+    "invitationAccepted": "Einladung angenommen",
+    "errorGeneric": "Fehler: {error}",
+    "@errorGeneric": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    }
 }

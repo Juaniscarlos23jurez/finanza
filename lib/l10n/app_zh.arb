@@ -108,5 +108,111 @@
     "today": "今天",
     "yesterday": "昨天",
     "general": "常规",
-    "others": "其他"
+    "others": "其他",
+    "dashboard": "仪表板",
+    "balanceTrend": "余额趋势",
+    "yourGoals": "您的目标",
+    "expensesByCategory": "按类别支出",
+    "recentTransactions": "最近交易",
+    "noRecentActivity": "无近期活动",
+    "hello": "你好，{name}",
+    "@hello": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "helloSimple": "你好",
+    "totalBalance": "总余额",
+    "newGoal": "新目标",
+    "goalNameHint": "目标名称（例如：旅行）",
+    "targetAmountHint": "目标金额（$）",
+    "noActiveGoals": "无活跃目标",
+    "goal": "目标",
+    "deposit": "存入",
+    "withdraw": "取出",
+    "withdrawFromGoal": "从目标取出",
+    "depositToGoal": "存入目标",
+    "available": "可用",
+    "saved": "已存",
+    "remaining": "剩余",
+    "amountToWithdraw": "提取金额",
+    "amountToDeposit": "存入金额",
+    "allAmount": "全部",
+    "enterValidAmount": "请输入有效金额",
+    "cannotWithdrawMore": "提取金额不能超过 ${amount}",
+    "@cannotWithdrawMore": {
+         "placeholders": {
+             "amount": {
+                 "type": "String"
+             }
+         }
+    },
+    "withdrewAmount": "从 \"{goal}\" 提取了 ${amount}",
+    "@withdrewAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "depositedAmount": "向 \"{goal}\" 存入了 ${amount}！",
+    "@depositedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteGoal": "删除目标",
+    "deleteGoalConfirm": "您确定要删除此目标吗？",
+    "goalAlreadySavedWarning": "您已在此目标中存入 ${amount}。",
+    "@goalAlreadySavedWarning": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "goalDeleted": "目标 \"{goal}\" 已删除",
+    "@goalDeleted": {
+        "placeholders": {
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "distribution": "分布",
+    "noExpensesRegistered": "无支出记录",
+    "invitationTitle": "邀请！",
+    "invitationBody": "{name} 邀请您协作目标：{goal}",
+    "@invitationBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "invitationQuestion": "您想接受此邀请并分享进度吗？",
+    "reject": "拒绝",
+    "accept": "接受",
+    "invitationAccepted": "邀请已接受",
+    "errorGeneric": "错误: {error}",
+    "@errorGeneric": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    }
 }

@@ -595,6 +595,252 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Otros'**
   String get others;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In es, this message translates to:
+  /// **'Panel de Control'**
+  String get dashboard;
+
+  /// No description provided for @balanceTrend.
+  ///
+  /// In es, this message translates to:
+  /// **'Movimiento de Balance'**
+  String get balanceTrend;
+
+  /// No description provided for @yourGoals.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus Metas'**
+  String get yourGoals;
+
+  /// No description provided for @expensesByCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos por Categoría'**
+  String get expensesByCategory;
+
+  /// No description provided for @recentTransactions.
+  ///
+  /// In es, this message translates to:
+  /// **'Movimientos Recientes'**
+  String get recentTransactions;
+
+  /// No description provided for @noRecentActivity.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin actividad reciente'**
+  String get noRecentActivity;
+
+  /// No description provided for @hello.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola, {name}'**
+  String hello(String name);
+
+  /// No description provided for @helloSimple.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola'**
+  String get helloSimple;
+
+  /// No description provided for @totalBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'SALDO TOTAL'**
+  String get totalBalance;
+
+  /// No description provided for @newGoal.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Meta'**
+  String get newGoal;
+
+  /// No description provided for @goalNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la meta (ej. Viaje)'**
+  String get goalNameHint;
+
+  /// No description provided for @targetAmountHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto objetivo (\$)'**
+  String get targetAmountHint;
+
+  /// No description provided for @noActiveGoals.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes metas activas'**
+  String get noActiveGoals;
+
+  /// No description provided for @goal.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta'**
+  String get goal;
+
+  /// No description provided for @deposit.
+  ///
+  /// In es, this message translates to:
+  /// **'Abonar'**
+  String get deposit;
+
+  /// No description provided for @withdraw.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirar'**
+  String get withdraw;
+
+  /// No description provided for @withdrawFromGoal.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirar de Meta'**
+  String get withdrawFromGoal;
+
+  /// No description provided for @depositToGoal.
+  ///
+  /// In es, this message translates to:
+  /// **'Abonar a Meta'**
+  String get depositToGoal;
+
+  /// No description provided for @available.
+  ///
+  /// In es, this message translates to:
+  /// **'Disponible'**
+  String get available;
+
+  /// No description provided for @saved.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahorrado'**
+  String get saved;
+
+  /// No description provided for @remaining.
+  ///
+  /// In es, this message translates to:
+  /// **'Restante'**
+  String get remaining;
+
+  /// No description provided for @amountToWithdraw.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto a retirar'**
+  String get amountToWithdraw;
+
+  /// No description provided for @amountToDeposit.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto a abonar'**
+  String get amountToDeposit;
+
+  /// No description provided for @allAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo'**
+  String get allAmount;
+
+  /// No description provided for @enterValidAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un monto válido'**
+  String get enterValidAmount;
+
+  /// No description provided for @cannotWithdrawMore.
+  ///
+  /// In es, this message translates to:
+  /// **'No puedes retirar más de \${amount}'**
+  String cannotWithdrawMore(String amount);
+
+  /// No description provided for @withdrewAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Retiraste \${amount} de \"{goal}\"'**
+  String withdrewAmount(String amount, String goal);
+
+  /// No description provided for @depositedAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Abonaste \${amount} a \"{goal}\"!'**
+  String depositedAmount(String amount, String goal);
+
+  /// No description provided for @deleteGoal.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar Meta'**
+  String get deleteGoal;
+
+  /// No description provided for @deleteGoalConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de eliminar esta meta?'**
+  String get deleteGoalConfirm;
+
+  /// No description provided for @goalAlreadySavedWarning.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tienes \${amount} ahorrados en esta meta.'**
+  String goalAlreadySavedWarning(String amount);
+
+  /// No description provided for @goalDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta \"{goal}\" eliminada'**
+  String goalDeleted(String goal);
+
+  /// No description provided for @distribution.
+  ///
+  /// In es, this message translates to:
+  /// **'Distribución'**
+  String get distribution;
+
+  /// No description provided for @noExpensesRegistered.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay gastos registrados'**
+  String get noExpensesRegistered;
+
+  /// No description provided for @invitationTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Invitación!'**
+  String get invitationTitle;
+
+  /// No description provided for @invitationBody.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} te ha invitado a colaborar en la meta: {goal}'**
+  String invitationBody(String name, String goal);
+
+  /// No description provided for @invitationQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Deseas aceptar esta invitación y compartir el progreso?'**
+  String get invitationQuestion;
+
+  /// No description provided for @reject.
+  ///
+  /// In es, this message translates to:
+  /// **'Rechazar'**
+  String get reject;
+
+  /// No description provided for @accept.
+  ///
+  /// In es, this message translates to:
+  /// **'Aceptar'**
+  String get accept;
+
+  /// No description provided for @invitationAccepted.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitación aceptada'**
+  String get invitationAccepted;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In es, this message translates to:
+  /// **'Error: {error}'**
+  String errorGeneric(String error);
 }
 
 class _AppLocalizationsDelegate

@@ -108,5 +108,111 @@
     "today": "Hoje",
     "yesterday": "Ontem",
     "general": "Geral",
-    "others": "Outros"
+    "others": "Outros",
+    "dashboard": "Painel",
+    "balanceTrend": "Tendência do Saldo",
+    "yourGoals": "Suas Metas",
+    "expensesByCategory": "Despesas por Categoria",
+    "recentTransactions": "Transações Recentes",
+    "noRecentActivity": "Nenhuma atividade recente",
+    "hello": "Olá, {name}",
+    "@hello": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "helloSimple": "Olá",
+    "totalBalance": "SALDO TOTAL",
+    "newGoal": "Nova Meta",
+    "goalNameHint": "Nome da Meta (ex. Viagem)",
+    "targetAmountHint": "Valor Alvo ($)",
+    "noActiveGoals": "Menhuma meta ativa",
+    "goal": "Meta",
+    "deposit": "Depositar",
+    "withdraw": "Sacar",
+    "withdrawFromGoal": "Sacar da Meta",
+    "depositToGoal": "Depositar na Meta",
+    "available": "Disponível",
+    "saved": "Guardado",
+    "remaining": "Restante",
+    "amountToWithdraw": "Valor a sacar",
+    "amountToDeposit": "Valor a depositar",
+    "allAmount": "Tudo",
+    "enterValidAmount": "Insira um valor válido",
+    "cannotWithdrawMore": "Não pode sacar mais de ${amount}",
+    "@cannotWithdrawMore": {
+         "placeholders": {
+             "amount": {
+                 "type": "String"
+             }
+         }
+    },
+    "withdrewAmount": "Você sacou ${amount} de \"{goal}\"",
+    "@withdrewAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "depositedAmount": "Você depositou ${amount} em \"{goal}\"!",
+    "@depositedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteGoal": "Excluir Meta",
+    "deleteGoalConfirm": "Tem certeza que deseja excluir esta meta?",
+    "goalAlreadySavedWarning": "Você já tem ${amount} guardados nesta meta.",
+    "@goalAlreadySavedWarning": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "goalDeleted": "Meta \"{goal}\" excluída",
+    "@goalDeleted": {
+        "placeholders": {
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "distribution": "Distribuição",
+    "noExpensesRegistered": "Nenhuma despesa registrada",
+    "invitationTitle": "Convite!",
+    "invitationBody": "{name} convidou você para colaborar em: {goal}",
+    "@invitationBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "goal": {
+                "type": "String"
+            }
+        }
+    },
+    "invitationQuestion": "Deseja aceitar este convite e compartilhar o progresso?",
+    "reject": "Rejeitar",
+    "accept": "Aceitar",
+    "invitationAccepted": "Convite aceito",
+    "errorGeneric": "Erro: {error}",
+    "@errorGeneric": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    }
 }
