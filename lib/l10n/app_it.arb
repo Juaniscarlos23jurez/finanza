@@ -71,5 +71,42 @@
     "createAccount": "Crea\nAccount.",
     "name": "Nome",
     "registering": "Registrazione in corso...",
-    "signUp": "Registrati"
+    "signUp": "Registrati",
+    "transactions": "Transazioni",
+    "filterByDate": "Filtra per Data",
+    "ready": "Fatto",
+    "all": "Tutti",
+    "incomes": "Entrate",
+    "expenses": "Uscite",
+    "clearDate": "Cancella Data",
+    "noDataChart": "Nessun dato da mostrare",
+    "trend": "Tendenza (7 giorni)",
+    "weeklyExpenses": "Spese Settimanali",
+    "weeklyIncome": "Entrate Settimanali",
+    "byCategory": "Per Categoria",
+    "seeFull": "Vedi Tutto",
+    "noTransactions": "Nessuna transazione",
+    "opens": "Apre:",
+    "closes": "Chiude:",
+    "noDescription": "Nessuna descrizione",
+    "editTransaction": "Modifica Transazione",
+    "description": "Descrizione",
+    "amount": "Importo",
+    "date": "Data",
+    "save": "Salva",
+    "delete": "Elimina",
+    "deleteTransactionConfirm": "Sei sicuro di voler eliminare questa transazione?",
+    "transactionDeleted": "Transazione eliminata",
+    "deleteError": "Errore eliminazione: {error}",
+    "@deleteError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "general": "Generale",
+    "others": "Altri"
 }

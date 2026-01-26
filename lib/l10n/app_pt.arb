@@ -71,5 +71,42 @@
     "createAccount": "Criar\nConta.",
     "name": "Nome",
     "registering": "Cadastrando...",
-    "signUp": "Cadastrar"
+    "signUp": "Cadastrar",
+    "transactions": "Transações",
+    "filterByDate": "Filtrar por Data",
+    "ready": "Pronto",
+    "all": "Todos",
+    "incomes": "Receitas",
+    "expenses": "Despesas",
+    "clearDate": "Limpar Data",
+    "noDataChart": "Sem dados para gráfico",
+    "trend": "Tendência (7 dias)",
+    "weeklyExpenses": "Despesas Semanais",
+    "weeklyIncome": "Receitas Semanais",
+    "byCategory": "Por Categoria",
+    "seeFull": "Ver Completo",
+    "noTransactions": "Sem transações",
+    "opens": "Abre:",
+    "closes": "Fecha:",
+    "noDescription": "Sem descrição",
+    "editTransaction": "Editar Transação",
+    "description": "Descrição",
+    "amount": "Valor",
+    "date": "Data",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "deleteTransactionConfirm": "Tem certeza que deseja excluir esta transação?",
+    "transactionDeleted": "Transação excluída",
+    "deleteError": "Erro ao excluir: {error}",
+    "@deleteError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "general": "Geral",
+    "others": "Outros"
 }

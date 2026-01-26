@@ -71,5 +71,42 @@
     "createAccount": "创建\n账户",
     "name": "姓名",
     "registering": "注册中...",
-    "signUp": "注册"
+    "signUp": "注册",
+    "transactions": "交易",
+    "filterByDate": "按日期筛选",
+    "ready": "完成",
+    "all": "全部",
+    "incomes": "收入",
+    "expenses": "支出",
+    "clearDate": "清除日期",
+    "noDataChart": "无图表数据",
+    "trend": "趋势（7天）",
+    "weeklyExpenses": "每周支出",
+    "weeklyIncome": "每周收入",
+    "byCategory": "按类别",
+    "seeFull": "查看全部",
+    "noTransactions": "无交易",
+    "opens": "开盘:",
+    "closes": "收盘:",
+    "noDescription": "无描述",
+    "editTransaction": "编辑交易",
+    "description": "描述",
+    "amount": "金额",
+    "date": "日期",
+    "save": "保存",
+    "delete": "删除",
+    "deleteTransactionConfirm": "您确定要删除此交易吗？",
+    "transactionDeleted": "交易已删除",
+    "deleteError": "删除错误: {error}",
+    "@deleteError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "today": "今天",
+    "yesterday": "昨天",
+    "general": "常规",
+    "others": "其他"
 }

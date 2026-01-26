@@ -166,4 +166,96 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get signUp => '登録する';
+
+  @override
+  String get transactions => '取引履歴';
+
+  @override
+  String get filterByDate => '日付で絞り込み';
+
+  @override
+  String get ready => '完了';
+
+  @override
+  String get all => 'すべて';
+
+  @override
+  String get incomes => '収入';
+
+  @override
+  String get expenses => '支出';
+
+  @override
+  String get clearDate => '日付をクリア';
+
+  @override
+  String get noDataChart => 'グラフデータがありません';
+
+  @override
+  String get trend => 'トレンド (7日間)';
+
+  @override
+  String get weeklyExpenses => '週間支出';
+
+  @override
+  String get weeklyIncome => '週間収入';
+
+  @override
+  String get byCategory => 'カテゴリー別';
+
+  @override
+  String get seeFull => 'すべて見る';
+
+  @override
+  String get noTransactions => '取引はありません';
+
+  @override
+  String get opens => '開始:';
+
+  @override
+  String get closes => '終了:';
+
+  @override
+  String get noDescription => '説明なし';
+
+  @override
+  String get editTransaction => '取引の編集';
+
+  @override
+  String get description => '説明';
+
+  @override
+  String get amount => '金額';
+
+  @override
+  String get date => '日付';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get delete => '削除';
+
+  @override
+  String get deleteTransactionConfirm => 'この取引を削除してもよろしいですか？';
+
+  @override
+  String get transactionDeleted => '取引が削除されました';
+
+  @override
+  String deleteError(String error) {
+    return '削除エラー: $error';
+  }
+
+  @override
+  String get today => '今日';
+
+  @override
+  String get yesterday => '昨日';
+
+  @override
+  String get general => '一般';
+
+  @override
+  String get others => 'その他';
 }

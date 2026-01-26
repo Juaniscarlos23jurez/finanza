@@ -415,6 +415,186 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Registrarse'**
   String get signUp;
+
+  /// No description provided for @transactions.
+  ///
+  /// In es, this message translates to:
+  /// **'Movimientos'**
+  String get transactions;
+
+  /// No description provided for @filterByDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar por Fecha'**
+  String get filterByDate;
+
+  /// No description provided for @ready.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo'**
+  String get ready;
+
+  /// No description provided for @all.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get all;
+
+  /// No description provided for @incomes.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos'**
+  String get incomes;
+
+  /// No description provided for @expenses.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos'**
+  String get expenses;
+
+  /// No description provided for @clearDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Limpiar Fecha'**
+  String get clearDate;
+
+  /// No description provided for @noDataChart.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay datos para graficar'**
+  String get noDataChart;
+
+  /// No description provided for @trend.
+  ///
+  /// In es, this message translates to:
+  /// **'Tendencia (7 días)'**
+  String get trend;
+
+  /// No description provided for @weeklyExpenses.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos Semanales'**
+  String get weeklyExpenses;
+
+  /// No description provided for @weeklyIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos Semanales'**
+  String get weeklyIncome;
+
+  /// No description provided for @byCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Por Categoría'**
+  String get byCategory;
+
+  /// No description provided for @seeFull.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver completo'**
+  String get seeFull;
+
+  /// No description provided for @noTransactions.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay movimientos'**
+  String get noTransactions;
+
+  /// No description provided for @opens.
+  ///
+  /// In es, this message translates to:
+  /// **'Abre:'**
+  String get opens;
+
+  /// No description provided for @closes.
+  ///
+  /// In es, this message translates to:
+  /// **'Cierra:'**
+  String get closes;
+
+  /// No description provided for @noDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin descripción'**
+  String get noDescription;
+
+  /// No description provided for @editTransaction.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Movimiento'**
+  String get editTransaction;
+
+  /// No description provided for @description.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get description;
+
+  /// No description provided for @amount.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto'**
+  String get amount;
+
+  /// No description provided for @date.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get date;
+
+  /// No description provided for @save.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get save;
+
+  /// No description provided for @delete.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar'**
+  String get delete;
+
+  /// No description provided for @deleteTransactionConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de eliminar este movimiento?'**
+  String get deleteTransactionConfirm;
+
+  /// No description provided for @transactionDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Movimiento eliminado'**
+  String get transactionDeleted;
+
+  /// No description provided for @deleteError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al eliminar: {error}'**
+  String deleteError(String error);
+
+  /// No description provided for @today.
+  ///
+  /// In es, this message translates to:
+  /// **'Hoy'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayer'**
+  String get yesterday;
+
+  /// No description provided for @general.
+  ///
+  /// In es, this message translates to:
+  /// **'General'**
+  String get general;
+
+  /// No description provided for @others.
+  ///
+  /// In es, this message translates to:
+  /// **'Otros'**
+  String get others;
 }
 
 class _AppLocalizationsDelegate

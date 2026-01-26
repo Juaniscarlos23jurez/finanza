@@ -169,4 +169,97 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get signUp => 'Cadastrar';
+
+  @override
+  String get transactions => 'Transações';
+
+  @override
+  String get filterByDate => 'Filtrar por Data';
+
+  @override
+  String get ready => 'Pronto';
+
+  @override
+  String get all => 'Todos';
+
+  @override
+  String get incomes => 'Receitas';
+
+  @override
+  String get expenses => 'Despesas';
+
+  @override
+  String get clearDate => 'Limpar Data';
+
+  @override
+  String get noDataChart => 'Sem dados para gráfico';
+
+  @override
+  String get trend => 'Tendência (7 dias)';
+
+  @override
+  String get weeklyExpenses => 'Despesas Semanais';
+
+  @override
+  String get weeklyIncome => 'Receitas Semanais';
+
+  @override
+  String get byCategory => 'Por Categoria';
+
+  @override
+  String get seeFull => 'Ver Completo';
+
+  @override
+  String get noTransactions => 'Sem transações';
+
+  @override
+  String get opens => 'Abre:';
+
+  @override
+  String get closes => 'Fecha:';
+
+  @override
+  String get noDescription => 'Sem descrição';
+
+  @override
+  String get editTransaction => 'Editar Transação';
+
+  @override
+  String get description => 'Descrição';
+
+  @override
+  String get amount => 'Valor';
+
+  @override
+  String get date => 'Data';
+
+  @override
+  String get save => 'Salvar';
+
+  @override
+  String get delete => 'Excluir';
+
+  @override
+  String get deleteTransactionConfirm =>
+      'Tem certeza que deseja excluir esta transação?';
+
+  @override
+  String get transactionDeleted => 'Transação excluída';
+
+  @override
+  String deleteError(String error) {
+    return 'Erro ao excluir: $error';
+  }
+
+  @override
+  String get today => 'Hoje';
+
+  @override
+  String get yesterday => 'Ontem';
+
+  @override
+  String get general => 'Geral';
+
+  @override
+  String get others => 'Outros';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -28,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor llena todos los campos')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.fillAllFields)),
       );
       return;
     }
@@ -84,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('CRITICAL ERROR during Google Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error con Google: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.googleError(e.toString()))),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -118,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('CRITICAL ERROR during Apple Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error con Apple: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.appleError(e.toString()))),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -151,26 +152,26 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 48),
               Text(
-                'Bienvenido\nde nuevo.',
+                AppLocalizations.of(context)!.welcomeBack,
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 48),
               CustomTextField(
-                label: 'Correo Electrónico',
+                label: AppLocalizations.of(context)!.email,
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 hintText: 'john@example.com',
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                label: 'Contraseña',
+                label: AppLocalizations.of(context)!.password,
                 controller: _passwordController,
                 obscureText: true,
                 hintText: '••••••••',
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: _isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión',
+                text: _isLoading ? AppLocalizations.of(context)!.loggingIn : AppLocalizations.of(context)!.login,
                 onPressed: _isLoading ? () {} : _handleLogin,
               ),
               const SizedBox(height: 24),
@@ -180,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      'O',
+                      AppLocalizations.of(context)!.or,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -189,14 +190,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: _isLoading ? 'Cargando...' : 'Continuar con Google',
+                text: _isLoading ? AppLocalizations.of(context)!.loading : AppLocalizations.of(context)!.continueWithGoogle,
                 onPressed: _isLoading ? () {} : _handleGoogleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.google,
               ),
               const SizedBox(height: 16),
               CustomButton(
-                text: _isLoading ? 'Cargando...' : 'Continuar con Apple',
+                text: _isLoading ? AppLocalizations.of(context)!.loading : AppLocalizations.of(context)!.continueWithApple,
                 onPressed: _isLoading ? () {} : _handleAppleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.apple,
@@ -212,11 +213,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: RichText(
                     text: TextSpan(
-                      text: "¿No tienes cuenta? ",
+                      text: AppLocalizations.of(context)!.dontHaveAccount,
                       style: Theme.of(context).textTheme.bodyMedium,
                       children: [
                         TextSpan(
-                          text: 'Regístrate',
+                          text: AppLocalizations.of(context)!.register,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.primary,
                                 fontWeight: FontWeight.bold,

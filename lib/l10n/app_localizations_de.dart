@@ -170,4 +170,97 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get signUp => 'Registrieren';
+
+  @override
+  String get transactions => 'Transaktionen';
+
+  @override
+  String get filterByDate => 'Nach Datum filtern';
+
+  @override
+  String get ready => 'Fertig';
+
+  @override
+  String get all => 'Alle';
+
+  @override
+  String get incomes => 'Einnahmen';
+
+  @override
+  String get expenses => 'Ausgaben';
+
+  @override
+  String get clearDate => 'Datum löschen';
+
+  @override
+  String get noDataChart => 'Keine Daten für Diagramm';
+
+  @override
+  String get trend => 'Trend (7 Tage)';
+
+  @override
+  String get weeklyExpenses => 'Wöchentliche Ausgaben';
+
+  @override
+  String get weeklyIncome => 'Wöchentliche Einnahmen';
+
+  @override
+  String get byCategory => 'Nach Kategorie';
+
+  @override
+  String get seeFull => 'Vollständig anzeigen';
+
+  @override
+  String get noTransactions => 'Keine Transaktionen';
+
+  @override
+  String get opens => 'Öffnen:';
+
+  @override
+  String get closes => 'Schließen:';
+
+  @override
+  String get noDescription => 'Keine Beschreibung';
+
+  @override
+  String get editTransaction => 'Transaktion bearbeiten';
+
+  @override
+  String get description => 'Beschreibung';
+
+  @override
+  String get amount => 'Betrag';
+
+  @override
+  String get date => 'Datum';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get deleteTransactionConfirm =>
+      'Möchten Sie diese Transaktion wirklich löschen?';
+
+  @override
+  String get transactionDeleted => 'Transaktion gelöscht';
+
+  @override
+  String deleteError(String error) {
+    return 'Fehler beim Löschen: $error';
+  }
+
+  @override
+  String get today => 'Heute';
+
+  @override
+  String get yesterday => 'Gestern';
+
+  @override
+  String get general => 'Allgemein';
+
+  @override
+  String get others => 'Andere';
 }

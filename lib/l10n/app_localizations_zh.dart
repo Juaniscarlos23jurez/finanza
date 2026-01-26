@@ -166,4 +166,96 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signUp => '注册';
+
+  @override
+  String get transactions => '交易';
+
+  @override
+  String get filterByDate => '按日期筛选';
+
+  @override
+  String get ready => '完成';
+
+  @override
+  String get all => '全部';
+
+  @override
+  String get incomes => '收入';
+
+  @override
+  String get expenses => '支出';
+
+  @override
+  String get clearDate => '清除日期';
+
+  @override
+  String get noDataChart => '无图表数据';
+
+  @override
+  String get trend => '趋势（7天）';
+
+  @override
+  String get weeklyExpenses => '每周支出';
+
+  @override
+  String get weeklyIncome => '每周收入';
+
+  @override
+  String get byCategory => '按类别';
+
+  @override
+  String get seeFull => '查看全部';
+
+  @override
+  String get noTransactions => '无交易';
+
+  @override
+  String get opens => '开盘:';
+
+  @override
+  String get closes => '收盘:';
+
+  @override
+  String get noDescription => '无描述';
+
+  @override
+  String get editTransaction => '编辑交易';
+
+  @override
+  String get description => '描述';
+
+  @override
+  String get amount => '金额';
+
+  @override
+  String get date => '日期';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get delete => '删除';
+
+  @override
+  String get deleteTransactionConfirm => '您确定要删除此交易吗？';
+
+  @override
+  String get transactionDeleted => '交易已删除';
+
+  @override
+  String deleteError(String error) {
+    return '删除错误: $error';
+  }
+
+  @override
+  String get today => '今天';
+
+  @override
+  String get yesterday => '昨天';
+
+  @override
+  String get general => '常规';
+
+  @override
+  String get others => '其他';
 }

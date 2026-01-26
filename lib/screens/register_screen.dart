@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -26,7 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor llena todos los campos')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.fillAllFields)),
       );
       return;
     }
@@ -74,32 +75,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Crear\nCuenta.',
+                AppLocalizations.of(context)!.createAccount,
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: 48),
               CustomTextField(
-                label: 'Nombre',
+                label: AppLocalizations.of(context)!.name,
                 controller: _nameController,
                 hintText: 'John Doe',
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                label: 'Correo Electrónico',
+                label: AppLocalizations.of(context)!.email,
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 hintText: 'john@example.com',
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                label: 'Contraseña',
+                label: AppLocalizations.of(context)!.password,
                 controller: _passwordController,
                 obscureText: true,
                 hintText: '••••••••',
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: _isLoading ? 'Registrando...' : 'Registrarse',
+                text: _isLoading ? AppLocalizations.of(context)!.registering : AppLocalizations.of(context)!.signUp,
                 onPressed: _isLoading ? () {} : _handleRegister,
               ),
             ],

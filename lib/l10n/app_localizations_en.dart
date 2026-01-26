@@ -169,4 +169,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signUp => 'Sign Up';
+
+  @override
+  String get transactions => 'Transactions';
+
+  @override
+  String get filterByDate => 'Filter by Date';
+
+  @override
+  String get ready => 'Done';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get incomes => 'Income';
+
+  @override
+  String get expenses => 'Expenses';
+
+  @override
+  String get clearDate => 'Clear Date';
+
+  @override
+  String get noDataChart => 'No data to chart';
+
+  @override
+  String get trend => 'Trend (7 days)';
+
+  @override
+  String get weeklyExpenses => 'Weekly Expenses';
+
+  @override
+  String get weeklyIncome => 'Weekly Income';
+
+  @override
+  String get byCategory => 'By Category';
+
+  @override
+  String get seeFull => 'See Full';
+
+  @override
+  String get noTransactions => 'No transactions';
+
+  @override
+  String get opens => 'Open:';
+
+  @override
+  String get closes => 'Close:';
+
+  @override
+  String get noDescription => 'No description';
+
+  @override
+  String get editTransaction => 'Edit Transaction';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get deleteTransactionConfirm =>
+      'Are you sure you want to delete this transaction?';
+
+  @override
+  String get transactionDeleted => 'Transaction deleted';
+
+  @override
+  String deleteError(String error) {
+    return 'Error deleting: $error';
+  }
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get others => 'Others';
 }

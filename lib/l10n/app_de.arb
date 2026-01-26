@@ -71,5 +71,42 @@
     "createAccount": "Konto\nerstellen.",
     "name": "Name",
     "registering": "Registrieren...",
-    "signUp": "Registrieren"
+    "signUp": "Registrieren",
+    "transactions": "Transaktionen",
+    "filterByDate": "Nach Datum filtern",
+    "ready": "Fertig",
+    "all": "Alle",
+    "incomes": "Einnahmen",
+    "expenses": "Ausgaben",
+    "clearDate": "Datum löschen",
+    "noDataChart": "Keine Daten für Diagramm",
+    "trend": "Trend (7 Tage)",
+    "weeklyExpenses": "Wöchentliche Ausgaben",
+    "weeklyIncome": "Wöchentliche Einnahmen",
+    "byCategory": "Nach Kategorie",
+    "seeFull": "Vollständig anzeigen",
+    "noTransactions": "Keine Transaktionen",
+    "opens": "Öffnen:",
+    "closes": "Schließen:",
+    "noDescription": "Keine Beschreibung",
+    "editTransaction": "Transaktion bearbeiten",
+    "description": "Beschreibung",
+    "amount": "Betrag",
+    "date": "Datum",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "deleteTransactionConfirm": "Möchten Sie diese Transaktion wirklich löschen?",
+    "transactionDeleted": "Transaktion gelöscht",
+    "deleteError": "Fehler beim Löschen: {error}",
+    "@deleteError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "general": "Allgemein",
+    "others": "Andere"
 }

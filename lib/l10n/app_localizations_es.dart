@@ -168,4 +168,97 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get signUp => 'Registrarse';
+
+  @override
+  String get transactions => 'Movimientos';
+
+  @override
+  String get filterByDate => 'Filtrar por Fecha';
+
+  @override
+  String get ready => 'Listo';
+
+  @override
+  String get all => 'Todos';
+
+  @override
+  String get incomes => 'Ingresos';
+
+  @override
+  String get expenses => 'Gastos';
+
+  @override
+  String get clearDate => 'Limpiar Fecha';
+
+  @override
+  String get noDataChart => 'No hay datos para graficar';
+
+  @override
+  String get trend => 'Tendencia (7 días)';
+
+  @override
+  String get weeklyExpenses => 'Gastos Semanales';
+
+  @override
+  String get weeklyIncome => 'Ingresos Semanales';
+
+  @override
+  String get byCategory => 'Por Categoría';
+
+  @override
+  String get seeFull => 'Ver completo';
+
+  @override
+  String get noTransactions => 'No hay movimientos';
+
+  @override
+  String get opens => 'Abre:';
+
+  @override
+  String get closes => 'Cierra:';
+
+  @override
+  String get noDescription => 'Sin descripción';
+
+  @override
+  String get editTransaction => 'Editar Movimiento';
+
+  @override
+  String get description => 'Descripción';
+
+  @override
+  String get amount => 'Monto';
+
+  @override
+  String get date => 'Fecha';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
+  String get delete => 'Eliminar';
+
+  @override
+  String get deleteTransactionConfirm =>
+      '¿Estás seguro de eliminar este movimiento?';
+
+  @override
+  String get transactionDeleted => 'Movimiento eliminado';
+
+  @override
+  String deleteError(String error) {
+    return 'Error al eliminar: $error';
+  }
+
+  @override
+  String get today => 'Hoy';
+
+  @override
+  String get yesterday => 'Ayer';
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get others => 'Otros';
 }

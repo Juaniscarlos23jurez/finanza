@@ -71,5 +71,42 @@
     "createAccount": "Create\nAccount.",
     "name": "Name",
     "registering": "Registering...",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "transactions": "Transactions",
+    "filterByDate": "Filter by Date",
+    "ready": "Done",
+    "all": "All",
+    "incomes": "Income",
+    "expenses": "Expenses",
+    "clearDate": "Clear Date",
+    "noDataChart": "No data to chart",
+    "trend": "Trend (7 days)",
+    "weeklyExpenses": "Weekly Expenses",
+    "weeklyIncome": "Weekly Income",
+    "byCategory": "By Category",
+    "seeFull": "See Full",
+    "noTransactions": "No transactions",
+    "opens": "Open:",
+    "closes": "Close:",
+    "noDescription": "No description",
+    "editTransaction": "Edit Transaction",
+    "description": "Description",
+    "amount": "Amount",
+    "date": "Date",
+    "save": "Save",
+    "delete": "Delete",
+    "deleteTransactionConfirm": "Are you sure you want to delete this transaction?",
+    "transactionDeleted": "Transaction deleted",
+    "deleteError": "Error deleting: {error}",
+    "@deleteError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "general": "General",
+    "others": "Others"
 }

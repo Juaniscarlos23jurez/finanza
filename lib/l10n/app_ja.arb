@@ -71,5 +71,42 @@
     "createAccount": "アカウント\n作成",
     "name": "名前",
     "registering": "登録中...",
-    "signUp": "登録する"
+    "signUp": "登録する",
+    "transactions": "取引履歴",
+    "filterByDate": "日付で絞り込み",
+    "ready": "完了",
+    "all": "すべて",
+    "incomes": "収入",
+    "expenses": "支出",
+    "clearDate": "日付をクリア",
+    "noDataChart": "グラフデータがありません",
+    "trend": "トレンド (7日間)",
+    "weeklyExpenses": "週間支出",
+    "weeklyIncome": "週間収入",
+    "byCategory": "カテゴリー別",
+    "seeFull": "すべて見る",
+    "noTransactions": "取引はありません",
+    "opens": "開始:",
+    "closes": "終了:",
+    "noDescription": "説明なし",
+    "editTransaction": "取引の編集",
+    "description": "説明",
+    "amount": "金額",
+    "date": "日付",
+    "save": "保存",
+    "delete": "削除",
+    "deleteTransactionConfirm": "この取引を削除してもよろしいですか？",
+    "transactionDeleted": "取引が削除されました",
+    "deleteError": "削除エラー: {error}",
+    "@deleteError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "today": "今日",
+    "yesterday": "昨日",
+    "general": "一般",
+    "others": "その他"
 }
