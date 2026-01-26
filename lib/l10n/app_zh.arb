@@ -40,5 +40,36 @@
     },
     "confirmAndSchedule": "确认并安排",
     "configSaved": "配置已成功保存！",
-    "language": "语言"
+    "language": "语言",
+    "fillAllFields": "请填写所有必填项",
+    "googleError": "Google错误: {error}",
+    "@googleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "appleError": "Apple错误: {error}",
+    "@appleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "welcomeBack": "欢迎\n回来。",
+    "password": "密码",
+    "loggingIn": "登录中...",
+    "login": "登录",
+    "or": "或",
+    "loading": "加载中...",
+    "continueWithGoogle": "使用Google继续",
+    "continueWithApple": "使用Apple继续",
+    "dontHaveAccount": "没有账户？ ",
+    "register": "注册",
+    "createAccount": "创建\n账户",
+    "name": "姓名",
+    "registering": "注册中...",
+    "signUp": "注册"
 }

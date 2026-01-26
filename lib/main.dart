@@ -10,6 +10,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:provider/provider.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
+import 'package:geminifinanzas/providers/locale_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es', null);
@@ -41,7 +45,14 @@ void main() async {
   final String? token = prefs.getString('auth_token');
   debugPrint('Startup Token Check: ${token != null ? "Token Found" : "No Token"}');
 
-  runApp(MyApp(initialScreen: token != null ? const MainScreen() : const LoginScreen()));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+      ],
+      child: MyApp(initialScreen: token != null ? const MainScreen() : const LoginScreen()),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -50,21 +61,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Digital Minimalist Finance',
-      theme: AppTheme.theme,
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('es', ''), // Spanish
-        Locale('en', ''), // English
-      ],
-      locale: const Locale('es', ''),
-      home: initialScreen,
+    return Consumer<LocaleProvider>(
+      builder: (context, localeProvider, child) {
+        return MaterialApp(
+          title: 'Digital Minimalist Finance',
+          theme: AppTheme.theme,
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: localeProvider.locale,
+          home: initialScreen,
+        );
+      },
     );
   }
 }

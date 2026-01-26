@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:geminifinanzas/providers/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/finance_service.dart';
@@ -73,23 +76,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 48),
-                  _buildProfileHeader(),
+                  _buildProfileHeader(context),
                   const SizedBox(height: 32),
-                  _buildMenuSection('CUENTA', [
-                    _buildMenuItem(Icons.person_outline_rounded, 'Información Personal', onTap: () => _showPersonalInfoModal(context)),
-                    _buildMenuItem(Icons.email_outlined, 'Programar Envío de Reporte', onTap: () => _showScheduleReportModal(context)),
+                  _buildMenuSection(AppLocalizations.of(context)!.accountSection, [
+                    _buildMenuItem(Icons.person_outline_rounded, AppLocalizations.of(context)!.personalInfo, onTap: () => _showPersonalInfoModal(context)),
+                    _buildMenuItem(Icons.email_outlined, AppLocalizations.of(context)!.scheduleReport, onTap: () => _showScheduleReportModal(context)),
+                    _buildMenuItem(Icons.language, AppLocalizations.of(context)!.language, onTap: () => _showLanguageModal(context)),
                     //_buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
                    // _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
                   ]),
                   const SizedBox(height: 32),
-                  _buildCalendar(),
+                  _buildCalendar(context),
                  
                   const SizedBox(height: 32),
-                  _buildMenuSection('OTRO', [
-                    _buildMenuItem(Icons.feedback_outlined, 'Feedback', onTap: () => _showFeedbackModal(context)),
+                  _buildMenuSection(AppLocalizations.of(context)!.otherSection, [
+                    _buildMenuItem(Icons.feedback_outlined, AppLocalizations.of(context)!.feedback, onTap: () => _showFeedbackModal(context)),
                     _buildMenuItem(
                       Icons.info_outline_rounded, 
-                      'Términos y Condiciones',
+                      AppLocalizations.of(context)!.termsConditions,
                       onTap: () async {
                         final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
                         if (await canLaunchUrl(uri)) {
@@ -99,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     _buildMenuItem(
                       Icons.privacy_tip_outlined, 
-                      'Política de Privacidad',
+                      AppLocalizations.of(context)!.privacyPolicy,
                       onTap: () async {
                         final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
                         if (await canLaunchUrl(uri)) {
@@ -120,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(BuildContext context) {
     final name = _userData?['name'] ?? 'Usuario';
     final email = _userData?['email'] ?? 'email@ejemplo.com';
     final photoUrl = _userData?['photo_url'];
@@ -268,7 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           foregroundColor: Colors.redAccent,
         ),
         child: Text(
-          'Cerrar Sesión',
+          AppLocalizations.of(context)!.logout,
           style: GoogleFonts.manrope(
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -287,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           foregroundColor: Colors.redAccent.withValues(alpha: 0.5),
         ),
         child: Text(
-          'Eliminar mi cuenta permanentemente',
+          AppLocalizations.of(context)!.deleteAccount,
           style: GoogleFonts.manrope(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -302,15 +306,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('¿Eliminar cuenta?', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        title: Text(AppLocalizations.of(context)!.deleteAccountTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
         content: Text(
-          'Esta acción cerrará tu sesión actual.',
+          AppLocalizations.of(context)!.deleteAccountContent,
           style: GoogleFonts.manrope(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -335,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: Text('Confirmar', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.confirm, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -344,8 +348,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showFeedbackModal(BuildContext context) {
     final TextEditingController feedbackController = TextEditingController();
-    String selectedType = 'Sugerencia';
-    final List<String> types = ['Error', 'Sugerencia', 'Felicitación'];
+    String selectedType = AppLocalizations.of(context)!.typeSuggestion;
+    final List<String> types = [
+      AppLocalizations.of(context)!.typeError, 
+      AppLocalizations.of(context)!.typeSuggestion, 
+      AppLocalizations.of(context)!.typeCompliment
+    ];
     bool isSending = false;
 
     showModalBottomSheet(
@@ -372,7 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Danos tu Feedback',
+                    AppLocalizations.of(context)!.feedbackTitle,
                     style: GoogleFonts.manrope(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
@@ -387,7 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Tu opinión nos ayuda a mejorar la experiencia para todos.',
+                AppLocalizations.of(context)!.feedbackSubtitle,
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   color: AppTheme.secondary,
@@ -396,7 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                '¿De qué trata tu comentario?',
+                AppLocalizations.of(context)!.feedbackTypeQuestion,
                 style: GoogleFonts.manrope(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -430,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: feedbackController,
                 maxLines: 5,
                 decoration: InputDecoration(
-                  hintText: 'Cuéntanos qué te gusta o qué podemos mejorar...',
+                  hintText: AppLocalizations.of(context)!.feedbackHint,
                   hintStyle: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary.withValues(alpha: 0.5)),
                   filled: true,
                   fillColor: AppTheme.background,
@@ -462,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(result['success'] 
-                                  ? '¡Gracias por tu feedback!' 
+                                  ? AppLocalizations.of(context)!.feedbackSuccess 
                                   : 'Error: ${result['message']}'),
                                 backgroundColor: result['success'] ? Colors.green : Colors.redAccent,
                               ),
@@ -481,7 +489,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : Text(
-                          'Enviar Comentarios',
+                          AppLocalizations.of(context)!.sendFeedback,
                           style: GoogleFonts.manrope(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -497,7 +505,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildCalendar() {
+  void _showLanguageModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.language,
+                  style: GoogleFonts.manrope(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 300,
+              child: ListView(
+                children: [
+                  _buildLanguageItem(context, 'Español', const Locale('es')),
+                  _buildLanguageItem(context, 'English', const Locale('en')),
+                  _buildLanguageItem(context, 'Français', const Locale('fr')),
+                  _buildLanguageItem(context, 'Deutsch', const Locale('de')),
+                  _buildLanguageItem(context, '日本語', const Locale('ja')),
+                  _buildLanguageItem(context, '中文', const Locale('zh')),
+                  _buildLanguageItem(context, 'Italiano', const Locale('it')),
+                  _buildLanguageItem(context, 'Português', const Locale('pt')),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageItem(BuildContext context, String name, Locale locale) {
+    final provider = Provider.of<LocaleProvider>(context, listen: false);
+    final isSelected = provider.locale.languageCode == locale.languageCode;
+
+    return ListTile(
+      title: Text(
+        name,
+        style: GoogleFonts.manrope(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          color: isSelected ? AppTheme.primary : AppTheme.secondary,
+        ),
+      ),
+      trailing: isSelected ? const Icon(Icons.check, color: AppTheme.primary) : null,
+      onTap: () {
+        provider.setLocale(locale);
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  Widget _buildCalendar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -510,7 +591,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       child: TableCalendar(
-        locale: 'es',
+        locale: Localizations.localeOf(context).languageCode,
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: _focusedDay,
@@ -588,7 +669,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Información Personal',
+                  AppLocalizations.of(context)!.personalInfo,
                   style: GoogleFonts.manrope(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -602,11 +683,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            _buildInfoItem('Nombre Completo', _userData?['name'] ?? 'No disponible'),
+            _buildInfoItem(AppLocalizations.of(context)!.fullName, _userData?['name'] ?? 'No disponible'),
             const SizedBox(height: 16),
-            _buildInfoItem('Correo Electrónico', _userData?['email'] ?? 'No disponible'),
+            _buildInfoItem(AppLocalizations.of(context)!.email, _userData?['email'] ?? 'No disponible'),
             const SizedBox(height: 16),
-            _buildInfoItem('ID de Usuario', _userData?['id']?.toString() ?? 'No disponible'),
+            _buildInfoItem(AppLocalizations.of(context)!.userId, _userData?['id']?.toString() ?? 'No disponible'),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -619,7 +700,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Cerrar',
+                  AppLocalizations.of(context)!.close,
                   style: GoogleFonts.manrope(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -692,7 +773,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Programar Reporte',
+                      AppLocalizations.of(context)!.scheduleReportTitle,
                       style: GoogleFonts.manrope(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -718,7 +799,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
-                          'Recibirás un Excel con tus movimientos y un análisis financiero generado por IA.',
+                          AppLocalizations.of(context)!.reportDescription,
                           style: GoogleFonts.manrope(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -737,7 +818,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ))
                 else ...[
                   Text(
-                    'Enviar reporte a:',
+                    AppLocalizations.of(context)!.sendReportTo,
                     style: GoogleFonts.manrope(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -761,7 +842,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    '¿Cada cuántos días?',
+                    AppLocalizations.of(context)!.frequencyQuestion,
                     style: GoogleFonts.manrope(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -775,7 +856,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: frequencyOptions.map((days) {
                       final isSelected = selectedDays == days;
                       return ChoiceChip(
-                        label: Text(days == 30 ? '30 días' : '$days días'),
+                        label: Text(AppLocalizations.of(context)!.daysLoop(days)),
                         selected: isSelected,
                         onSelected: (selected) {
                           if (selected) {
@@ -813,8 +894,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (context.mounted) {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('¡Configuración guardada con éxito!'),
+                                  SnackBar(
+                                    content: Text(AppLocalizations.of(context)!.configSaved),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -840,7 +921,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
                         : Text(
-                            'Confirmar y Programar',
+                            AppLocalizations.of(context)!.confirmAndSchedule,
                             style: GoogleFonts.manrope(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,

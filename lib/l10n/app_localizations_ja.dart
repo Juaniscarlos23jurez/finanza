@@ -111,4 +111,59 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get language => '言語';
+
+  @override
+  String get fillAllFields => 'すべての項目を入力してください';
+
+  @override
+  String googleError(String error) {
+    return 'Googleエラー: $error';
+  }
+
+  @override
+  String appleError(String error) {
+    return 'Appleエラー: $error';
+  }
+
+  @override
+  String get welcomeBack => 'おかえり\nなさい。';
+
+  @override
+  String get password => 'パスワード';
+
+  @override
+  String get loggingIn => 'ログイン中...';
+
+  @override
+  String get login => 'ログイン';
+
+  @override
+  String get or => 'または';
+
+  @override
+  String get loading => '読み込み中...';
+
+  @override
+  String get continueWithGoogle => 'Googleで続ける';
+
+  @override
+  String get continueWithApple => 'Appleで続ける';
+
+  @override
+  String get dontHaveAccount => 'アカウントをお持ちでないですか？ ';
+
+  @override
+  String get register => '登録する';
+
+  @override
+  String get createAccount => 'アカウント\n作成';
+
+  @override
+  String get name => '名前';
+
+  @override
+  String get registering => '登録中...';
+
+  @override
+  String get signUp => '登録する';
 }

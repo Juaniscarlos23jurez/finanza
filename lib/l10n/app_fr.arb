@@ -40,5 +40,36 @@
     },
     "confirmAndSchedule": "Confirmer et Programmer",
     "configSaved": "Configuration enregistrée avec succès !",
-    "language": "Langue"
+    "language": "Langue",
+    "fillAllFields": "Veuillez remplir tous les champs",
+    "googleError": "Erreur Google : {error}",
+    "@googleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "appleError": "Erreur Apple : {error}",
+    "@appleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "welcomeBack": "Bon\nretour.",
+    "password": "Mot de passe",
+    "loggingIn": "Connexion...",
+    "login": "Se connecter",
+    "or": "OU",
+    "loading": "Chargement...",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithApple": "Continuer avec Apple",
+    "dontHaveAccount": "Vous n'avez pas de compte ? ",
+    "register": "S'inscrire",
+    "createAccount": "Créer un\nCompte.",
+    "name": "Nom",
+    "registering": "Inscription...",
+    "signUp": "S'inscrire"
 }

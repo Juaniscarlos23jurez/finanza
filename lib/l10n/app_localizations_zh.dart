@@ -111,4 +111,59 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get language => '语言';
+
+  @override
+  String get fillAllFields => '请填写所有必填项';
+
+  @override
+  String googleError(String error) {
+    return 'Google错误: $error';
+  }
+
+  @override
+  String appleError(String error) {
+    return 'Apple错误: $error';
+  }
+
+  @override
+  String get welcomeBack => '欢迎\n回来。';
+
+  @override
+  String get password => '密码';
+
+  @override
+  String get loggingIn => '登录中...';
+
+  @override
+  String get login => '登录';
+
+  @override
+  String get or => '或';
+
+  @override
+  String get loading => '加载中...';
+
+  @override
+  String get continueWithGoogle => '使用Google继续';
+
+  @override
+  String get continueWithApple => '使用Apple继续';
+
+  @override
+  String get dontHaveAccount => '没有账户？ ';
+
+  @override
+  String get register => '注册';
+
+  @override
+  String get createAccount => '创建\n账户';
+
+  @override
+  String get name => '姓名';
+
+  @override
+  String get registering => '注册中...';
+
+  @override
+  String get signUp => '注册';
 }

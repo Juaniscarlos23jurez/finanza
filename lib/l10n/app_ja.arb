@@ -40,5 +40,36 @@
     },
     "confirmAndSchedule": "確認してスケジュール",
     "configSaved": "設定が正常に保存されました！",
-    "language": "言語"
+    "language": "言語",
+    "fillAllFields": "すべての項目を入力してください",
+    "googleError": "Googleエラー: {error}",
+    "@googleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "appleError": "Appleエラー: {error}",
+    "@appleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "welcomeBack": "おかえり\nなさい。",
+    "password": "パスワード",
+    "loggingIn": "ログイン中...",
+    "login": "ログイン",
+    "or": "または",
+    "loading": "読み込み中...",
+    "continueWithGoogle": "Googleで続ける",
+    "continueWithApple": "Appleで続ける",
+    "dontHaveAccount": "アカウントをお持ちでないですか？ ",
+    "register": "登録する",
+    "createAccount": "アカウント\n作成",
+    "name": "名前",
+    "registering": "登録中...",
+    "signUp": "登録する"
 }

@@ -313,6 +313,108 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Idioma'**
   String get language;
+
+  /// No description provided for @fillAllFields.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor llena todos los campos'**
+  String get fillAllFields;
+
+  /// No description provided for @googleError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error con Google: {error}'**
+  String googleError(String error);
+
+  /// No description provided for @appleError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error con Apple: {error}'**
+  String appleError(String error);
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Bienvenido\nde nuevo.'**
+  String get welcomeBack;
+
+  /// No description provided for @password.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get password;
+
+  /// No description provided for @loggingIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciando sesión...'**
+  String get loggingIn;
+
+  /// No description provided for @login.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar Sesión'**
+  String get login;
+
+  /// No description provided for @or.
+  ///
+  /// In es, this message translates to:
+  /// **'O'**
+  String get or;
+
+  /// No description provided for @loading.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando...'**
+  String get loading;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @continueWithApple.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con Apple'**
+  String get continueWithApple;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'¿No tienes cuenta? '**
+  String get dontHaveAccount;
+
+  /// No description provided for @register.
+  ///
+  /// In es, this message translates to:
+  /// **'Regístrate'**
+  String get register;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear\nCuenta.'**
+  String get createAccount;
+
+  /// No description provided for @name.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get name;
+
+  /// No description provided for @registering.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrando...'**
+  String get registering;
+
+  /// No description provided for @signUp.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrarse'**
+  String get signUp;
 }
 
 class _AppLocalizationsDelegate

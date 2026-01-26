@@ -115,4 +115,59 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get language => 'Sprache';
+
+  @override
+  String get fillAllFields => 'Bitte füllen Sie alle Felder aus';
+
+  @override
+  String googleError(String error) {
+    return 'Google-Fehler: $error';
+  }
+
+  @override
+  String appleError(String error) {
+    return 'Apple-Fehler: $error';
+  }
+
+  @override
+  String get welcomeBack => 'Willkommen\nzurück.';
+
+  @override
+  String get password => 'Passwort';
+
+  @override
+  String get loggingIn => 'Anmelden...';
+
+  @override
+  String get login => 'Anmelden';
+
+  @override
+  String get or => 'ODER';
+
+  @override
+  String get loading => 'Laden...';
+
+  @override
+  String get continueWithGoogle => 'Weiter mit Google';
+
+  @override
+  String get continueWithApple => 'Weiter mit Apple';
+
+  @override
+  String get dontHaveAccount => 'Haben Sie kein Konto? ';
+
+  @override
+  String get register => 'Registrieren';
+
+  @override
+  String get createAccount => 'Konto\nerstellen.';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get registering => 'Registrieren...';
+
+  @override
+  String get signUp => 'Registrieren';
 }

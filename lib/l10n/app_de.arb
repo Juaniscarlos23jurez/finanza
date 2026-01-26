@@ -40,5 +40,36 @@
     },
     "confirmAndSchedule": "Bestätigen und Planen",
     "configSaved": "Konfiguration erfolgreich gespeichert!",
-    "language": "Sprache"
+    "language": "Sprache",
+    "fillAllFields": "Bitte füllen Sie alle Felder aus",
+    "googleError": "Google-Fehler: {error}",
+    "@googleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "appleError": "Apple-Fehler: {error}",
+    "@appleError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "welcomeBack": "Willkommen\nzurück.",
+    "password": "Passwort",
+    "loggingIn": "Anmelden...",
+    "login": "Anmelden",
+    "or": "ODER",
+    "loading": "Laden...",
+    "continueWithGoogle": "Weiter mit Google",
+    "continueWithApple": "Weiter mit Apple",
+    "dontHaveAccount": "Haben Sie kein Konto? ",
+    "register": "Registrieren",
+    "createAccount": "Konto\nerstellen.",
+    "name": "Name",
+    "registering": "Registrieren...",
+    "signUp": "Registrieren"
 }
