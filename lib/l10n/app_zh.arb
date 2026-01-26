@@ -244,5 +244,109 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "aiThinking": "人工智能正在思考...",
+    "speechError": "语音错误: {error}",
+    "@speechError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "voiceRecognitionUnavailable": "语音识别不可用",
+    "listening": "正在倾听...",
+    "typeHere": "在此输入...",
+    "assistantGreeting": "你好！我是你的财务助手。",
+    "assistantDescription": "我可以帮你记录支出、创建目标并使用 AI 分析你的财务状况。",
+    "questionExamples": "问题示例",
+    "fastExpense": "快速支出",
+    "fastExpenseSubtitle": "“赚了 3000，花了 50”",
+    "newGoalSubtitle": "“为旅行攒钱”",
+    "iaAnalysis": "AI 分析",
+    "iaAnalysisSubtitle": "“6 个月预测”",
+    "exportSubtitle": "“下载 CSV”",
+    "finanzasAi": "财务 AI",
+    "history": "历史记录",
+    "newChat": "新聊天",
+    "noSavedConversations": "没有保存的对话。",
+    "untitledConversation": "无标题对话",
+    "transactionSavedSuccess": "交易记录成功",
+    "aiAssistant": "AI 助手",
+    "youLabel": "你",
+    "premiumAnalysis": "高级分析",
+    "exclusiveContent": "独家可解锁内容。",
+    "deepAiAnalysis": "AI 深度分析",
+    "aiGeneratedAnalysis": "由财务 AI 生成的分析",
+    "strategicReportInfo": "这份报告包含高价值的战略信息。",
+    "unlockVideo": "观看视频解锁",
+    "contentUnlocked": "内容已解锁！",
+    "adLoadError": "无法加载广告。请重试。({error})",
+    "@adLoadError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "csvReady": "Excel/CSV 报告已就绪",
+    "reportLocked": "报告已锁定",
+    "downloadAdPrompt": "观看广告下载",
+    "shareCsv": "分享 / 保存 CSV",
+    "shareCsvText": "这是我的财务报告。",
+    "csvShareError": "分享 CSV 时出错: {error}",
+    "@csvShareError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "transactionSummary": "交易摘要",
+    "concept": "项目",
+    "result": "结果",
+    "impact": "影响",
+    "resultingBalance": "最终余额",
+    "noRecentData": "无近期数据",
+    "multiTransactionTitle": "{count} 笔交易",
+    "@multiTransactionTitle": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "saveAllTransactions": "保存 {count} 笔交易",
+    "@saveAllTransactions": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "allSaved": "已全部保存",
+    "transactionsSavedCount": "已保存 {count} 笔交易",
+    "@transactionsSavedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "goalSuggestion": "目标建议",
+    "objective": "目标: {amount}",
+    "@objective": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "createGoal": "创建目标",
+    "goalCreated": "目标已创建",
+    "analysisAvailable": "分析可用",
+    "viewChartsPrompt": "前往“交易”选项卡查看图表。",
+    "ticketGenerated": "已生成票据",
+    "confirmAndSave": "确认并保存",
+    "balanceActual": "当前余额"
 }

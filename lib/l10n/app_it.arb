@@ -244,5 +244,109 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "aiThinking": "L'IA sta pensando...",
+    "speechError": "Errore vocale: {error}",
+    "@speechError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "voiceRecognitionUnavailable": "Riconoscimento vocale non disponibile",
+    "listening": "Ascolto...",
+    "typeHere": "Scrivi qui...",
+    "assistantGreeting": "Ciao! Sono il tuo assistente finanziario.",
+    "assistantDescription": "Posso aiutarti a registrare le spese, creare obiettivi e analizzare le tue finanze con l'IA.",
+    "questionExamples": "ESEMPI DI DOMANDE",
+    "fastExpense": "Spesa Rapida",
+    "fastExpenseSubtitle": "\"Guadagnato 3000 e speso 50\"",
+    "newGoalSubtitle": "\"Risparmiare per un viaggio\"",
+    "iaAnalysis": "Analisi IA",
+    "iaAnalysisSubtitle": "\"Proiezione a 6 mesi\"",
+    "exportSubtitle": "\"Scarica CSV\"",
+    "finanzasAi": "FINANZA IA",
+    "history": "CRONOLOGIA",
+    "newChat": "Nuova Chat",
+    "noSavedConversations": "Nessuna conversazione salvata.",
+    "untitledConversation": "Conversazione senza titolo",
+    "transactionSavedSuccess": "Movimento registrato correttamente",
+    "aiAssistant": "ASSISTENTE IA",
+    "youLabel": "TU",
+    "premiumAnalysis": "Analisi Premium",
+    "exclusiveContent": "Contenuto esclusivo sbloccabile.",
+    "deepAiAnalysis": "Analisi approfondita con IA",
+    "aiGeneratedAnalysis": "Analisi generata da Finanza IA",
+    "strategicReportInfo": "Questo rapporto contiene informazioni strategiche di alto valore.",
+    "unlockVideo": "Guarda il Video per Sbloccare",
+    "contentUnlocked": "Contenuto sbloccato!",
+    "adLoadError": "Impossibile caricare l'annuncio. Riprova. ({error})",
+    "@adLoadError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "csvReady": "Report Excel/CSV pronto",
+    "reportLocked": "Report bloccato",
+    "downloadAdPrompt": "Guarda un annuncio per scaricare",
+    "shareCsv": "Condividi / Salva CSV",
+    "shareCsvText": "Ecco il mio rapporto finanziario.",
+    "csvShareError": "Errore nella condivisione del CSV: {error}",
+    "@csvShareError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "transactionSummary": "Riepilogo Movimenti",
+    "concept": "Concetto",
+    "result": "Risultato",
+    "impact": "Impatto",
+    "resultingBalance": "Saldo Risultante",
+    "noRecentData": "Nessun dato recente",
+    "multiTransactionTitle": "{count} Transazioni",
+    "@multiTransactionTitle": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "saveAllTransactions": "Salva {count} Transazioni",
+    "@saveAllTransactions": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "allSaved": "Tutto salvato",
+    "transactionsSavedCount": "{count} transazioni salvate",
+    "@transactionsSavedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "goalSuggestion": "Suggerimento Obiettivo",
+    "objective": "Obiettivo: {amount}",
+    "@objective": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "createGoal": "Crea Obiettivo",
+    "goalCreated": "Obiettivo creato",
+    "analysisAvailable": "Analisi disponibile",
+    "viewChartsPrompt": "Vai alla scheda 'Movimenti' per vedere i grafici.",
+    "ticketGenerated": "Ticket Generato",
+    "confirmAndSave": "Conferma e Salva",
+    "balanceActual": "SALDO ATTUALE"
 }

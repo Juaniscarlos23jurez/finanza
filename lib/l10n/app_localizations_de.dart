@@ -477,185 +477,184 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get aiThinking => 'La IA está pensando...';
+  String get aiThinking => 'Die KI denkt nach...';
 
   @override
   String speechError(String error) {
-    return 'Error de voz: $error';
+    return 'Sprachfehler: $error';
   }
 
   @override
-  String get voiceRecognitionUnavailable =>
-      'Reconocimiento de voz no disponible';
+  String get voiceRecognitionUnavailable => 'Spracherkennung nicht verfügbar';
 
   @override
-  String get listening => 'Escuchando...';
+  String get listening => 'Hören...';
 
   @override
-  String get typeHere => 'Escribe aquí...';
+  String get typeHere => 'Hier eingeben...';
 
   @override
-  String get assistantGreeting => '¡Hola! Soy tu asistente financiero.';
+  String get assistantGreeting => 'Hallo! Ich bin Ihr Finanzassistent.';
 
   @override
   String get assistantDescription =>
-      'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.';
+      'Ich kann Ihnen helfen, Ausgaben zu registrieren, Ziele zu erstellen und Ihre Finanzen mit KI zu analysieren.';
 
   @override
-  String get questionExamples => 'EJEMPLOS DE PREGUNTAS';
+  String get questionExamples => 'BEISPIELFRAGEN';
 
   @override
-  String get fastExpense => 'Gasto Rápido';
+  String get fastExpense => 'Schnelle Ausgabe';
 
   @override
-  String get fastExpenseSubtitle => '\"Gané 3000 y gasté 50\"';
+  String get fastExpenseSubtitle => '\"3000 verdient und 50 ausgegeben\"';
 
   @override
-  String get newGoalSubtitle => '\"Ahorrar para viaje\"';
+  String get newGoalSubtitle => '\"Für Reise sparen\"';
 
   @override
-  String get iaAnalysis => 'Análisis IA';
+  String get iaAnalysis => 'KI-Analyse';
 
   @override
-  String get iaAnalysisSubtitle => '\"Proyección 6 meses\"';
+  String get iaAnalysisSubtitle => '\"6-Monats-Projektion\"';
 
   @override
-  String get exportSubtitle => '\"Descargar CSV\"';
+  String get exportSubtitle => '\"CSV herunterladen\"';
 
   @override
-  String get finanzasAi => 'FINANZAS AI';
+  String get finanzasAi => 'FINANZEN KI';
 
   @override
-  String get history => 'HISTORIAL';
+  String get history => 'VERLAUF';
 
   @override
-  String get newChat => 'Nuevo Chat';
+  String get newChat => 'Neuer Chat';
 
   @override
-  String get noSavedConversations => 'No hay conversaciones guardadas.';
+  String get noSavedConversations => 'Keine gespeicherten Unterhaltungen.';
 
   @override
-  String get untitledConversation => 'Conversación sin título';
+  String get untitledConversation => 'Unbenannte Unterhaltung';
 
   @override
-  String get transactionSavedSuccess => 'Movimiento registrado correctamente';
+  String get transactionSavedSuccess => 'Transaktion korrekt aufgezeichnet';
 
   @override
-  String get aiAssistant => 'ASISTENTE IA';
+  String get aiAssistant => 'KI-ASSISTENT';
 
   @override
-  String get youLabel => 'TÚ';
+  String get youLabel => 'DU';
 
   @override
-  String get premiumAnalysis => 'Análisis Premium';
+  String get premiumAnalysis => 'Premium-Analyse';
 
   @override
-  String get exclusiveContent => 'Contenido exclusivo desbloqueable.';
+  String get exclusiveContent => 'Exklusiver freischaltbarer Inhalt.';
 
   @override
-  String get deepAiAnalysis => 'Análisis Profundo con IA';
+  String get deepAiAnalysis => 'Tiefe KI-Analyse';
 
   @override
-  String get aiGeneratedAnalysis => 'Análisis generado por Finanzas AI';
+  String get aiGeneratedAnalysis => 'Von Finanzen KI generierte Analyse';
 
   @override
   String get strategicReportInfo =>
-      'Este reporte contiene información estratégica de alto valor.';
+      'Dieser Bericht enthält strategische Informationen von hohem Wert.';
 
   @override
-  String get unlockVideo => 'Ver Video para Desbloquear';
+  String get unlockVideo => 'Video ansehen zum Freischalten';
 
   @override
-  String get contentUnlocked => '¡Contenido desbloqueado!';
+  String get contentUnlocked => 'Inhalt freigeschaltet!';
 
   @override
   String adLoadError(String error) {
-    return 'No se pudo cargar el anuncio. Intenta de nuevo. ($error)';
+    return 'Anzeige konnte nicht geladen werden. Versuchen Sie es erneut. ($error)';
   }
 
   @override
-  String get csvReady => 'Reporte Excel/CSV Listo';
+  String get csvReady => 'Excel/CSV-Bericht bereit';
 
   @override
-  String get reportLocked => 'Reporte Bloqueado';
+  String get reportLocked => 'Bericht gesperrt';
 
   @override
-  String get downloadAdPrompt => 'Ve un anuncio para descargar';
+  String get downloadAdPrompt => 'Anzeige ansehen zum Herunterladen';
 
   @override
-  String get shareCsv => 'Compartir / Guardar CSV';
+  String get shareCsv => 'CSV teilen / speichern';
 
   @override
-  String get shareCsvText => 'Aquí tienes mi reporte financiero.';
+  String get shareCsvText => 'Hier ist mein Finanzbericht.';
 
   @override
   String csvShareError(String error) {
-    return 'Error al compartir CSV: $error';
+    return 'Fehler beim Teilen der CSV: $error';
   }
 
   @override
-  String get transactionSummary => 'Resumen de Movimientos';
+  String get transactionSummary => 'Transaktionszusammenfassung';
 
   @override
-  String get concept => 'Concepto';
+  String get concept => 'Konzept';
 
   @override
-  String get result => 'Resultó';
+  String get result => 'Ergebnis';
 
   @override
-  String get impact => 'Impacto';
+  String get impact => 'Auswirkung';
 
   @override
-  String get resultingBalance => 'Balance Resultante';
+  String get resultingBalance => 'Resultierender Kontostand';
 
   @override
-  String get noRecentData => 'Sin datos recientes';
+  String get noRecentData => 'Keine aktuellen Daten';
 
   @override
   String multiTransactionTitle(int count) {
-    return '$count Transacciones';
+    return '$count Transaktionen';
   }
 
   @override
   String saveAllTransactions(int count) {
-    return 'Guardar $count Transacciones';
+    return '$count Transaktionen speichern';
   }
 
   @override
-  String get allSaved => 'Todo Guardado';
+  String get allSaved => 'Alle gespeichert';
 
   @override
   String transactionsSavedCount(int count) {
-    return '$count transacciones guardadas';
+    return '$count Transaktionen gespeichert';
   }
 
   @override
-  String get goalSuggestion => 'Sugerencia de Meta';
+  String get goalSuggestion => 'Zielvorschlag';
 
   @override
   String objective(String amount) {
-    return 'Objetivo: $amount';
+    return 'Ziel: $amount';
   }
 
   @override
-  String get createGoal => 'Crear Meta';
+  String get createGoal => 'Ziel erstellen';
 
   @override
-  String get goalCreated => 'Meta Creada';
+  String get goalCreated => 'Ziel erstellt';
 
   @override
-  String get analysisAvailable => 'Análisis Disponible';
+  String get analysisAvailable => 'Analyse verfügbar';
 
   @override
   String get viewChartsPrompt =>
-      'Ve a la pestaña \"Movimientos\" para ver los gráficos.';
+      'Gehen Sie zum Reiter \'Transaktionen\', um die Diagramme zu sehen.';
 
   @override
-  String get ticketGenerated => 'Ticket Generado';
+  String get ticketGenerated => 'Ticket generiert';
 
   @override
-  String get confirmAndSave => 'Confirmar y Guardar';
+  String get confirmAndSave => 'Bestätigen und speichern';
 
   @override
-  String get balanceActual => 'BALANCE ACTUAL';
+  String get balanceActual => 'AKTUELLER KONTOSTAND';
 }

@@ -470,185 +470,181 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get aiThinking => 'La IA está pensando...';
+  String get aiThinking => 'AIが考えています...';
 
   @override
   String speechError(String error) {
-    return 'Error de voz: $error';
+    return '音声エラー: $error';
   }
 
   @override
-  String get voiceRecognitionUnavailable =>
-      'Reconocimiento de voz no disponible';
+  String get voiceRecognitionUnavailable => '音声認識は利用できません';
 
   @override
-  String get listening => 'Escuchando...';
+  String get listening => '聞き取り中...';
 
   @override
-  String get typeHere => 'Escribe aquí...';
+  String get typeHere => 'ここに入力...';
 
   @override
-  String get assistantGreeting => '¡Hola! Soy tu asistente financiero.';
+  String get assistantGreeting => 'こんにちは！私はあなたの財務アシスタントです。';
 
   @override
-  String get assistantDescription =>
-      'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.';
+  String get assistantDescription => '支出の記録、目標の作成、AIによる財務分析のお手伝いをします。';
 
   @override
-  String get questionExamples => 'EJEMPLOS DE PREGUNTAS';
+  String get questionExamples => '質問の例';
 
   @override
-  String get fastExpense => 'Gasto Rápido';
+  String get fastExpense => 'クイック支出';
 
   @override
-  String get fastExpenseSubtitle => '\"Gané 3000 y gasté 50\"';
+  String get fastExpenseSubtitle => '「3000円稼いで50円使った」';
 
   @override
-  String get newGoalSubtitle => '\"Ahorrar para viaje\"';
+  String get newGoalSubtitle => '「旅行のために貯金する」';
 
   @override
-  String get iaAnalysis => 'Análisis IA';
+  String get iaAnalysis => 'AI分析';
 
   @override
-  String get iaAnalysisSubtitle => '\"Proyección 6 meses\"';
+  String get iaAnalysisSubtitle => '「6ヶ月の予測」';
 
   @override
-  String get exportSubtitle => '\"Descargar CSV\"';
+  String get exportSubtitle => '「CSVをダウンロード」';
 
   @override
-  String get finanzasAi => 'FINANZAS AI';
+  String get finanzasAi => '財務AI';
 
   @override
-  String get history => 'HISTORIAL';
+  String get history => '履歴';
 
   @override
-  String get newChat => 'Nuevo Chat';
+  String get newChat => '新しいチャット';
 
   @override
-  String get noSavedConversations => 'No hay conversaciones guardadas.';
+  String get noSavedConversations => '保存された会話はありません。';
 
   @override
-  String get untitledConversation => 'Conversación sin título';
+  String get untitledConversation => '無題の会話';
 
   @override
-  String get transactionSavedSuccess => 'Movimiento registrado correctamente';
+  String get transactionSavedSuccess => '取引が正常に記録されました';
 
   @override
-  String get aiAssistant => 'ASISTENTE IA';
+  String get aiAssistant => 'AIアシスタント';
 
   @override
-  String get youLabel => 'TÚ';
+  String get youLabel => 'あなた';
 
   @override
-  String get premiumAnalysis => 'Análisis Premium';
+  String get premiumAnalysis => 'プレミアム分析';
 
   @override
-  String get exclusiveContent => 'Contenido exclusivo desbloqueable.';
+  String get exclusiveContent => '独占的なアンロック可能コンテンツ。';
 
   @override
-  String get deepAiAnalysis => 'Análisis Profundo con IA';
+  String get deepAiAnalysis => 'AIによる詳細分析';
 
   @override
-  String get aiGeneratedAnalysis => 'Análisis generado por Finanzas AI';
+  String get aiGeneratedAnalysis => '財務AIによる分析';
 
   @override
-  String get strategicReportInfo =>
-      'Este reporte contiene información estratégica de alto valor.';
+  String get strategicReportInfo => 'このレポートには価値の高い戦略的情報が含まれています。';
 
   @override
-  String get unlockVideo => 'Ver Video para Desbloquear';
+  String get unlockVideo => '動画を見てアンロック';
 
   @override
-  String get contentUnlocked => '¡Contenido desbloqueado!';
+  String get contentUnlocked => 'コンテンツがアンロックされました！';
 
   @override
   String adLoadError(String error) {
-    return 'No se pudo cargar el anuncio. Intenta de nuevo. ($error)';
+    return '広告を読み込めませんでした。もう一度お試しください。($error)';
   }
 
   @override
-  String get csvReady => 'Reporte Excel/CSV Listo';
+  String get csvReady => 'Excel/CSVレポートの準備完了';
 
   @override
-  String get reportLocked => 'Reporte Bloqueado';
+  String get reportLocked => 'レポートはロックされています';
 
   @override
-  String get downloadAdPrompt => 'Ve un anuncio para descargar';
+  String get downloadAdPrompt => '動画を見てダウンロード';
 
   @override
-  String get shareCsv => 'Compartir / Guardar CSV';
+  String get shareCsv => 'CSVを共有 / 保存';
 
   @override
-  String get shareCsvText => 'Aquí tienes mi reporte financiero.';
+  String get shareCsvText => '私の財務レポートです。';
 
   @override
   String csvShareError(String error) {
-    return 'Error al compartir CSV: $error';
+    return 'CSVの共有中にエラーが発生しました: $error';
   }
 
   @override
-  String get transactionSummary => 'Resumen de Movimientos';
+  String get transactionSummary => '取引概要';
 
   @override
-  String get concept => 'Concepto';
+  String get concept => '項目';
 
   @override
-  String get result => 'Resultó';
+  String get result => '結果';
 
   @override
-  String get impact => 'Impacto';
+  String get impact => '影響';
 
   @override
-  String get resultingBalance => 'Balance Resultante';
+  String get resultingBalance => '最終残高';
 
   @override
-  String get noRecentData => 'Sin datos recientes';
+  String get noRecentData => '最近のデータはありません';
 
   @override
   String multiTransactionTitle(int count) {
-    return '$count Transacciones';
+    return '$count件の取引';
   }
 
   @override
   String saveAllTransactions(int count) {
-    return 'Guardar $count Transacciones';
+    return '$count件の取引を保存';
   }
 
   @override
-  String get allSaved => 'Todo Guardado';
+  String get allSaved => 'すべて保存完了';
 
   @override
   String transactionsSavedCount(int count) {
-    return '$count transacciones guardadas';
+    return '$count件の取引を保存しました';
   }
 
   @override
-  String get goalSuggestion => 'Sugerencia de Meta';
+  String get goalSuggestion => '目標の提案';
 
   @override
   String objective(String amount) {
-    return 'Objetivo: $amount';
+    return '目標: $amount';
   }
 
   @override
-  String get createGoal => 'Crear Meta';
+  String get createGoal => '目標を作成';
 
   @override
-  String get goalCreated => 'Meta Creada';
+  String get goalCreated => '目標を作成しました';
 
   @override
-  String get analysisAvailable => 'Análisis Disponible';
+  String get analysisAvailable => '分析が利用可能です';
 
   @override
-  String get viewChartsPrompt =>
-      'Ve a la pestaña \"Movimientos\" para ver los gráficos.';
+  String get viewChartsPrompt => '「取引」タブでグラフを確認してください。';
 
   @override
-  String get ticketGenerated => 'Ticket Generado';
+  String get ticketGenerated => 'チケットが生成されました';
 
   @override
-  String get confirmAndSave => 'Confirmar y Guardar';
+  String get confirmAndSave => '確認して保存';
 
   @override
-  String get balanceActual => 'BALANCE ACTUAL';
+  String get balanceActual => '現在の残高';
 }

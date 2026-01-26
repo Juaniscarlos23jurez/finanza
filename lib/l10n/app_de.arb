@@ -245,5 +245,109 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "aiThinking": "Die KI denkt nach...",
+    "speechError": "Sprachfehler: {error}",
+    "@speechError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "voiceRecognitionUnavailable": "Spracherkennung nicht verfügbar",
+    "listening": "Hören...",
+    "typeHere": "Hier eingeben...",
+    "assistantGreeting": "Hallo! Ich bin Ihr Finanzassistent.",
+    "assistantDescription": "Ich kann Ihnen helfen, Ausgaben zu registrieren, Ziele zu erstellen und Ihre Finanzen mit KI zu analysieren.",
+    "questionExamples": "BEISPIELFRAGEN",
+    "fastExpense": "Schnelle Ausgabe",
+    "fastExpenseSubtitle": "\"3000 verdient und 50 ausgegeben\"",
+    "newGoalSubtitle": "\"Für Reise sparen\"",
+    "iaAnalysis": "KI-Analyse",
+    "iaAnalysisSubtitle": "\"6-Monats-Projektion\"",
+    "exportSubtitle": "\"CSV herunterladen\"",
+    "finanzasAi": "FINANZEN KI",
+    "history": "VERLAUF",
+    "newChat": "Neuer Chat",
+    "noSavedConversations": "Keine gespeicherten Unterhaltungen.",
+    "untitledConversation": "Unbenannte Unterhaltung",
+    "transactionSavedSuccess": "Transaktion korrekt aufgezeichnet",
+    "aiAssistant": "KI-ASSISTENT",
+    "youLabel": "DU",
+    "premiumAnalysis": "Premium-Analyse",
+    "exclusiveContent": "Exklusiver freischaltbarer Inhalt.",
+    "deepAiAnalysis": "Tiefe KI-Analyse",
+    "aiGeneratedAnalysis": "Von Finanzen KI generierte Analyse",
+    "strategicReportInfo": "Dieser Bericht enthält strategische Informationen von hohem Wert.",
+    "unlockVideo": "Video ansehen zum Freischalten",
+    "contentUnlocked": "Inhalt freigeschaltet!",
+    "adLoadError": "Anzeige konnte nicht geladen werden. Versuchen Sie es erneut. ({error})",
+    "@adLoadError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "csvReady": "Excel/CSV-Bericht bereit",
+    "reportLocked": "Bericht gesperrt",
+    "downloadAdPrompt": "Anzeige ansehen zum Herunterladen",
+    "shareCsv": "CSV teilen / speichern",
+    "shareCsvText": "Hier ist mein Finanzbericht.",
+    "csvShareError": "Fehler beim Teilen der CSV: {error}",
+    "@csvShareError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "transactionSummary": "Transaktionszusammenfassung",
+    "concept": "Konzept",
+    "result": "Ergebnis",
+    "impact": "Auswirkung",
+    "resultingBalance": "Resultierender Kontostand",
+    "noRecentData": "Keine aktuellen Daten",
+    "multiTransactionTitle": "{count} Transaktionen",
+    "@multiTransactionTitle": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "saveAllTransactions": "{count} Transaktionen speichern",
+    "@saveAllTransactions": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "allSaved": "Alle gespeichert",
+    "transactionsSavedCount": "{count} Transaktionen gespeichert",
+    "@transactionsSavedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "goalSuggestion": "Zielvorschlag",
+    "objective": "Ziel: {amount}",
+    "@objective": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "createGoal": "Ziel erstellen",
+    "goalCreated": "Ziel erstellt",
+    "analysisAvailable": "Analyse verfügbar",
+    "viewChartsPrompt": "Gehen Sie zum Reiter 'Transaktionen', um die Diagramme zu sehen.",
+    "ticketGenerated": "Ticket generiert",
+    "confirmAndSave": "Bestätigen und speichern",
+    "balanceActual": "AKTUELLER KONTOSTAND"
 }

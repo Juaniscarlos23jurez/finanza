@@ -244,5 +244,109 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "aiThinking": "AIが考えています...",
+    "speechError": "音声エラー: {error}",
+    "@speechError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "voiceRecognitionUnavailable": "音声認識は利用できません",
+    "listening": "聞き取り中...",
+    "typeHere": "ここに入力...",
+    "assistantGreeting": "こんにちは！私はあなたの財務アシスタントです。",
+    "assistantDescription": "支出の記録、目標の作成、AIによる財務分析のお手伝いをします。",
+    "questionExamples": "質問の例",
+    "fastExpense": "クイック支出",
+    "fastExpenseSubtitle": "「3000円稼いで50円使った」",
+    "newGoalSubtitle": "「旅行のために貯金する」",
+    "iaAnalysis": "AI分析",
+    "iaAnalysisSubtitle": "「6ヶ月の予測」",
+    "exportSubtitle": "「CSVをダウンロード」",
+    "finanzasAi": "財務AI",
+    "history": "履歴",
+    "newChat": "新しいチャット",
+    "noSavedConversations": "保存された会話はありません。",
+    "untitledConversation": "無題の会話",
+    "transactionSavedSuccess": "取引が正常に記録されました",
+    "aiAssistant": "AIアシスタント",
+    "youLabel": "あなた",
+    "premiumAnalysis": "プレミアム分析",
+    "exclusiveContent": "独占的なアンロック可能コンテンツ。",
+    "deepAiAnalysis": "AIによる詳細分析",
+    "aiGeneratedAnalysis": "財務AIによる分析",
+    "strategicReportInfo": "このレポートには価値の高い戦略的情報が含まれています。",
+    "unlockVideo": "動画を見てアンロック",
+    "contentUnlocked": "コンテンツがアンロックされました！",
+    "adLoadError": "広告を読み込めませんでした。もう一度お試しください。({error})",
+    "@adLoadError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "csvReady": "Excel/CSVレポートの準備完了",
+    "reportLocked": "レポートはロックされています",
+    "downloadAdPrompt": "動画を見てダウンロード",
+    "shareCsv": "CSVを共有 / 保存",
+    "shareCsvText": "私の財務レポートです。",
+    "csvShareError": "CSVの共有中にエラーが発生しました: {error}",
+    "@csvShareError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "transactionSummary": "取引概要",
+    "concept": "項目",
+    "result": "結果",
+    "impact": "影響",
+    "resultingBalance": "最終残高",
+    "noRecentData": "最近のデータはありません",
+    "multiTransactionTitle": "{count}件の取引",
+    "@multiTransactionTitle": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "saveAllTransactions": "{count}件の取引を保存",
+    "@saveAllTransactions": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "allSaved": "すべて保存完了",
+    "transactionsSavedCount": "{count}件の取引を保存しました",
+    "@transactionsSavedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "goalSuggestion": "目標の提案",
+    "objective": "目標: {amount}",
+    "@objective": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "createGoal": "目標を作成",
+    "goalCreated": "目標を作成しました",
+    "analysisAvailable": "分析が利用可能です",
+    "viewChartsPrompt": "「取引」タブでグラフを確認してください。",
+    "ticketGenerated": "チケットが生成されました",
+    "confirmAndSave": "確認して保存",
+    "balanceActual": "現在の残高"
 }

@@ -470,185 +470,181 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get aiThinking => 'La IA está pensando...';
+  String get aiThinking => '人工智能正在思考...';
 
   @override
   String speechError(String error) {
-    return 'Error de voz: $error';
+    return '语音错误: $error';
   }
 
   @override
-  String get voiceRecognitionUnavailable =>
-      'Reconocimiento de voz no disponible';
+  String get voiceRecognitionUnavailable => '语音识别不可用';
 
   @override
-  String get listening => 'Escuchando...';
+  String get listening => '正在倾听...';
 
   @override
-  String get typeHere => 'Escribe aquí...';
+  String get typeHere => '在此输入...';
 
   @override
-  String get assistantGreeting => '¡Hola! Soy tu asistente financiero.';
+  String get assistantGreeting => '你好！我是你的财务助手。';
 
   @override
-  String get assistantDescription =>
-      'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.';
+  String get assistantDescription => '我可以帮你记录支出、创建目标并使用 AI 分析你的财务状况。';
 
   @override
-  String get questionExamples => 'EJEMPLOS DE PREGUNTAS';
+  String get questionExamples => '问题示例';
 
   @override
-  String get fastExpense => 'Gasto Rápido';
+  String get fastExpense => '快速支出';
 
   @override
-  String get fastExpenseSubtitle => '\"Gané 3000 y gasté 50\"';
+  String get fastExpenseSubtitle => '“赚了 3000，花了 50”';
 
   @override
-  String get newGoalSubtitle => '\"Ahorrar para viaje\"';
+  String get newGoalSubtitle => '“为旅行攒钱”';
 
   @override
-  String get iaAnalysis => 'Análisis IA';
+  String get iaAnalysis => 'AI 分析';
 
   @override
-  String get iaAnalysisSubtitle => '\"Proyección 6 meses\"';
+  String get iaAnalysisSubtitle => '“6 个月预测”';
 
   @override
-  String get exportSubtitle => '\"Descargar CSV\"';
+  String get exportSubtitle => '“下载 CSV”';
 
   @override
-  String get finanzasAi => 'FINANZAS AI';
+  String get finanzasAi => '财务 AI';
 
   @override
-  String get history => 'HISTORIAL';
+  String get history => '历史记录';
 
   @override
-  String get newChat => 'Nuevo Chat';
+  String get newChat => '新聊天';
 
   @override
-  String get noSavedConversations => 'No hay conversaciones guardadas.';
+  String get noSavedConversations => '没有保存的对话。';
 
   @override
-  String get untitledConversation => 'Conversación sin título';
+  String get untitledConversation => '无标题对话';
 
   @override
-  String get transactionSavedSuccess => 'Movimiento registrado correctamente';
+  String get transactionSavedSuccess => '交易记录成功';
 
   @override
-  String get aiAssistant => 'ASISTENTE IA';
+  String get aiAssistant => 'AI 助手';
 
   @override
-  String get youLabel => 'TÚ';
+  String get youLabel => '你';
 
   @override
-  String get premiumAnalysis => 'Análisis Premium';
+  String get premiumAnalysis => '高级分析';
 
   @override
-  String get exclusiveContent => 'Contenido exclusivo desbloqueable.';
+  String get exclusiveContent => '独家可解锁内容。';
 
   @override
-  String get deepAiAnalysis => 'Análisis Profundo con IA';
+  String get deepAiAnalysis => 'AI 深度分析';
 
   @override
-  String get aiGeneratedAnalysis => 'Análisis generado por Finanzas AI';
+  String get aiGeneratedAnalysis => '由财务 AI 生成的分析';
 
   @override
-  String get strategicReportInfo =>
-      'Este reporte contiene información estratégica de alto valor.';
+  String get strategicReportInfo => '这份报告包含高价值的战略信息。';
 
   @override
-  String get unlockVideo => 'Ver Video para Desbloquear';
+  String get unlockVideo => '观看视频解锁';
 
   @override
-  String get contentUnlocked => '¡Contenido desbloqueado!';
+  String get contentUnlocked => '内容已解锁！';
 
   @override
   String adLoadError(String error) {
-    return 'No se pudo cargar el anuncio. Intenta de nuevo. ($error)';
+    return '无法加载广告。请重试。($error)';
   }
 
   @override
-  String get csvReady => 'Reporte Excel/CSV Listo';
+  String get csvReady => 'Excel/CSV 报告已就绪';
 
   @override
-  String get reportLocked => 'Reporte Bloqueado';
+  String get reportLocked => '报告已锁定';
 
   @override
-  String get downloadAdPrompt => 'Ve un anuncio para descargar';
+  String get downloadAdPrompt => '观看广告下载';
 
   @override
-  String get shareCsv => 'Compartir / Guardar CSV';
+  String get shareCsv => '分享 / 保存 CSV';
 
   @override
-  String get shareCsvText => 'Aquí tienes mi reporte financiero.';
+  String get shareCsvText => '这是我的财务报告。';
 
   @override
   String csvShareError(String error) {
-    return 'Error al compartir CSV: $error';
+    return '分享 CSV 时出错: $error';
   }
 
   @override
-  String get transactionSummary => 'Resumen de Movimientos';
+  String get transactionSummary => '交易摘要';
 
   @override
-  String get concept => 'Concepto';
+  String get concept => '项目';
 
   @override
-  String get result => 'Resultó';
+  String get result => '结果';
 
   @override
-  String get impact => 'Impacto';
+  String get impact => '影响';
 
   @override
-  String get resultingBalance => 'Balance Resultante';
+  String get resultingBalance => '最终余额';
 
   @override
-  String get noRecentData => 'Sin datos recientes';
+  String get noRecentData => '无近期数据';
 
   @override
   String multiTransactionTitle(int count) {
-    return '$count Transacciones';
+    return '$count 笔交易';
   }
 
   @override
   String saveAllTransactions(int count) {
-    return 'Guardar $count Transacciones';
+    return '保存 $count 笔交易';
   }
 
   @override
-  String get allSaved => 'Todo Guardado';
+  String get allSaved => '已全部保存';
 
   @override
   String transactionsSavedCount(int count) {
-    return '$count transacciones guardadas';
+    return '已保存 $count 笔交易';
   }
 
   @override
-  String get goalSuggestion => 'Sugerencia de Meta';
+  String get goalSuggestion => '目标建议';
 
   @override
   String objective(String amount) {
-    return 'Objetivo: $amount';
+    return '目标: $amount';
   }
 
   @override
-  String get createGoal => 'Crear Meta';
+  String get createGoal => '创建目标';
 
   @override
-  String get goalCreated => 'Meta Creada';
+  String get goalCreated => '目标已创建';
 
   @override
-  String get analysisAvailable => 'Análisis Disponible';
+  String get analysisAvailable => '分析可用';
 
   @override
-  String get viewChartsPrompt =>
-      'Ve a la pestaña \"Movimientos\" para ver los gráficos.';
+  String get viewChartsPrompt => '前往“交易”选项卡查看图表。';
 
   @override
-  String get ticketGenerated => 'Ticket Generado';
+  String get ticketGenerated => '已生成票据';
 
   @override
-  String get confirmAndSave => 'Confirmar y Guardar';
+  String get confirmAndSave => '确认并保存';
 
   @override
-  String get balanceActual => 'BALANCE ACTUAL';
+  String get balanceActual => '当前余额';
 }
