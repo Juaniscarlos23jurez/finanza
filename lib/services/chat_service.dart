@@ -53,6 +53,7 @@ class ChatService {
   Future<void> sendMessage({
     required String? conversationId,
     required String text,
+    String? languageCode,
     Function(String newConversationId)? onConversationCreated,
   }) async {
     final userId = await _authService.getUserId();
@@ -88,7 +89,7 @@ class ChatService {
 
     // 2. Get AI Response
     try {
-      final aiMessage = await _aiService.sendMessage(text);
+      final aiMessage = await _aiService.sendMessage(text, languageCode: languageCode);
       
       // 3. Save AI Message
       await messagesRef.push().set({

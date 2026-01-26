@@ -14,7 +14,7 @@ import '../models/message_model.dart';
 import '../services/finance_service.dart';
 import '../services/chat_service.dart';
 import '../services/ad_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -36,6 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isListening = false;
   bool _speechAvailable = false;
   bool _showClearBtn = false;
+  final FocusNode _messageFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -48,6 +49,14 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
     _initSpeech();
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    _messageFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _initSpeech() async {
@@ -112,9 +121,11 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _isTyping = true);
 
     try {
+      final l10n = AppLocalizations.of(context)!;
       await _chatService.sendMessage(
         conversationId: _currentConversationId,
         text: text,
+        languageCode: l10n.localeName,
         onConversationCreated: (newId) {
           setState(() => _currentConversationId = newId);
         },
@@ -208,6 +219,15 @@ class _ChatScreenState extends State<ChatScreen> {
                               return ChatMessageWidget(
                                 message: messages[index],
                                 conversationId: _currentConversationId,
+                                onTap: (text) {
+                                  setState(() {
+                                    _messageController.text = text;
+                                    _messageController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: _messageController.text.length),
+                                    );
+                                  });
+                                  _messageFocusNode.requestFocus();
+                                },
                               );
                             },
                           );
@@ -304,8 +324,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _useSuggestion(String text) {
-    _messageController.text = text;
-    _handleSend();
+    setState(() {
+      _messageController.text = text;
+      _messageController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _messageController.text.length),
+      );
+    });
+    _messageFocusNode.requestFocus();
   }
 
   Widget _buildSuggestionCard({
@@ -444,8 +469,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 120),
-                      child: TextField(
+                        child: TextField(
                         controller: _messageController,
+                        focusNode: _messageFocusNode,
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
                         textCapitalization: TextCapitalization.sentences,
@@ -470,16 +496,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Container(
-            height: 56,
-            width: 56,
-            margin: const EdgeInsets.only(bottom: 0),
+            height: 48,
+            width: 48,
             decoration: BoxDecoration(
               color: _isListening ? Colors.red : AppTheme.primary,
               shape: BoxShape.circle,
@@ -488,7 +513,7 @@ class _ChatScreenState extends State<ChatScreen> {
               icon: Icon(
                 _isListening ? Icons.stop_rounded : Icons.send_rounded,
                 color: Colors.white,
-                size: 20,
+                size: 18,
               ),
               onPressed: _isListening ? _toggleListening : _handleSend,
             ),
@@ -503,8 +528,9 @@ class _ChatScreenState extends State<ChatScreen> {
 class ChatMessageWidget extends StatefulWidget {
   final Message message;
   final String? conversationId;
+  final Function(String)? onTap;
 
-  const ChatMessageWidget({super.key, required this.message, this.conversationId});
+  const ChatMessageWidget({super.key, required this.message, this.conversationId, this.onTap});
 
   @override
   State<ChatMessageWidget> createState() => _ChatMessageWidgetState();
@@ -527,6 +553,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Future<void> _saveTransaction(Map<String, dynamic> data) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
     
     try {
@@ -543,7 +570,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       await _markAsHandled();
 
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _isSaving = false;
       });
@@ -552,7 +578,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       );
     } catch (e) {
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.saveError(e.toString()))),
@@ -598,34 +623,43 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           if (widget.message.isGenUI)
             _buildGenUIPlaceholder()
           else
-            Container(
-              padding: const EdgeInsets.all(16),
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
-              decoration: BoxDecoration(
-                color: widget.message.isAi ? Colors.white : AppTheme.primary,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(widget.message.isAi ? 4 : 20),
-                  bottomRight: Radius.circular(widget.message.isAi ? 20 : 4),
-                ),
-                boxShadow: widget.message.isAi
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        )
-                      ]
-                    : [],
+            InkWell(
+              onTap: widget.onTap != null ? () => widget.onTap!(widget.message.text) : null,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(20),
+                topRight: const Radius.circular(20),
+                bottomLeft: Radius.circular(widget.message.isAi ? 4 : 20),
+                bottomRight: Radius.circular(widget.message.isAi ? 20 : 4),
               ),
-              child: Text(
-                widget.message.text,
-                style: GoogleFonts.manrope(
-                  color: widget.message.isAi ? AppTheme.primary : Colors.white,
-                  fontSize: 15,
-                  height: 1.5,
-                  fontWeight: widget.message.isAi ? FontWeight.w500 : FontWeight.w400,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                decoration: BoxDecoration(
+                  color: widget.message.isAi ? Colors.white : AppTheme.primary,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(20),
+                    topRight: const Radius.circular(20),
+                    bottomLeft: Radius.circular(widget.message.isAi ? 4 : 20),
+                    bottomRight: Radius.circular(widget.message.isAi ? 20 : 4),
+                  ),
+                  boxShadow: widget.message.isAi
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : [],
+                ),
+                child: Text(
+                  widget.message.text,
+                  style: GoogleFonts.manrope(
+                    color: widget.message.isAi ? AppTheme.primary : Colors.white,
+                    fontSize: 15,
+                    height: 1.5,
+                    fontWeight: widget.message.isAi ? FontWeight.w500 : FontWeight.w400,
+                  ),
                 ),
               ),
             ),
@@ -962,7 +996,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Widget _buildReportMetrics(dynamic metrics) {
-    final l10n = AppLocalizations.of(context)!;
     if (metrics is! List) return const SizedBox.shrink();
     
     return Container(
@@ -1368,6 +1401,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Future<void> _saveAllTransactions(List<dynamic> transactions) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
 
     try {
@@ -1384,7 +1418,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       
       await _markAsHandled();
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _isSaving = false;
         });
@@ -1394,7 +1427,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       }
     } catch (e) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.saveError(e.toString()))),
@@ -1516,6 +1548,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Future<void> _createGoal(Map<String, dynamic> data) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
     try {
       final financeService = FinanceService();
@@ -1530,7 +1563,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
       await _markAsHandled();
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _isSaving = false;
         });
@@ -1540,7 +1572,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       }
     } catch (e) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.errorGeneric(e.toString()))),

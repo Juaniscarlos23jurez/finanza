@@ -97,13 +97,20 @@ class AiService {
     }
   }
 
-  Future<Message> sendMessage(String text) async {
+  Future<Message> sendMessage(String text, {String? languageCode}) async {
     _chat ??= _model.startChat();
 
     try {
-      // Inject context into the message
+      // Inject context and language instruction into the message
       final contextValues = await _getFinancialContext();
-      final fullPrompt = 'FECHA ACTUAL: ${DateTime.now().toIso8601String()}\n$contextValues\n\nUsuario: $text';
+      final languageInstruction = languageCode != null 
+          ? 'El usuario está usando la aplicación en el idioma con código: "$languageCode". Responde ÚNICAMENTE en ese idioma, pero mantén todas las reglas de personalidad y formato JSON.'
+          : 'Responde en el mismo idioma en que el usuario te hable.';
+
+      final fullPrompt = 'FECHA ACTUAL: ${DateTime.now().toIso8601String()}\n'
+                         '$languageInstruction\n'
+                         '$contextValues\n\n'
+                         'Usuario: $text';
       debugPrint('Sending to AI: $fullPrompt');
 
       final response = await _chat!.sendMessage(Content.text(fullPrompt));
