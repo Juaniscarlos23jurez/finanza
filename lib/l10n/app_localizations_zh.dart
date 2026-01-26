@@ -394,6 +394,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get invitationAccepted => '邀请已接受';
 
   @override
+  String get unknownUser => '某人';
+
+  @override
+  String get defaultGoalName => '一个目标';
+
+  @override
   String errorGeneric(String error) {
     return '错误: $error';
   }

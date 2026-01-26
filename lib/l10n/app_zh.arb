@@ -207,6 +207,8 @@
     "reject": "拒绝",
     "accept": "接受",
     "invitationAccepted": "邀请已接受",
+    "unknownUser": "某人",
+    "defaultGoalName": "一个目标",
     "errorGeneric": "错误: {error}",
     "@errorGeneric": {
         "placeholders": {

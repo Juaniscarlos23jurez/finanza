@@ -836,6 +836,18 @@ abstract class AppLocalizations {
   /// **'Invitación aceptada'**
   String get invitationAccepted;
 
+  /// No description provided for @unknownUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Alguien'**
+  String get unknownUser;
+
+  /// No description provided for @defaultGoalName.
+  ///
+  /// In es, this message translates to:
+  /// **'una meta'**
+  String get defaultGoalName;
+
   /// No description provided for @errorGeneric.
   ///
   /// In es, this message translates to:

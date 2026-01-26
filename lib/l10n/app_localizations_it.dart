@@ -401,6 +401,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get invitationAccepted => 'Invito accettato';
 
   @override
+  String get unknownUser => 'Qualcuno';
+
+  @override
+  String get defaultGoalName => 'un obiettivo';
+
+  @override
   String errorGeneric(String error) {
     return 'Errore: $error';
   }

@@ -69,8 +69,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showInvitationDialog(String key, Map<dynamic, dynamic> invitation) async {
-    final String fromName = invitation['fromName'] ?? 'Alguien';
-    final String goalName = invitation['goalName'] ?? 'una meta';
+    final String fromName = invitation['fromName'] ?? AppLocalizations.of(context)!.unknownUser;
+    final String goalName = invitation['goalName'] ?? AppLocalizations.of(context)!.defaultGoalName;
     final email = await _authService.getUserEmail();
 
     if (!mounted) return;
@@ -180,6 +180,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       final data = futures[0] as Map<String, dynamic>;
       final goals = futures[1] as List<dynamic>;
+
+      if (!mounted) return;
 
       final summary = data['summary'] as Map<String, dynamic>;
       final records = data['records'] as List<dynamic>;
@@ -421,7 +423,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(top: 12.0),
                       child: Text(
-                        DateFormat('E').format(date).substring(0, 1),
+                        DateFormat('E', Localizations.localeOf(context).toString()).format(date).substring(0, 1),
                         style: GoogleFonts.manrope(
                           color: AppTheme.secondary.withValues(alpha: 0.6), 
                           fontSize: 10, 

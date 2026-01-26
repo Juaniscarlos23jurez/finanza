@@ -207,6 +207,8 @@
     "reject": "拒否",
     "accept": "承諾",
     "invitationAccepted": "招待を承諾しました",
+    "unknownUser": "誰か",
+    "defaultGoalName": "目標",
     "errorGeneric": "エラー: {error}",
     "@errorGeneric": {
         "placeholders": {

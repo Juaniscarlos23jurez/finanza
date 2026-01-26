@@ -207,6 +207,8 @@
     "reject": "Rifiuta",
     "accept": "Accetta",
     "invitationAccepted": "Invito accettato",
+    "unknownUser": "Qualcuno",
+    "defaultGoalName": "un obiettivo",
     "errorGeneric": "Errore: {error}",
     "@errorGeneric": {
         "placeholders": {

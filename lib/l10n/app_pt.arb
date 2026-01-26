@@ -207,6 +207,8 @@
     "reject": "Rejeitar",
     "accept": "Aceitar",
     "invitationAccepted": "Convite aceito",
+    "unknownUser": "Alguém",
+    "defaultGoalName": "uma meta",
     "errorGeneric": "Erro: {error}",
     "@errorGeneric": {
         "placeholders": {

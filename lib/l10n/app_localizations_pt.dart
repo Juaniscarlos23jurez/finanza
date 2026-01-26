@@ -399,6 +399,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get invitationAccepted => 'Convite aceito';
 
   @override
+  String get unknownUser => 'Alguém';
+
+  @override
+  String get defaultGoalName => 'uma meta';
+
+  @override
   String errorGeneric(String error) {
     return 'Erro: $error';
   }

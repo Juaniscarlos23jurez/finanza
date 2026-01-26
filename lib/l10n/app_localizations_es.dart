@@ -398,6 +398,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get invitationAccepted => 'Invitación aceptada';
 
   @override
+  String get unknownUser => 'Alguien';
+
+  @override
+  String get defaultGoalName => 'una meta';
+
+  @override
   String errorGeneric(String error) {
     return 'Error: $error';
   }

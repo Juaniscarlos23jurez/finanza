@@ -394,6 +394,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get invitationAccepted => '招待を承諾しました';
 
   @override
+  String get unknownUser => '誰か';
+
+  @override
+  String get defaultGoalName => '目標';
+
+  @override
   String errorGeneric(String error) {
     return 'エラー: $error';
   }
