@@ -132,6 +132,7 @@
     "goal": "Meta",
     "deposit": "Abonar",
     "withdraw": "Retirar",
+    "add": "Añadir",
     "withdrawFromGoal": "Retirar de Meta",
     "depositToGoal": "Abonar a Meta",
     "available": "Disponible",
@@ -209,6 +210,34 @@
     "invitationAccepted": "Invitación aceptada",
     "unknownUser": "Alguien",
     "defaultGoalName": "una meta",
+    "addSaving": "Añadir Ahorro",
+    "withdrawFunds": "Retirar Fondos",
+    "savingAddedSuccess": "Ahorro añadido exitosamente",
+    "insufficientFunds": "Fondos insuficientes",
+    "withdrawalSuccess": "Retiro realizado exitosamente",
+    "currentBalance": "Saldo actual",
+    "progress": "Progreso",
+    "invite": "Invitar+",
+    "progressChartComingSoon": "¡Gráfica de progreso próximamente!",
+    "contribution": "Contribución",
+    "withdrawal": "Retiro",
+    "goalCreation": "Creación de meta",
+    "inviteCollaboratorTitle": "Invitar Colaborador",
+    "inviteCollaboratorSubtitle": "Comparte esta meta con alguien más",
+    "invitationUserCode": "Código de Usuario",
+    "userCodeHint": "ej. JUAN-1234",
+    "enterValidCode": "Ingresa un código válido",
+    "invitationSentTo": "Invitación enviada a {code}",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "Error al enviar invitación",
+    "sendInvitation": "Enviar Invitación",
+    "add": "Añadir",
     "errorGeneric": "Error: {error}",
     "@errorGeneric": {
         "placeholders": {
@@ -216,5 +245,109 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "aiThinking": "La IA está pensando...",
+    "speechError": "Error de voz: {error}",
+    "@speechError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "voiceRecognitionUnavailable": "Reconocimiento de voz no disponible",
+    "listening": "Escuchando...",
+    "typeHere": "Escribe aquí...",
+    "assistantGreeting": "¡Hola! Soy tu asistente financiero.",
+    "assistantDescription": "Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.",
+    "questionExamples": "EJEMPLOS DE PREGUNTAS",
+    "fastExpense": "Gasto Rápido",
+    "fastExpenseSubtitle": "\"Gané 3000 y gasté 50\"",
+    "newGoalSubtitle": "\"Ahorrar para viaje\"",
+    "iaAnalysis": "Análisis IA",
+    "iaAnalysisSubtitle": "\"Proyección 6 meses\"",
+    "exportSubtitle": "\"Descargar CSV\"",
+    "finanzasAi": "FINANZAS AI",
+    "history": "HISTORIAL",
+    "newChat": "Nuevo Chat",
+    "noSavedConversations": "No hay conversaciones guardadas.",
+    "untitledConversation": "Conversación sin título",
+    "transactionSavedSuccess": "Movimiento registrado correctamente",
+    "aiAssistant": "ASISTENTE IA",
+    "youLabel": "TÚ",
+    "premiumAnalysis": "Análisis Premium",
+    "exclusiveContent": "Contenido exclusivo desbloqueable.",
+    "deepAiAnalysis": "Análisis Profundo con IA",
+    "aiGeneratedAnalysis": "Análisis generado por Finanzas AI",
+    "strategicReportInfo": "Este reporte contiene información estratégica de alto valor.",
+    "unlockVideo": "Ver Video para Desbloquear",
+    "contentUnlocked": "¡Contenido desbloqueado!",
+    "adLoadError": "No se pudo cargar el anuncio. Intenta de nuevo. ({error})",
+    "@adLoadError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "csvReady": "Reporte Excel/CSV Listo",
+    "reportLocked": "Reporte Bloqueado",
+    "downloadAdPrompt": "Ve un anuncio para descargar",
+    "shareCsv": "Compartir / Guardar CSV",
+    "shareCsvText": "Aquí tienes mi reporte financiero.",
+    "csvShareError": "Error al compartir CSV: {error}",
+    "@csvShareError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "transactionSummary": "Resumen de Movimientos",
+    "concept": "Concepto",
+    "result": "Resultó",
+    "impact": "Impacto",
+    "resultingBalance": "Balance Resultante",
+    "noRecentData": "Sin datos recientes",
+    "multiTransactionTitle": "{count} Transacciones",
+    "@multiTransactionTitle": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "saveAllTransactions": "Guardar {count} Transacciones",
+    "@saveAllTransactions": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "allSaved": "Todo Guardado",
+    "transactionsSavedCount": "{count} transacciones guardadas",
+    "@transactionsSavedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "goalSuggestion": "Sugerencia de Meta",
+    "objective": "Objetivo: {amount}",
+    "@objective": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "createGoal": "Crear Meta",
+    "goalCreated": "Meta Creada",
+    "analysisAvailable": "Análisis Disponible",
+    "viewChartsPrompt": "Ve a la pestaña \"Movimientos\" para ver los gráficos.",
+    "ticketGenerated": "Ticket Generado",
+    "confirmAndSave": "Confirmar y Guardar",
+    "balanceActual": "BALANCE ACTUAL"
 }

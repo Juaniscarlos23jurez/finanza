@@ -315,6 +315,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get withdraw => 'Abheben';
 
   @override
+  String get add => 'Hinzufügen';
+
+  @override
   String get withdrawFromGoal => 'Vom Ziel abheben';
 
   @override
@@ -406,7 +409,253 @@ class AppLocalizationsDe extends AppLocalizations {
   String get defaultGoalName => 'ein Ziel';
 
   @override
+  String get addSaving => 'Ersparnis hinzufügen';
+
+  @override
+  String get withdrawFunds => 'Guthaben abheben';
+
+  @override
+  String get savingAddedSuccess => 'Ersparnis erfolgreich hinzugefügt';
+
+  @override
+  String get insufficientFunds => 'Unzureichendes Guthaben';
+
+  @override
+  String get withdrawalSuccess => 'Abhebung erfolgreich';
+
+  @override
+  String get currentBalance => 'Aktueller Kontostand';
+
+  @override
+  String get progress => 'Fortschritt';
+
+  @override
+  String get invite => 'Einladen+';
+
+  @override
+  String get progressChartComingSoon => 'Fortschrittsdiagramm bald verfügbar!';
+
+  @override
+  String get contribution => 'Beitrag';
+
+  @override
+  String get withdrawal => 'Abhebung';
+
+  @override
+  String get goalCreation => 'Zielerstellung';
+
+  @override
+  String get inviteCollaboratorTitle => 'Mitarbeiter einladen';
+
+  @override
+  String get inviteCollaboratorSubtitle =>
+      'Teilen Sie dieses Ziel mit jemand anderem';
+
+  @override
+  String get invitationUserCode => 'Benutzercode';
+
+  @override
+  String get userCodeHint => 'z.B. JUAN-1234';
+
+  @override
+  String get enterValidCode => 'Geben Sie einen gültigen Code ein';
+
+  @override
+  String invitationSentTo(String code) {
+    return 'Einladung an $code gesendet';
+  }
+
+  @override
+  String get errorSendingInvitation => 'Fehler beim Senden der Einladung';
+
+  @override
+  String get sendInvitation => 'Einladung senden';
+
+  @override
   String errorGeneric(String error) {
     return 'Fehler: $error';
   }
+
+  @override
+  String get aiThinking => 'La IA está pensando...';
+
+  @override
+  String speechError(String error) {
+    return 'Error de voz: $error';
+  }
+
+  @override
+  String get voiceRecognitionUnavailable =>
+      'Reconocimiento de voz no disponible';
+
+  @override
+  String get listening => 'Escuchando...';
+
+  @override
+  String get typeHere => 'Escribe aquí...';
+
+  @override
+  String get assistantGreeting => '¡Hola! Soy tu asistente financiero.';
+
+  @override
+  String get assistantDescription =>
+      'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.';
+
+  @override
+  String get questionExamples => 'EJEMPLOS DE PREGUNTAS';
+
+  @override
+  String get fastExpense => 'Gasto Rápido';
+
+  @override
+  String get fastExpenseSubtitle => '\"Gané 3000 y gasté 50\"';
+
+  @override
+  String get newGoalSubtitle => '\"Ahorrar para viaje\"';
+
+  @override
+  String get iaAnalysis => 'Análisis IA';
+
+  @override
+  String get iaAnalysisSubtitle => '\"Proyección 6 meses\"';
+
+  @override
+  String get exportSubtitle => '\"Descargar CSV\"';
+
+  @override
+  String get finanzasAi => 'FINANZAS AI';
+
+  @override
+  String get history => 'HISTORIAL';
+
+  @override
+  String get newChat => 'Nuevo Chat';
+
+  @override
+  String get noSavedConversations => 'No hay conversaciones guardadas.';
+
+  @override
+  String get untitledConversation => 'Conversación sin título';
+
+  @override
+  String get transactionSavedSuccess => 'Movimiento registrado correctamente';
+
+  @override
+  String get aiAssistant => 'ASISTENTE IA';
+
+  @override
+  String get youLabel => 'TÚ';
+
+  @override
+  String get premiumAnalysis => 'Análisis Premium';
+
+  @override
+  String get exclusiveContent => 'Contenido exclusivo desbloqueable.';
+
+  @override
+  String get deepAiAnalysis => 'Análisis Profundo con IA';
+
+  @override
+  String get aiGeneratedAnalysis => 'Análisis generado por Finanzas AI';
+
+  @override
+  String get strategicReportInfo =>
+      'Este reporte contiene información estratégica de alto valor.';
+
+  @override
+  String get unlockVideo => 'Ver Video para Desbloquear';
+
+  @override
+  String get contentUnlocked => '¡Contenido desbloqueado!';
+
+  @override
+  String adLoadError(String error) {
+    return 'No se pudo cargar el anuncio. Intenta de nuevo. ($error)';
+  }
+
+  @override
+  String get csvReady => 'Reporte Excel/CSV Listo';
+
+  @override
+  String get reportLocked => 'Reporte Bloqueado';
+
+  @override
+  String get downloadAdPrompt => 'Ve un anuncio para descargar';
+
+  @override
+  String get shareCsv => 'Compartir / Guardar CSV';
+
+  @override
+  String get shareCsvText => 'Aquí tienes mi reporte financiero.';
+
+  @override
+  String csvShareError(String error) {
+    return 'Error al compartir CSV: $error';
+  }
+
+  @override
+  String get transactionSummary => 'Resumen de Movimientos';
+
+  @override
+  String get concept => 'Concepto';
+
+  @override
+  String get result => 'Resultó';
+
+  @override
+  String get impact => 'Impacto';
+
+  @override
+  String get resultingBalance => 'Balance Resultante';
+
+  @override
+  String get noRecentData => 'Sin datos recientes';
+
+  @override
+  String multiTransactionTitle(int count) {
+    return '$count Transacciones';
+  }
+
+  @override
+  String saveAllTransactions(int count) {
+    return 'Guardar $count Transacciones';
+  }
+
+  @override
+  String get allSaved => 'Todo Guardado';
+
+  @override
+  String transactionsSavedCount(int count) {
+    return '$count transacciones guardadas';
+  }
+
+  @override
+  String get goalSuggestion => 'Sugerencia de Meta';
+
+  @override
+  String objective(String amount) {
+    return 'Objetivo: $amount';
+  }
+
+  @override
+  String get createGoal => 'Crear Meta';
+
+  @override
+  String get goalCreated => 'Meta Creada';
+
+  @override
+  String get analysisAvailable => 'Análisis Disponible';
+
+  @override
+  String get viewChartsPrompt =>
+      'Ve a la pestaña \"Movimientos\" para ver los gráficos.';
+
+  @override
+  String get ticketGenerated => 'Ticket Generado';
+
+  @override
+  String get confirmAndSave => 'Confirmar y Guardar';
+
+  @override
+  String get balanceActual => 'BALANCE ACTUAL';
 }

@@ -209,6 +209,34 @@
     "invitationAccepted": "邀请已接受",
     "unknownUser": "某人",
     "defaultGoalName": "一个目标",
+    "addSaving": "添加储蓄",
+    "withdrawFunds": "提取资金",
+    "savingAddedSuccess": "储蓄添加成功",
+    "insufficientFunds": "余额不足",
+    "withdrawalSuccess": "提取成功",
+    "currentBalance": "当前余额",
+    "progress": "进度",
+    "invite": "邀请+",
+    "progressChartComingSoon": "进度图表即将推出！",
+    "contribution": "贡献",
+    "withdrawal": "提取",
+    "goalCreation": "目标创建",
+    "inviteCollaboratorTitle": "邀请协作伙伴",
+    "inviteCollaboratorSubtitle": "与他人分享此目标",
+    "invitationUserCode": "用户代码",
+    "userCodeHint": "例如：JUAN-1234",
+    "enterValidCode": "请输入有效的代码",
+    "invitationSentTo": "邀请已发送至 {code}",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "发送邀请时出错",
+    "sendInvitation": "发送邀请",
+    "add": "添加",
     "errorGeneric": "错误: {error}",
     "@errorGeneric": {
         "placeholders": {

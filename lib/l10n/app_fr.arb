@@ -132,6 +132,7 @@
     "goal": "Objectif",
     "deposit": "Déposer",
     "withdraw": "Retirer",
+    "add": "Ajouter",
     "withdrawFromGoal": "Retirer de l'objectif",
     "depositToGoal": "Déposer sur l'objectif",
     "available": "Disponible",
@@ -209,6 +210,34 @@
     "invitationAccepted": "Invitation acceptée",
     "unknownUser": "Quelqu'un",
     "defaultGoalName": "un objectif",
+    "addSaving": "Ajouter de l'épargne",
+    "withdrawFunds": "Retirer des fonds",
+    "savingAddedSuccess": "Épargne ajoutée avec succès",
+    "insufficientFunds": "Fonds insuffisants",
+    "withdrawalSuccess": "Retrait réussi",
+    "currentBalance": "Solde actuel",
+    "progress": "Progrès",
+    "invite": "Inviter+",
+    "progressChartComingSoon": "Graphique de progression bientôt disponible !",
+    "contribution": "Contribution",
+    "withdrawal": "Retrait",
+    "goalCreation": "Création de l'objectif",
+    "inviteCollaboratorTitle": "Inviter un collaborateur",
+    "inviteCollaboratorSubtitle": "Partagez cet objectif avec quelqu'un d'autre",
+    "invitationUserCode": "Code utilisateur",
+    "userCodeHint": "ex. JUAN-1234",
+    "enterValidCode": "Entrez un code valide",
+    "invitationSentTo": "Invitation envoyée à {code}",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "Erreur lors de l'envoi de l'invitation",
+    "sendInvitation": "Envoyer l'invitation",
+    "add": "Ajouter",
     "errorGeneric": "Erreur : {error}",
     "@errorGeneric": {
         "placeholders": {

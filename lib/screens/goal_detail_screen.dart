@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:geminifinanzas/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/firebase_service.dart';
@@ -33,12 +34,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   }
 
   void _setupSync() {
-    _syncSubscription = _firebaseService.listenToGoalUpdates(_goal['id']).listen((event) {
-      if (event.snapshot.value != null && mounted) {
-        debugPrint("Real-time update detected for goal ${_goal['id']}");
-        _refreshGoal();
-      }
-    });
+    final int? goalId = int.tryParse(_goal['id'].toString());
+    if (goalId != null) {
+      _syncSubscription = _firebaseService.listenToGoalUpdates(goalId).listen((event) {
+        if (event.snapshot.value != null && mounted) {
+          debugPrint("Real-time update detected for goal $goalId");
+          _refreshGoal();
+        }
+      });
+    }
   }
 
   @override
@@ -53,7 +57,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     // Here we'll rely on the actions updating the local state or re-fetching goals.
     try {
       final goals = await _financeService.getGoals();
-      final updatedGoal = goals.firstWhere((g) => g['id'] == _goal['id'], orElse: () => null);
+      final updatedGoal = goals.firstWhere((g) => g['id'].toString() == _goal['id'].toString(), orElse: () => null);
       if (updatedGoal != null && mounted) {
         setState(() {
           _goal = updatedGoal;
@@ -65,15 +69,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   }
 
   Future<void> _handleTransaction({required bool isDeposit}) async {
-    // Show input dialog
     final amountController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
     
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          isDeposit ? 'Añadir Ahorro' : 'Retirar Fondos',
+          isDeposit ? l10n.addSaving : l10n.withdrawFunds,
           style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
         ),
         content: Column(
@@ -83,7 +87,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               controller: amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                labelText: 'Monto',
+                labelText: l10n.amount,
                 prefixText: '\$ ',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -94,7 +98,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -108,31 +112,32 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 if (isDeposit) {
                   await _financeService.contributeToGoal(_goal['id'], val);
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Ahorro añadido exitosamente'), backgroundColor: Colors.green));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(l10n.savingAddedSuccess), backgroundColor: Colors.green));
                 } else {
-                  // Validate withdrawal
                   final current = double.tryParse(_goal['current_amount'].toString()) ?? 0.0;
                   if (val > current) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Fondos insuficientes'), backgroundColor: Colors.red));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(l10n.insufficientFunds), backgroundColor: Colors.red));
                     setState(() => _isLoading = false);
                     return;
                   }
                   await _financeService.withdrawFromGoal(_goal['id'], val);
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Retiro realizado exitosamente'), backgroundColor: Colors.orange));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(l10n.withdrawalSuccess), backgroundColor: Colors.orange));
                 }
                 
                 await _refreshGoal();
-                // Notify other collaborators via Firebase
-                await _firebaseService.notifyGoalUpdate(_goal['id']);
+                final int? goalId = int.tryParse(_goal['id'].toString());
+                if (goalId != null) {
+                  await _firebaseService.notifyGoalUpdate(goalId);
+                }
               } catch (e) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                    SnackBar(content: Text(l10n.errorGeneric(e.toString())), backgroundColor: Colors.red));
               } finally {
                 if (mounted) setState(() => _isLoading = false);
               }
@@ -141,7 +146,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               backgroundColor: isDeposit ? AppTheme.primary : Colors.orange,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text(isDeposit ? 'Añadir' : 'Retirar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+            child: Text(isDeposit ? l10n.add : l10n.withdraw, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
           ),
         ],
       ),
@@ -150,11 +155,12 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final double target = double.tryParse(_goal['target_amount'].toString()) ?? 1.0;
     final double current = double.tryParse(_goal['current_amount'].toString()) ?? 0.0;
     final double progress = (current / target).clamp(0.0, 1.0);
     final int percentage = (progress * 100).round();
-    final String title = _goal['title'] ?? 'Meta';
+    final String title = _goal['title'] ?? l10n.goal;
     final List<dynamic> transactionsList = (_goal['transactions'] ?? _goal['history'] ?? _goal['records'] ?? _goal['contributions'] ?? []) as List<dynamic>;
     
     // Sort transactions by date descending
@@ -195,7 +201,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Saldo actual',
+                      l10n.currentBalance,
                       style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 14),
                     ),
                     const SizedBox(height: 8),
@@ -265,28 +271,28 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 children: [
                   _buildActionButton(
                     icon: Icons.add_rounded,
-                    label: 'Añadir',
+                    label: l10n.add,
                     color: AppTheme.primary,
                     onTap: () => _handleTransaction(isDeposit: true),
                   ),
                   _buildActionButton(
                     icon: Icons.remove_rounded,
-                    label: 'Retiro',
+                    label: l10n.withdraw,
                     color: Colors.orange,
                     onTap: () => _handleTransaction(isDeposit: false),
                   ),
                   _buildActionButton(
                     icon: Icons.show_chart_rounded,
-                    label: 'Progreso',
+                    label: l10n.progress,
                     color: Colors.blueAccent,
                     onTap: () {
                       // Just a placeholder for potential charts view
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gráfica de progreso próximamente!')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.progressChartComingSoon)));
                     },
                   ),
                   _buildActionButton(
                     icon: Icons.share_rounded,
-                    label: 'Invitar+',
+                    label: l10n.invite,
                     color: Colors.purpleAccent,
                     onTap: _showInviteDialog,
                   ),
@@ -299,7 +305,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Transacciones Recientes',
+                  l10n.recentTransactions,
                   style: GoogleFonts.manrope(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -325,7 +331,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                                 DateTime.now(),
                             amount: amount,
                             isIncome: isContribution,
-                            description: t['description'] ?? (isContribution ? 'Contribución' : 'Retiro'),
+                            description: t['description'] ?? (isContribution ? l10n.contribution : l10n.withdrawal),
                           );
                         })
                       else
@@ -333,7 +339,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           date: DateTime.now(),
                           amount: 0.0,
                           isIncome: true,
-                          description: 'Creación de meta',
+                          description: l10n.goalCreation,
                         ),
                     ],
                   ),
@@ -354,6 +360,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   void _showInviteDialog() {
     final codeController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
     bool isSending = false;
 
     showModalBottomSheet(
@@ -398,11 +405,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Invitar Colaborador',
+                          l10n.inviteCollaboratorTitle,
                           style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 20, color: AppTheme.primary),
                         ),
                         Text(
-                          'Comparte esta meta con alguien más',
+                          l10n.inviteCollaboratorSubtitle,
                           style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 14),
                         ),
                       ],
@@ -412,7 +419,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Código de Usuario',
+                l10n.invitationUserCode,
                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primary),
               ),
               const SizedBox(height: 8),
@@ -421,7 +428,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 keyboardType: TextInputType.text,
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
-                  hintText: 'ej. JUAN-1234',
+                  hintText: l10n.userCodeHint,
                   hintStyle: GoogleFonts.manrope(color: Colors.grey.withValues(alpha: 0.5)),
                   filled: true,
                   fillColor: AppTheme.background,
@@ -439,7 +446,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   onPressed: isSending ? null : () async {
                     if (codeController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Ingresa un código válido')),
+                        SnackBar(content: Text(l10n.enterValidCode)),
                       );
                       return;
                     }
@@ -448,37 +455,40 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
                     // Send actual invitation via Firebase
                     final userEmail = await _authService.getUserEmail();
-                    final userName = (await _authService.getProfile())['data']?['name'] ?? 'Usuario';
+                    final userName = (await _authService.getProfile())['data']?['name'] ?? l10n.unknownUser;
                     
                     if (userEmail != null) {
-                      final result = await _firebaseService.sendInvitationByCode(
-                        fromEmail: userEmail,
-                        fromName: userName,
-                        toCode: codeController.text.trim().toUpperCase(),
-                        goalId: _goal['id'],
-                        goalName: _goal['title'] ?? 'Meta Compartida',
-                      );
+                      final int? goalId = int.tryParse(_goal['id'].toString());
+                      if (goalId != null) {
+                        final result = await _firebaseService.sendInvitationByCode(
+                          fromEmail: userEmail,
+                          fromName: userName,
+                          toCode: codeController.text.trim().toUpperCase(),
+                          goalId: goalId,
+                          goalName: _goal['title'] ?? l10n.goal,
+                        );
 
-                      if (!mounted) return;
-                      
-                      if (result['success'] == true) {
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Invitación enviada a ${codeController.text.trim()}'),
-                            backgroundColor: Colors.purpleAccent,
-                          ),
-                        );
-                      } else {
-                        setModalState(() => isSending = false);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(result['message'] ?? 'Error al enviar invitación'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        if (!mounted) return;
+                        
+                        if (result['success'] == true) {
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.invitationSentTo(codeController.text.trim())),
+                              backgroundColor: Colors.purpleAccent,
+                            ),
+                          );
+                        } else {
+                          setModalState(() => isSending = false);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(result['message'] ?? l10n.errorSendingInvitation),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       }
                     }
                   },
@@ -491,7 +501,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   child: isSending
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : Text(
-                          'Enviar Invitación',
+                          l10n.sendInvitation,
                           style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                         ),
                 ),
@@ -568,7 +578,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               Text(
-                DateFormat('MMM d, yyyy').format(date),
+                DateFormat('MMM d, yyyy', Localizations.localeOf(context).toString()).format(date),
                 style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12),
               ),
             ],

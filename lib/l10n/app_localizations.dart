@@ -692,6 +692,12 @@ abstract class AppLocalizations {
   /// **'Retirar'**
   String get withdraw;
 
+  /// No description provided for @add.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir'**
+  String get add;
+
   /// No description provided for @withdrawFromGoal.
   ///
   /// In es, this message translates to:
@@ -848,11 +854,461 @@ abstract class AppLocalizations {
   /// **'una meta'**
   String get defaultGoalName;
 
+  /// No description provided for @addSaving.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir Ahorro'**
+  String get addSaving;
+
+  /// No description provided for @withdrawFunds.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirar Fondos'**
+  String get withdrawFunds;
+
+  /// No description provided for @savingAddedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahorro añadido exitosamente'**
+  String get savingAddedSuccess;
+
+  /// No description provided for @insufficientFunds.
+  ///
+  /// In es, this message translates to:
+  /// **'Fondos insuficientes'**
+  String get insufficientFunds;
+
+  /// No description provided for @withdrawalSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Retiro realizado exitosamente'**
+  String get withdrawalSuccess;
+
+  /// No description provided for @currentBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'Saldo actual'**
+  String get currentBalance;
+
+  /// No description provided for @progress.
+  ///
+  /// In es, this message translates to:
+  /// **'Progreso'**
+  String get progress;
+
+  /// No description provided for @invite.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitar+'**
+  String get invite;
+
+  /// No description provided for @progressChartComingSoon.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Gráfica de progreso próximamente!'**
+  String get progressChartComingSoon;
+
+  /// No description provided for @contribution.
+  ///
+  /// In es, this message translates to:
+  /// **'Contribución'**
+  String get contribution;
+
+  /// No description provided for @withdrawal.
+  ///
+  /// In es, this message translates to:
+  /// **'Retiro'**
+  String get withdrawal;
+
+  /// No description provided for @goalCreation.
+  ///
+  /// In es, this message translates to:
+  /// **'Creación de meta'**
+  String get goalCreation;
+
+  /// No description provided for @inviteCollaboratorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitar Colaborador'**
+  String get inviteCollaboratorTitle;
+
+  /// No description provided for @inviteCollaboratorSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Comparte esta meta con alguien más'**
+  String get inviteCollaboratorSubtitle;
+
+  /// No description provided for @invitationUserCode.
+  ///
+  /// In es, this message translates to:
+  /// **'Código de Usuario'**
+  String get invitationUserCode;
+
+  /// No description provided for @userCodeHint.
+  ///
+  /// In es, this message translates to:
+  /// **'ej. JUAN-1234'**
+  String get userCodeHint;
+
+  /// No description provided for @enterValidCode.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un código válido'**
+  String get enterValidCode;
+
+  /// No description provided for @invitationSentTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitación enviada a {code}'**
+  String invitationSentTo(String code);
+
+  /// No description provided for @errorSendingInvitation.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al enviar invitación'**
+  String get errorSendingInvitation;
+
+  /// No description provided for @sendInvitation.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar Invitación'**
+  String get sendInvitation;
+
   /// No description provided for @errorGeneric.
   ///
   /// In es, this message translates to:
   /// **'Error: {error}'**
   String errorGeneric(String error);
+
+  /// No description provided for @aiThinking.
+  ///
+  /// In es, this message translates to:
+  /// **'La IA está pensando...'**
+  String get aiThinking;
+
+  /// No description provided for @speechError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error de voz: {error}'**
+  String speechError(String error);
+
+  /// No description provided for @voiceRecognitionUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Reconocimiento de voz no disponible'**
+  String get voiceRecognitionUnavailable;
+
+  /// No description provided for @listening.
+  ///
+  /// In es, this message translates to:
+  /// **'Escuchando...'**
+  String get listening;
+
+  /// No description provided for @typeHere.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe aquí...'**
+  String get typeHere;
+
+  /// No description provided for @assistantGreeting.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Hola! Soy tu asistente financiero.'**
+  String get assistantGreeting;
+
+  /// No description provided for @assistantDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.'**
+  String get assistantDescription;
+
+  /// No description provided for @questionExamples.
+  ///
+  /// In es, this message translates to:
+  /// **'EJEMPLOS DE PREGUNTAS'**
+  String get questionExamples;
+
+  /// No description provided for @fastExpense.
+  ///
+  /// In es, this message translates to:
+  /// **'Gasto Rápido'**
+  String get fastExpense;
+
+  /// No description provided for @fastExpenseSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'\"Gané 3000 y gasté 50\"'**
+  String get fastExpenseSubtitle;
+
+  /// No description provided for @newGoalSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'\"Ahorrar para viaje\"'**
+  String get newGoalSubtitle;
+
+  /// No description provided for @iaAnalysis.
+  ///
+  /// In es, this message translates to:
+  /// **'Análisis IA'**
+  String get iaAnalysis;
+
+  /// No description provided for @iaAnalysisSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'\"Proyección 6 meses\"'**
+  String get iaAnalysisSubtitle;
+
+  /// No description provided for @exportSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'\"Descargar CSV\"'**
+  String get exportSubtitle;
+
+  /// No description provided for @finanzasAi.
+  ///
+  /// In es, this message translates to:
+  /// **'FINANZAS AI'**
+  String get finanzasAi;
+
+  /// No description provided for @history.
+  ///
+  /// In es, this message translates to:
+  /// **'HISTORIAL'**
+  String get history;
+
+  /// No description provided for @newChat.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo Chat'**
+  String get newChat;
+
+  /// No description provided for @noSavedConversations.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay conversaciones guardadas.'**
+  String get noSavedConversations;
+
+  /// No description provided for @untitledConversation.
+  ///
+  /// In es, this message translates to:
+  /// **'Conversación sin título'**
+  String get untitledConversation;
+
+  /// No description provided for @transactionSavedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Movimiento registrado correctamente'**
+  String get transactionSavedSuccess;
+
+  /// No description provided for @aiAssistant.
+  ///
+  /// In es, this message translates to:
+  /// **'ASISTENTE IA'**
+  String get aiAssistant;
+
+  /// No description provided for @youLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'TÚ'**
+  String get youLabel;
+
+  /// No description provided for @premiumAnalysis.
+  ///
+  /// In es, this message translates to:
+  /// **'Análisis Premium'**
+  String get premiumAnalysis;
+
+  /// No description provided for @exclusiveContent.
+  ///
+  /// In es, this message translates to:
+  /// **'Contenido exclusivo desbloqueable.'**
+  String get exclusiveContent;
+
+  /// No description provided for @deepAiAnalysis.
+  ///
+  /// In es, this message translates to:
+  /// **'Análisis Profundo con IA'**
+  String get deepAiAnalysis;
+
+  /// No description provided for @aiGeneratedAnalysis.
+  ///
+  /// In es, this message translates to:
+  /// **'Análisis generado por Finanzas AI'**
+  String get aiGeneratedAnalysis;
+
+  /// No description provided for @strategicReportInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Este reporte contiene información estratégica de alto valor.'**
+  String get strategicReportInfo;
+
+  /// No description provided for @unlockVideo.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver Video para Desbloquear'**
+  String get unlockVideo;
+
+  /// No description provided for @contentUnlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Contenido desbloqueado!'**
+  String get contentUnlocked;
+
+  /// No description provided for @adLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el anuncio. Intenta de nuevo. ({error})'**
+  String adLoadError(String error);
+
+  /// No description provided for @csvReady.
+  ///
+  /// In es, this message translates to:
+  /// **'Reporte Excel/CSV Listo'**
+  String get csvReady;
+
+  /// No description provided for @reportLocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Reporte Bloqueado'**
+  String get reportLocked;
+
+  /// No description provided for @downloadAdPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Ve un anuncio para descargar'**
+  String get downloadAdPrompt;
+
+  /// No description provided for @shareCsv.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir / Guardar CSV'**
+  String get shareCsv;
+
+  /// No description provided for @shareCsvText.
+  ///
+  /// In es, this message translates to:
+  /// **'Aquí tienes mi reporte financiero.'**
+  String get shareCsvText;
+
+  /// No description provided for @csvShareError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al compartir CSV: {error}'**
+  String csvShareError(String error);
+
+  /// No description provided for @transactionSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen de Movimientos'**
+  String get transactionSummary;
+
+  /// No description provided for @concept.
+  ///
+  /// In es, this message translates to:
+  /// **'Concepto'**
+  String get concept;
+
+  /// No description provided for @result.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultó'**
+  String get result;
+
+  /// No description provided for @impact.
+  ///
+  /// In es, this message translates to:
+  /// **'Impacto'**
+  String get impact;
+
+  /// No description provided for @resultingBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'Balance Resultante'**
+  String get resultingBalance;
+
+  /// No description provided for @noRecentData.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin datos recientes'**
+  String get noRecentData;
+
+  /// No description provided for @multiTransactionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} Transacciones'**
+  String multiTransactionTitle(int count);
+
+  /// No description provided for @saveAllTransactions.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar {count} Transacciones'**
+  String saveAllTransactions(int count);
+
+  /// No description provided for @allSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo Guardado'**
+  String get allSaved;
+
+  /// No description provided for @transactionsSavedCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} transacciones guardadas'**
+  String transactionsSavedCount(int count);
+
+  /// No description provided for @goalSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Sugerencia de Meta'**
+  String get goalSuggestion;
+
+  /// No description provided for @objective.
+  ///
+  /// In es, this message translates to:
+  /// **'Objetivo: {amount}'**
+  String objective(String amount);
+
+  /// No description provided for @createGoal.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear Meta'**
+  String get createGoal;
+
+  /// No description provided for @goalCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta Creada'**
+  String get goalCreated;
+
+  /// No description provided for @analysisAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Análisis Disponible'**
+  String get analysisAvailable;
+
+  /// No description provided for @viewChartsPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Ve a la pestaña \"Movimientos\" para ver los gráficos.'**
+  String get viewChartsPrompt;
+
+  /// No description provided for @ticketGenerated.
+  ///
+  /// In es, this message translates to:
+  /// **'Ticket Generado'**
+  String get ticketGenerated;
+
+  /// No description provided for @confirmAndSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar y Guardar'**
+  String get confirmAndSave;
+
+  /// No description provided for @balanceActual.
+  ///
+  /// In es, this message translates to:
+  /// **'BALANCE ACTUAL'**
+  String get balanceActual;
 }
 
 class _AppLocalizationsDelegate

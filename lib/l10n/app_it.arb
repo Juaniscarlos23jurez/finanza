@@ -209,6 +209,34 @@
     "invitationAccepted": "Invito accettato",
     "unknownUser": "Qualcuno",
     "defaultGoalName": "un obiettivo",
+    "addSaving": "Aggiungi Risparmio",
+    "withdrawFunds": "Preleva Fondi",
+    "savingAddedSuccess": "Risparmio aggiunto con successo",
+    "insufficientFunds": "Fondi insufficienti",
+    "withdrawalSuccess": "Prelievo effettuato con successo",
+    "currentBalance": "Saldo attuale",
+    "progress": "Progresso",
+    "invite": "Invita+",
+    "progressChartComingSoon": "Grafico di progressione disponibile a breve!",
+    "contribution": "Contributo",
+    "withdrawal": "Prelievo",
+    "goalCreation": "Creazione obiettivo",
+    "inviteCollaboratorTitle": "Invita Collaboratore",
+    "inviteCollaboratorSubtitle": "Condividi questo obiettivo con qualcun altro",
+    "invitationUserCode": "Codice Utente",
+    "userCodeHint": "es. JUAN-1234",
+    "enterValidCode": "Inserisci un codice valido",
+    "invitationSentTo": "Invito inviato a {code}",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "Errore nell'invio dell'invito",
+    "sendInvitation": "Invia Invito",
+    "add": "Aggiungi",
     "errorGeneric": "Errore: {error}",
     "@errorGeneric": {
         "placeholders": {

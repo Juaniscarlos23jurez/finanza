@@ -132,6 +132,7 @@
     "goal": "Ziel",
     "deposit": "Einzahlen",
     "withdraw": "Abheben",
+    "add": "Hinzufügen",
     "withdrawFromGoal": "Vom Ziel abheben",
     "depositToGoal": "Auf Ziel einzahlen",
     "available": "Verfügbar",
@@ -209,6 +210,34 @@
     "invitationAccepted": "Einladung angenommen",
     "unknownUser": "Jemand",
     "defaultGoalName": "ein Ziel",
+    "addSaving": "Ersparnis hinzufügen",
+    "withdrawFunds": "Guthaben abheben",
+    "savingAddedSuccess": "Ersparnis erfolgreich hinzugefügt",
+    "insufficientFunds": "Unzureichendes Guthaben",
+    "withdrawalSuccess": "Abhebung erfolgreich",
+    "currentBalance": "Aktueller Kontostand",
+    "progress": "Fortschritt",
+    "invite": "Einladen+",
+    "progressChartComingSoon": "Fortschrittsdiagramm bald verfügbar!",
+    "contribution": "Beitrag",
+    "withdrawal": "Abhebung",
+    "goalCreation": "Zielerstellung",
+    "inviteCollaboratorTitle": "Mitarbeiter einladen",
+    "inviteCollaboratorSubtitle": "Teilen Sie dieses Ziel mit jemand anderem",
+    "invitationUserCode": "Benutzercode",
+    "userCodeHint": "z.B. JUAN-1234",
+    "enterValidCode": "Geben Sie einen gültigen Code ein",
+    "invitationSentTo": "Einladung an {code} gesendet",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "Fehler beim Senden der Einladung",
+    "sendInvitation": "Einladung senden",
+    "add": "Hinzufügen",
     "errorGeneric": "Fehler: {error}",
     "@errorGeneric": {
         "placeholders": {

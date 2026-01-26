@@ -209,6 +209,34 @@
     "invitationAccepted": "Convite aceito",
     "unknownUser": "Alguém",
     "defaultGoalName": "uma meta",
+    "addSaving": "Adicionar Economia",
+    "withdrawFunds": "Retirar Fundos",
+    "savingAddedSuccess": "Economia adicionada com sucesso",
+    "insufficientFunds": "Fundos insuficientes",
+    "withdrawalSuccess": "Retirada realizada com sucesso",
+    "currentBalance": "Saldo atual",
+    "progress": "Progresso",
+    "invite": "Convidar+",
+    "progressChartComingSoon": "Gráfico de progresso em breve!",
+    "contribution": "Contribuição",
+    "withdrawal": "Retirada",
+    "goalCreation": "Criação da meta",
+    "inviteCollaboratorTitle": "Convidar Colaborador",
+    "inviteCollaboratorSubtitle": "Compartilhe esta meta com outra pessoa",
+    "invitationUserCode": "Código do Usuário",
+    "userCodeHint": "ex. JUAN-1234",
+    "enterValidCode": "Insira un código válido",
+    "invitationSentTo": "Convite enviado para {code}",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "Erro ao enviar convite",
+    "sendInvitation": "Enviar Convite",
+    "add": "Adicionar",
     "errorGeneric": "Erro: {error}",
     "@errorGeneric": {
         "placeholders": {

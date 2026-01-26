@@ -209,6 +209,34 @@
     "invitationAccepted": "招待を承諾しました",
     "unknownUser": "誰か",
     "defaultGoalName": "目標",
+    "addSaving": "貯蓄を追加",
+    "withdrawFunds": "資金を引き出す",
+    "savingAddedSuccess": "貯蓄が正常に追加されました",
+    "insufficientFunds": "残高不足です",
+    "withdrawalSuccess": "引き出しが正常に完了しました",
+    "currentBalance": "現在の残高",
+    "progress": "進捗",
+    "invite": "招待+",
+    "progressChartComingSoon": "進捗グラフは近日公開予定です！",
+    "contribution": "寄付",
+    "withdrawal": "引き出し",
+    "goalCreation": "目標作成",
+    "inviteCollaboratorTitle": "共同作業者を招待",
+    "inviteCollaboratorSubtitle": "この目標を他の人と共有する",
+    "invitationUserCode": "ユーザーコード",
+    "userCodeHint": "例: JUAN-1234",
+    "enterValidCode": "有効なコードを入力してください",
+    "invitationSentTo": "{code} に招待を送信しました",
+    "@invitationSentTo": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "errorSendingInvitation": "招待の送信中にエラーが発生しました",
+    "sendInvitation": "招待を送信",
+    "add": "追加",
     "errorGeneric": "エラー: {error}",
     "@errorGeneric": {
         "placeholders": {

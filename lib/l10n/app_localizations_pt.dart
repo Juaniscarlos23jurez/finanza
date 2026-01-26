@@ -314,6 +314,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get withdraw => 'Sacar';
 
   @override
+  String get add => 'Adicionar';
+
+  @override
   String get withdrawFromGoal => 'Sacar da Meta';
 
   @override
@@ -405,7 +408,253 @@ class AppLocalizationsPt extends AppLocalizations {
   String get defaultGoalName => 'uma meta';
 
   @override
+  String get addSaving => 'Adicionar Economia';
+
+  @override
+  String get withdrawFunds => 'Retirar Fundos';
+
+  @override
+  String get savingAddedSuccess => 'Economia adicionada com sucesso';
+
+  @override
+  String get insufficientFunds => 'Fundos insuficientes';
+
+  @override
+  String get withdrawalSuccess => 'Retirada realizada com sucesso';
+
+  @override
+  String get currentBalance => 'Saldo atual';
+
+  @override
+  String get progress => 'Progresso';
+
+  @override
+  String get invite => 'Convidar+';
+
+  @override
+  String get progressChartComingSoon => 'Gráfico de progresso em breve!';
+
+  @override
+  String get contribution => 'Contribuição';
+
+  @override
+  String get withdrawal => 'Retirada';
+
+  @override
+  String get goalCreation => 'Criação da meta';
+
+  @override
+  String get inviteCollaboratorTitle => 'Convidar Colaborador';
+
+  @override
+  String get inviteCollaboratorSubtitle =>
+      'Compartilhe esta meta com outra pessoa';
+
+  @override
+  String get invitationUserCode => 'Código do Usuário';
+
+  @override
+  String get userCodeHint => 'ex. JUAN-1234';
+
+  @override
+  String get enterValidCode => 'Insira un código válido';
+
+  @override
+  String invitationSentTo(String code) {
+    return 'Convite enviado para $code';
+  }
+
+  @override
+  String get errorSendingInvitation => 'Erro ao enviar convite';
+
+  @override
+  String get sendInvitation => 'Enviar Convite';
+
+  @override
   String errorGeneric(String error) {
     return 'Erro: $error';
   }
+
+  @override
+  String get aiThinking => 'La IA está pensando...';
+
+  @override
+  String speechError(String error) {
+    return 'Error de voz: $error';
+  }
+
+  @override
+  String get voiceRecognitionUnavailable =>
+      'Reconocimiento de voz no disponible';
+
+  @override
+  String get listening => 'Escuchando...';
+
+  @override
+  String get typeHere => 'Escribe aquí...';
+
+  @override
+  String get assistantGreeting => '¡Hola! Soy tu asistente financiero.';
+
+  @override
+  String get assistantDescription =>
+      'Puedo ayudarte a registrar gastos, crear metas y analizar tus finanzas con IA.';
+
+  @override
+  String get questionExamples => 'EJEMPLOS DE PREGUNTAS';
+
+  @override
+  String get fastExpense => 'Gasto Rápido';
+
+  @override
+  String get fastExpenseSubtitle => '\"Gané 3000 y gasté 50\"';
+
+  @override
+  String get newGoalSubtitle => '\"Ahorrar para viaje\"';
+
+  @override
+  String get iaAnalysis => 'Análisis IA';
+
+  @override
+  String get iaAnalysisSubtitle => '\"Proyección 6 meses\"';
+
+  @override
+  String get exportSubtitle => '\"Descargar CSV\"';
+
+  @override
+  String get finanzasAi => 'FINANZAS AI';
+
+  @override
+  String get history => 'HISTORIAL';
+
+  @override
+  String get newChat => 'Nuevo Chat';
+
+  @override
+  String get noSavedConversations => 'No hay conversaciones guardadas.';
+
+  @override
+  String get untitledConversation => 'Conversación sin título';
+
+  @override
+  String get transactionSavedSuccess => 'Movimiento registrado correctamente';
+
+  @override
+  String get aiAssistant => 'ASISTENTE IA';
+
+  @override
+  String get youLabel => 'TÚ';
+
+  @override
+  String get premiumAnalysis => 'Análisis Premium';
+
+  @override
+  String get exclusiveContent => 'Contenido exclusivo desbloqueable.';
+
+  @override
+  String get deepAiAnalysis => 'Análisis Profundo con IA';
+
+  @override
+  String get aiGeneratedAnalysis => 'Análisis generado por Finanzas AI';
+
+  @override
+  String get strategicReportInfo =>
+      'Este reporte contiene información estratégica de alto valor.';
+
+  @override
+  String get unlockVideo => 'Ver Video para Desbloquear';
+
+  @override
+  String get contentUnlocked => '¡Contenido desbloqueado!';
+
+  @override
+  String adLoadError(String error) {
+    return 'No se pudo cargar el anuncio. Intenta de nuevo. ($error)';
+  }
+
+  @override
+  String get csvReady => 'Reporte Excel/CSV Listo';
+
+  @override
+  String get reportLocked => 'Reporte Bloqueado';
+
+  @override
+  String get downloadAdPrompt => 'Ve un anuncio para descargar';
+
+  @override
+  String get shareCsv => 'Compartir / Guardar CSV';
+
+  @override
+  String get shareCsvText => 'Aquí tienes mi reporte financiero.';
+
+  @override
+  String csvShareError(String error) {
+    return 'Error al compartir CSV: $error';
+  }
+
+  @override
+  String get transactionSummary => 'Resumen de Movimientos';
+
+  @override
+  String get concept => 'Concepto';
+
+  @override
+  String get result => 'Resultó';
+
+  @override
+  String get impact => 'Impacto';
+
+  @override
+  String get resultingBalance => 'Balance Resultante';
+
+  @override
+  String get noRecentData => 'Sin datos recientes';
+
+  @override
+  String multiTransactionTitle(int count) {
+    return '$count Transacciones';
+  }
+
+  @override
+  String saveAllTransactions(int count) {
+    return 'Guardar $count Transacciones';
+  }
+
+  @override
+  String get allSaved => 'Todo Guardado';
+
+  @override
+  String transactionsSavedCount(int count) {
+    return '$count transacciones guardadas';
+  }
+
+  @override
+  String get goalSuggestion => 'Sugerencia de Meta';
+
+  @override
+  String objective(String amount) {
+    return 'Objetivo: $amount';
+  }
+
+  @override
+  String get createGoal => 'Crear Meta';
+
+  @override
+  String get goalCreated => 'Meta Creada';
+
+  @override
+  String get analysisAvailable => 'Análisis Disponible';
+
+  @override
+  String get viewChartsPrompt =>
+      'Ve a la pestaña \"Movimientos\" para ver los gráficos.';
+
+  @override
+  String get ticketGenerated => 'Ticket Generado';
+
+  @override
+  String get confirmAndSave => 'Confirmar y Guardar';
+
+  @override
+  String get balanceActual => 'BALANCE ACTUAL';
 }
