@@ -348,5 +348,23 @@
     "viewChartsPrompt": "前往“交易”选项卡查看图表。",
     "ticketGenerated": "已生成票据",
     "confirmAndSave": "确认并保存",
-    "balanceActual": "当前余额"
+    "balanceActual": "当前余额",
+    "saveError": "保存出错: {error}",
+    "@saveError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "total": "总计",
+    "transaction": "交易",
+    "exportCSV": "导出",
+    "amountLabel": "金额",
+    "fastExpenseSuggestion": "今天我赚了3000，花了50买咖啡",
+    "newGoalSuggestion": "我想为旅行攒钱",
+    "aiAnalysisSuggestion": "请对我未来6个月的财务状况进行战略分析",
+    "exportCsvSuggestion": "将我的交易导出为 CSV",
+    "transactionAi": "AI 交易",
+    "goalAiDescription": "由 AI 创建的目标"
 }

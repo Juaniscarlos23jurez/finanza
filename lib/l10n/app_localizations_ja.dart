@@ -647,4 +647,39 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get balanceActual => '現在の残高';
+
+  @override
+  String saveError(String error) {
+    return '保存エラー: $error';
+  }
+
+  @override
+  String get total => '合計';
+
+  @override
+  String get transaction => '取引';
+
+  @override
+  String get exportCSV => '書き出し';
+
+  @override
+  String get amountLabel => '金額';
+
+  @override
+  String get fastExpenseSuggestion => '今日は3000円稼いで、コーヒーに50円使いました';
+
+  @override
+  String get newGoalSuggestion => '旅行のために貯金したいです';
+
+  @override
+  String get aiAnalysisSuggestion => '今後6ヶ月間の財務状況を戦略的に分析してください';
+
+  @override
+  String get exportCsvSuggestion => '取引履歴をCSVで書き出してください';
+
+  @override
+  String get transactionAi => 'AI取引';
+
+  @override
+  String get goalAiDescription => 'AIによって作成された目標';
 }

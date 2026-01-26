@@ -99,7 +99,7 @@ class _ChatScreenState extends State<ChatScreen> {
           cancelOnError: true,
           partialResults: true,
         ),
-        localeId: 'es_MX', // Español México
+        localeId: AppLocalizations.of(context)!.localeName,
       );
     }
   }
@@ -273,28 +273,28 @@ class _ChatScreenState extends State<ChatScreen> {
                   label: l10n.fastExpense,
                   subtitle: l10n.fastExpenseSubtitle,
                   color: Colors.orangeAccent,
-                  onTap: () => _useSuggestion('Hoy gané 3000 y gasté 50 en café'),
+                  onTap: () => _useSuggestion(l10n.fastExpenseSuggestion),
                 ),
                 _buildSuggestionCard(
                   icon: Icons.flag_rounded,
                   label: l10n.newGoal,
                   subtitle: l10n.newGoalSubtitle,
                   color: Colors.blueAccent,
-                  onTap: () => _useSuggestion('Quiero ahorrar para un viaje'),
+                  onTap: () => _useSuggestion(l10n.newGoalSuggestion),
                 ),
                 _buildSuggestionCard(
                   icon: Icons.auto_awesome_rounded,
                   label: l10n.iaAnalysis,
                   subtitle: l10n.iaAnalysisSubtitle,
                   color: Colors.purpleAccent,
-                  onTap: () => _useSuggestion('Hazme un análisis estratégico de mis finanzas para los próximos 6 meses'),
+                  onTap: () => _useSuggestion(l10n.aiAnalysisSuggestion),
                 ),
                 _buildSuggestionCard(
                   icon: Icons.file_download_rounded,
                   label: l10n.exportCSV,
                   subtitle: l10n.exportSubtitle,
                   color: Colors.green,
-                  onTap: () => _useSuggestion('Exportar mis movimientos a CSV'),
+                  onTap: () => _useSuggestion(l10n.exportCsvSuggestion),
                 ),
               ],
             ),
@@ -534,10 +534,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       
       await _financeService.createRecord({
         'amount': double.tryParse(data['amount'].toString()) ?? 0.0,
-        'category': data['category'] ?? 'General',
+        'category': data['category'] ?? l10n.general,
         'type': isExpense ? 'expense' : 'income',
         'date': data['date'] ?? DateTime.now().toIso8601String().split('T')[0],
-        'description': data['description'] ?? 'Transacción AI',
+        'description': data['description'] ?? l10n.transactionAi,
       });
 
       await _markAsHandled();
@@ -1375,34 +1375,36 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         final bool isExpense = t['is_expense'] ?? true;
         await _financeService.createRecord({
           'amount': double.tryParse(t['amount'].toString()) ?? 0.0,
-          'category': t['category'] ?? 'General',
+          'category': t['category'] ?? l10n.general,
           'type': isExpense ? 'expense' : 'income',
           'date': t['date'] ?? DateTime.now().toIso8601String().split('T')[0],
-          'description': t['description'] ?? 'Transacción AI',
+          'description': t['description'] ?? l10n.transactionAi,
         });
       }
       
       await _markAsHandled();
-
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _isSaving = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${transactions.length} transacciones guardadas')),
+          SnackBar(content: Text(l10n.transactionsSavedCount(transactions.length))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+          SnackBar(content: Text(l10n.saveError(e.toString()))),
         );
       }
     }
   }
 
   Widget _buildGoalSuggestionCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1431,16 +1433,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Sugerencia de Meta',
+                  l10n.goalSuggestion,
                   style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(data['title'] ?? 'Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          Text(data['title'] ?? l10n.goal, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
           const SizedBox(height: 4),
-          Text('Objetivo: \$${data['target_amount']}', style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(l10n.objective(data['target_amount']?.toString() ?? '0'), style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           Text(data['reason'] ?? '', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
           const SizedBox(height: 20),
@@ -1456,7 +1458,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               ),
               child: _isSaving 
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(widget.message.isHandled ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                : Text(widget.message.isHandled ? l10n.goalCreated : l10n.createGoal, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ),
         ],
@@ -1465,6 +1467,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Widget _buildChartTriggerCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1491,10 +1494,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Análisis Disponible', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(l10n.analysisAvailable, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(
-                  data['message'] ?? 'Ver gráficas detalladas',
+                  data['message'] ?? l10n.viewChartsPrompt,
                   style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ],
@@ -1502,7 +1505,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           ),
           IconButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ve a la pestaña "Movimientos" para ver los gráficos.')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.viewChartsPrompt)));
             },
             style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppTheme.primary),
             icon: const Icon(Icons.arrow_forward_rounded),
@@ -1522,34 +1525,36 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         'target_date': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0], // Default 30 days
         'current_amount': 0.0,
         'status': 'active',
-        'description': data['reason'] ?? 'Meta creada por AI',
+        'description': data['reason'] ?? l10n.goalAiDescription,
       });
 
       await _markAsHandled();
-
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _isSaving = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Meta creada exitosamente')),
+          SnackBar(content: Text(l10n.goalCreated)),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear meta: $e')),
+          SnackBar(content: Text(l10n.errorGeneric(e.toString()))),
         );
       }
     }
   }
 
   Widget _buildTransactionCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
     final bool isExpense = data['is_expense'] ?? true;
     final double amount = double.tryParse(data['amount'].toString()) ?? 0.0;
-    final String category = data['category'] ?? 'General';
-    final String description = data['description'] ?? 'Transacción';
+    final String category = data['category'] ?? l10n.general;
+    final String description = data['description'] ?? l10n.transaction;
 
     return Container(
       width: double.infinity,
@@ -1572,7 +1577,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Ticket Generado', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text(l10n.ticketGenerated, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
               Icon(isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, 
                    color: isExpense ? Colors.redAccent : Colors.green, size: 20),
             ],
@@ -1607,7 +1612,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(l10n.total, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
               Text(
                 '${isExpense ? "-" : "+"}\$${amount.toStringAsFixed(2)}',
                 style: GoogleFonts.manrope(
@@ -1641,7 +1646,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       Icon(widget.message.isHandled ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        widget.message.isHandled ? 'Guardado' : 'Confirmar y Guardar',
+                        widget.message.isHandled ? l10n.allSaved : l10n.confirmAndSave,
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -1657,6 +1662,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   }
 
   Widget _buildBalanceCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
     final double total = double.tryParse(data['total'].toString()) ?? 0.0;
     final double income = double.tryParse(data['income'].toString()) ?? 0.0;
     final double expenses = double.tryParse(data['expenses'].toString()) ?? 0.0;
@@ -1673,15 +1679,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       ),
       child: Column(
         children: [
-          Text('BALANCE ACTUAL', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          Text(l10n.balanceActual, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('\$${total.toStringAsFixed(2)}', style: GoogleFonts.manrope(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMiniStat('Ingresos', '+\$${income.toStringAsFixed(0)}', Colors.greenAccent),
-              _buildMiniStat('Gastos', '-\$${expenses.toStringAsFixed(0)}', Colors.redAccent),
+              _buildMiniStat(l10n.incomes, '+\$${income.toStringAsFixed(0)}', Colors.greenAccent),
+              _buildMiniStat(l10n.expenses, '-\$${expenses.toStringAsFixed(0)}', Colors.redAccent),
             ],
           ),
         ],
@@ -1706,6 +1712,7 @@ class HistoryDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final ChatService chatService = ChatService();
     // Assuming context is sufficient for Theme and MediaQuery, and we can instantiate ChatService safely.
 
@@ -1720,7 +1727,7 @@ class HistoryDrawer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'HISTORIAL',
+                l10n.history,
                 style: GoogleFonts.manrope(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
@@ -1734,7 +1741,7 @@ class HistoryDrawer extends StatelessWidget {
                   stream: chatService.getUserConversations(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return Text('Error cargando historial', style: GoogleFonts.manrope(color: Colors.red));
+                      return Text(l10n.errorGeneric(snapshot.error.toString()), style: GoogleFonts.manrope(color: Colors.red));
                     }
                     if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
                        return const Center(child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2));
@@ -1742,7 +1749,7 @@ class HistoryDrawer extends StatelessWidget {
                     
                     final data = snapshot.data!.snapshot.value;
                     if (data == null || (data is Map && data.isEmpty)) {
-                      return Text('No hay conversaciones guardadas.', style: GoogleFonts.manrope(color: AppTheme.secondary));
+                      return Text(l10n.noSavedConversations, style: GoogleFonts.manrope(color: AppTheme.secondary));
                     }
 
                     // Convert map to list and sort
@@ -1774,7 +1781,7 @@ class HistoryDrawer extends StatelessWidget {
                              Navigator.pop(context); // Close drawer
                              onChatSelected(key);
                           },
-                          child: _buildHistoryItem(value['title']?.toString() ?? 'Conversación sin título', dateLabel),
+                          child: _buildHistoryItem(value['title']?.toString() ?? l10n.untitledConversation, dateLabel),
                         );
                       },
                     );
@@ -1783,7 +1790,7 @@ class HistoryDrawer extends StatelessWidget {
               ),
               CustomDrawerButton(
                 icon: Icons.add_rounded,
-                text: 'Nuevo Chat',
+                text: l10n.newChat,
                 onPressed: () {
                    Navigator.pop(context);
                    onChatSelected(null);

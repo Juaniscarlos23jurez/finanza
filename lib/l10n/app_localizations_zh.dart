@@ -647,4 +647,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get balanceActual => '当前余额';
+
+  @override
+  String saveError(String error) {
+    return '保存出错: $error';
+  }
+
+  @override
+  String get total => '总计';
+
+  @override
+  String get transaction => '交易';
+
+  @override
+  String get exportCSV => '导出';
+
+  @override
+  String get amountLabel => '金额';
+
+  @override
+  String get fastExpenseSuggestion => '今天我赚了3000，花了50买咖啡';
+
+  @override
+  String get newGoalSuggestion => '我想为旅行攒钱';
+
+  @override
+  String get aiAnalysisSuggestion => '请对我未来6个月的财务状况进行战略分析';
+
+  @override
+  String get exportCsvSuggestion => '将我的交易导出为 CSV';
+
+  @override
+  String get transactionAi => 'AI 交易';
+
+  @override
+  String get goalAiDescription => '由 AI 创建的目标';
 }

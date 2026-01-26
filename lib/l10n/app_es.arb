@@ -349,5 +349,23 @@
     "viewChartsPrompt": "Ve a la pestaña \"Movimientos\" para ver los gráficos.",
     "ticketGenerated": "Ticket Generado",
     "confirmAndSave": "Confirmar y Guardar",
-    "balanceActual": "BALANCE ACTUAL"
+    "balanceActual": "SALDO ACTUAL",
+    "saveError": "Error al guardar: {error}",
+    "@saveError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "total": "Total",
+    "transaction": "Transacción",
+    "exportCSV": "Exportar",
+    "amountLabel": "Monto",
+    "fastExpenseSuggestion": "Hoy gané 3000 y gasté 50 en café",
+    "newGoalSuggestion": "Quiero ahorrar para un viaje",
+    "aiAnalysisSuggestion": "Hazme un análisis estratégico de mis finanzas para los próximos 6 meses",
+    "exportCsvSuggestion": "Exportar mis movimientos a CSV",
+    "transactionAi": "Transacción AI",
+    "goalAiDescription": "Meta creada por AI"
 }

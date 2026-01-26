@@ -348,5 +348,23 @@
     "viewChartsPrompt": "Vá para a aba 'Movimentações' para ver os gráficos.",
     "ticketGenerated": "Ticket Gerado",
     "confirmAndSave": "Confirmar e Salvar",
-    "balanceActual": "SALDO ATUAL"
+    "balanceActual": "SALDO ATUAL",
+    "saveError": "Erro ao salvar: {error}",
+    "@saveError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "total": "Total",
+    "transaction": "Transação",
+    "exportCSV": "Exportar",
+    "amountLabel": "Quantia",
+    "fastExpenseSuggestion": "Hoje ganhei 3000 e gastei 50 em café",
+    "newGoalSuggestion": "Quero economizar para uma viagem",
+    "aiAnalysisSuggestion": "Faça uma análise estratégica das minhas finanças para os próximos 6 meses",
+    "exportCsvSuggestion": "Exportar minhas movimentações para CSV",
+    "transactionAi": "Transação IA",
+    "goalAiDescription": "Meta criada por IA"
 }

@@ -348,5 +348,23 @@
     "viewChartsPrompt": "「取引」タブでグラフを確認してください。",
     "ticketGenerated": "チケットが生成されました",
     "confirmAndSave": "確認して保存",
-    "balanceActual": "現在の残高"
+    "balanceActual": "現在の残高",
+    "saveError": "保存エラー: {error}",
+    "@saveError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "total": "合計",
+    "transaction": "取引",
+    "exportCSV": "書き出し",
+    "amountLabel": "金額",
+    "fastExpenseSuggestion": "今日は3000円稼いで、コーヒーに50円使いました",
+    "newGoalSuggestion": "旅行のために貯金したいです",
+    "aiAnalysisSuggestion": "今後6ヶ月間の財務状況を戦略的に分析してください",
+    "exportCsvSuggestion": "取引履歴をCSVで書き出してください",
+    "transactionAi": "AI取引",
+    "goalAiDescription": "AIによって作成された目標"
 }

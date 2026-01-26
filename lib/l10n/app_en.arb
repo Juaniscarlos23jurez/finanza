@@ -349,5 +349,23 @@
     "viewChartsPrompt": "Go to the 'Transactions' tab to see the charts.",
     "ticketGenerated": "Ticket Generated",
     "confirmAndSave": "Confirm and Save",
-    "balanceActual": "CURRENT BALANCE"
+    "balanceActual": "CURRENT BALANCE",
+    "saveError": "Error saving: {error}",
+    "@saveError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "total": "Total",
+    "transaction": "Transaction",
+    "exportCSV": "Export",
+    "amountLabel": "Amount",
+    "fastExpenseSuggestion": "Today I earned 3000 and spent 50 on coffee",
+    "newGoalSuggestion": "I want to save for a trip",
+    "aiAnalysisSuggestion": "Give me a strategic analysis of my finances for the next 6 months",
+    "exportCsvSuggestion": "Export my transactions to CSV",
+    "transactionAi": "AI Transaction",
+    "goalAiDescription": "Goal created by AI"
 }

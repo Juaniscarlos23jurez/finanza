@@ -349,5 +349,23 @@
     "viewChartsPrompt": "Gehen Sie zum Reiter 'Transaktionen', um die Diagramme zu sehen.",
     "ticketGenerated": "Ticket generiert",
     "confirmAndSave": "Bestätigen und speichern",
-    "balanceActual": "AKTUELLER KONTOSTAND"
+    "balanceActual": "AKTUELLER STAND",
+    "saveError": "Fehler beim Speichern: {error}",
+    "@saveError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "total": "Gesamt",
+    "transaction": "Transaktion",
+    "exportCSV": "Exportieren",
+    "amountLabel": "Betrag",
+    "fastExpenseSuggestion": "Heute habe ich 3000 verdient und 50 für Kaffee ausgegeben",
+    "newGoalSuggestion": "Ich möchte für eine Reise sparen",
+    "aiAnalysisSuggestion": "Gib mir eine strategische Analyse meiner Finanzen für die nächsten 6 Monate",
+    "exportCsvSuggestion": "Exportiere meine Transaktionen nach CSV",
+    "transactionAi": "KI-Transaktion",
+    "goalAiDescription": "Von KI erstelltes Ziel"
 }

@@ -660,4 +660,41 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get balanceActual => 'SALDO ATTUALE';
+
+  @override
+  String saveError(String error) {
+    return 'Errore durante il salvataggio: $error';
+  }
+
+  @override
+  String get total => 'Totale';
+
+  @override
+  String get transaction => 'Movimento';
+
+  @override
+  String get exportCSV => 'Esporta';
+
+  @override
+  String get amountLabel => 'Importo';
+
+  @override
+  String get fastExpenseSuggestion =>
+      'Oggi ho guadagnato 3000 e speso 50 per il caffè';
+
+  @override
+  String get newGoalSuggestion => 'Voglio risparmiare per un viaggio';
+
+  @override
+  String get aiAnalysisSuggestion =>
+      'Fammi un\'analisi strategica delle mie finanze per i prossimi 6 mesi';
+
+  @override
+  String get exportCsvSuggestion => 'Esporta i miei movimenti in CSV';
+
+  @override
+  String get transactionAi => 'Movimento IA';
+
+  @override
+  String get goalAiDescription => 'Obiettivo creato dall\'IA';
 }

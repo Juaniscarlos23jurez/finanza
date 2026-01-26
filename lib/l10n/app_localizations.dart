@@ -1307,8 +1307,74 @@ abstract class AppLocalizations {
   /// No description provided for @balanceActual.
   ///
   /// In es, this message translates to:
-  /// **'BALANCE ACTUAL'**
+  /// **'SALDO ACTUAL'**
   String get balanceActual;
+
+  /// No description provided for @saveError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al guardar: {error}'**
+  String saveError(String error);
+
+  /// No description provided for @total.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @transaction.
+  ///
+  /// In es, this message translates to:
+  /// **'Transacción'**
+  String get transaction;
+
+  /// No description provided for @exportCSV.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar'**
+  String get exportCSV;
+
+  /// No description provided for @amountLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto'**
+  String get amountLabel;
+
+  /// No description provided for @fastExpenseSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Hoy gané 3000 y gasté 50 en café'**
+  String get fastExpenseSuggestion;
+
+  /// No description provided for @newGoalSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Quiero ahorrar para un viaje'**
+  String get newGoalSuggestion;
+
+  /// No description provided for @aiAnalysisSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Hazme un análisis estratégico de mis finanzas para los próximos 6 meses'**
+  String get aiAnalysisSuggestion;
+
+  /// No description provided for @exportCsvSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar mis movimientos a CSV'**
+  String get exportCsvSuggestion;
+
+  /// No description provided for @transactionAi.
+  ///
+  /// In es, this message translates to:
+  /// **'Transacción AI'**
+  String get transactionAi;
+
+  /// No description provided for @goalAiDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta creada por AI'**
+  String get goalAiDescription;
 }
 
 class _AppLocalizationsDelegate
