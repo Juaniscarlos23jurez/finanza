@@ -1,0 +1,44 @@
+{
+    "@@locale": "it",
+    "accountSection": "ACCOUNT",
+    "personalInfo": "Informazioni Personali",
+    "scheduleReport": "Programma Rapporto",
+    "otherSection": "ALTRO",
+    "feedback": "Feedback",
+    "termsConditions": "Termini e Condizioni",
+    "privacyPolicy": "Informativa sulla Privacy",
+    "logout": "Disconnettersi",
+    "deleteAccount": "Elimina il mio account in modo permanente",
+    "deleteAccountTitle": "Eliminare l'account?",
+    "deleteAccountContent": "Questa azione terminerà la tua sessione corrente.",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "feedbackTitle": "Dacci il tuo Feedback",
+    "feedbackSubtitle": "La tua opinione ci aiuta a migliorare l'esperienza per tutti.",
+    "feedbackTypeQuestion": "Di cosa tratta il tuo commento?",
+    "typeSuggestion": "Suggerimento",
+    "typeError": "Errore",
+    "typeCompliment": "Complimento",
+    "feedbackHint": "Dicci cosa ti piace o cosa possiamo migliorare...",
+    "sendFeedback": "Invia Commenti",
+    "feedbackSuccess": "Grazie per il tuo feedback!",
+    "fullName": "Nome Completo",
+    "email": "E-mail",
+    "userId": "ID Utente",
+    "close": "Chiudi",
+    "scheduleReportTitle": "Programma Rapporto",
+    "reportDescription": "Riceverai un file Excel con le tue transazioni e un'analisi finanziaria generata dall'IA.",
+    "sendReportTo": "Invia rapporto a:",
+    "frequencyQuestion": "Ogni quanti giorni?",
+    "daysLoop": "{count} giorni",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "Conferma e Programma",
+    "configSaved": "Configurazione salvata con successo!",
+    "language": "Lingua"
+}

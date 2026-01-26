@@ -1,0 +1,44 @@
+{
+    "@@locale": "ja",
+    "accountSection": "アカウント",
+    "personalInfo": "個人情報",
+    "scheduleReport": "レポートのスケジュール",
+    "otherSection": "その他",
+    "feedback": "フィードバック",
+    "termsConditions": "利用規約",
+    "privacyPolicy": "プライバシーポリシー",
+    "logout": "ログアウト",
+    "deleteAccount": "アカウントを完全に削除する",
+    "deleteAccountTitle": "アカウントを削除しますか？",
+    "deleteAccountContent": "この操作を行うと、現在のセッションが終了します。",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "feedbackTitle": "フィードバックを送る",
+    "feedbackSubtitle": "あなたの意見は、すべての人のための体験を向上させるのに役立ちます。",
+    "feedbackTypeQuestion": "コメントの内容は何ですか？",
+    "typeSuggestion": "提案",
+    "typeError": "エラー",
+    "typeCompliment": "称賛",
+    "feedbackHint": "気に入った点や改善できる点を教えてください...",
+    "sendFeedback": "送信",
+    "feedbackSuccess": "フィードバックありがとうございます！",
+    "fullName": "氏名",
+    "email": "メールアドレス",
+    "userId": "ユーザーID",
+    "close": "閉じる",
+    "scheduleReportTitle": "レポートのスケジュール",
+    "reportDescription": "取引履歴とAI生成の財務分析を含むExcelファイルを受け取ります。",
+    "sendReportTo": "レポートの送信先:",
+    "frequencyQuestion": "何日ごとの送信ですか？",
+    "daysLoop": "{count} 日",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "確認してスケジュール",
+    "configSaved": "設定が正常に保存されました！",
+    "language": "言語"
+}

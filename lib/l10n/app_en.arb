@@ -1,0 +1,44 @@
+{
+    "@@locale": "en",
+    "accountSection": "ACCOUNT",
+    "personalInfo": "Personal Information",
+    "scheduleReport": "Schedule Report",
+    "otherSection": "OTHER",
+    "feedback": "Feedback",
+    "termsConditions": "Terms and Conditions",
+    "privacyPolicy": "Privacy Policy",
+    "logout": "Log Out",
+    "deleteAccount": "Delete my account permanently",
+    "deleteAccountTitle": "Delete account?",
+    "deleteAccountContent": "This action will close your current session.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "feedbackTitle": "Give us your Feedback",
+    "feedbackSubtitle": "Your opinion helps us improve the experience for everyone.",
+    "feedbackTypeQuestion": "What is your comment about?",
+    "typeSuggestion": "Suggestion",
+    "typeError": "Error",
+    "typeCompliment": "Compliment",
+    "feedbackHint": "Tell us what you like or what we can improve...",
+    "sendFeedback": "Send Comments",
+    "feedbackSuccess": "Thanks for your feedback!",
+    "fullName": "Full Name",
+    "email": "Email",
+    "userId": "User ID",
+    "close": "Close",
+    "scheduleReportTitle": "Schedule Report",
+    "reportDescription": "You will receive an Excel file with your transactions and an AI-generated financial analysis.",
+    "sendReportTo": "Send report to:",
+    "frequencyQuestion": "Every how many days?",
+    "daysLoop": "{count} days",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "Confirm and Schedule",
+    "configSaved": "Configuration saved successfully!",
+    "language": "Language"
+}

@@ -1,0 +1,44 @@
+{
+    "@@locale": "zh",
+    "accountSection": "账户",
+    "personalInfo": "个人信息",
+    "scheduleReport": "安排报告",
+    "otherSection": "其他",
+    "feedback": "反馈",
+    "termsConditions": "条款和条件",
+    "privacyPolicy": "隐私政策",
+    "logout": "退出登录",
+    "deleteAccount": "永久删除我的账户",
+    "deleteAccountTitle": "删除账户？",
+    "deleteAccountContent": "此操作将结束您当前的会话。",
+    "cancel": "取消",
+    "confirm": "确认",
+    "feedbackTitle": "给我们反馈",
+    "feedbackSubtitle": "您的意见有助于我们改善所有人的体验。",
+    "feedbackTypeQuestion": "您的评论关于什么？",
+    "typeSuggestion": "建议",
+    "typeError": "错误",
+    "typeCompliment": "赞扬",
+    "feedbackHint": "告诉我们您喜欢什么或我们可以改进什么...",
+    "sendFeedback": "发送评论",
+    "feedbackSuccess": "感谢您的反馈！",
+    "fullName": "全名",
+    "email": "电子邮件",
+    "userId": "用户ID",
+    "close": "关闭",
+    "scheduleReportTitle": "安排报告",
+    "reportDescription": "您将收到包含您的交易和AI生成的财务分析的Excel文件。",
+    "sendReportTo": "发送报告至：",
+    "frequencyQuestion": "每多少天？",
+    "daysLoop": "{count} 天",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "确认并安排",
+    "configSaved": "配置已成功保存！",
+    "language": "语言"
+}

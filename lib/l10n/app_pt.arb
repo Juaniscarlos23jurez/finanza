@@ -1,0 +1,44 @@
+{
+    "@@locale": "pt",
+    "accountSection": "CONTA",
+    "personalInfo": "Informações Pessoais",
+    "scheduleReport": "Agendar Relatório",
+    "otherSection": "OUTRO",
+    "feedback": "Feedback",
+    "termsConditions": "Termos e Condições",
+    "privacyPolicy": "Política de Privacidade",
+    "logout": "Sair",
+    "deleteAccount": "Excluir minha conta permanentemente",
+    "deleteAccountTitle": "Excluir conta?",
+    "deleteAccountContent": "Esta ação encerrará sua sessão atual.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "feedbackTitle": "Dê seu Feedback",
+    "feedbackSubtitle": "Sua opinião nos ajuda a melhorar a experiência para todos.",
+    "feedbackTypeQuestion": "Sobre o que é seu comentário?",
+    "typeSuggestion": "Sugestão",
+    "typeError": "Erro",
+    "typeCompliment": "Elogio",
+    "feedbackHint": "Conte-nos o que você gosta ou o que podemos melhorar...",
+    "sendFeedback": "Enviar Comentários",
+    "feedbackSuccess": "Obrigado pelo seu feedback!",
+    "fullName": "Nome Completo",
+    "email": "E-mail",
+    "userId": "ID do Usuário",
+    "close": "Fechar",
+    "scheduleReportTitle": "Agendar Relatório",
+    "reportDescription": "Você receberá um arquivo Excel com suas transações e uma análise financeira gerada por IA.",
+    "sendReportTo": "Enviar relatório para:",
+    "frequencyQuestion": "A cada quantos dias?",
+    "daysLoop": "{count} dias",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "Confirmar e Agendar",
+    "configSaved": "Configuração salva com sucesso!",
+    "language": "Idioma"
+}

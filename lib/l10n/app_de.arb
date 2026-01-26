@@ -1,0 +1,44 @@
+{
+    "@@locale": "de",
+    "accountSection": "KONTO",
+    "personalInfo": "Persönliche Informationen",
+    "scheduleReport": "Bericht Planen",
+    "otherSection": "ANDERE",
+    "feedback": "Feedback",
+    "termsConditions": "Allgemeine Geschäftsbedingungen",
+    "privacyPolicy": "Datenschutzerklärung",
+    "logout": "Abmelden",
+    "deleteAccount": "Mein Konto dauerhaft löschen",
+    "deleteAccountTitle": "Konto löschen?",
+    "deleteAccountContent": "Diese Aktion beendet Ihre aktuelle Sitzung.",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "feedbackTitle": "Geben Sie uns Ihr Feedback",
+    "feedbackSubtitle": "Ihre Meinung hilft uns, das Erlebnis für alle zu verbessern.",
+    "feedbackTypeQuestion": "Worum geht es in Ihrem Kommentar?",
+    "typeSuggestion": "Vorschlag",
+    "typeError": "Fehler",
+    "typeCompliment": "Kompliment",
+    "feedbackHint": "Erzählen Sie uns, was Ihnen gefällt oder was wir verbessern können...",
+    "sendFeedback": "Senden",
+    "feedbackSuccess": "Danke für Ihr Feedback!",
+    "fullName": "Vollständiger Name",
+    "email": "E-Mail",
+    "userId": "Benutzer-ID",
+    "close": "Schließen",
+    "scheduleReportTitle": "Bericht Planen",
+    "reportDescription": "Sie erhalten eine Excel-Datei mit Ihren Transaktionen und einer KI-generierten Finanzanalyse.",
+    "sendReportTo": "Bericht senden an:",
+    "frequencyQuestion": "Alle wie viele Tage?",
+    "daysLoop": "{count} Tage",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "Bestätigen und Planen",
+    "configSaved": "Konfiguration erfolgreich gespeichert!",
+    "language": "Sprache"
+}

@@ -1,0 +1,44 @@
+{
+    "@@locale": "fr",
+    "accountSection": "COMPTE",
+    "personalInfo": "Informations Personnelles",
+    "scheduleReport": "Programmer le Rapport",
+    "otherSection": "AUTRE",
+    "feedback": "Commentaires",
+    "termsConditions": "Termes et Conditions",
+    "privacyPolicy": "Politique de Confidentialité",
+    "logout": "Se Déconnecter",
+    "deleteAccount": "Supprimer mon compte définitivement",
+    "deleteAccountTitle": "Supprimer le compte ?",
+    "deleteAccountContent": "Cette action fermera votre session actuelle.",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "feedbackTitle": "Donnez-nous votre avis",
+    "feedbackSubtitle": "Votre avis nous aide à améliorer l'expérience pour tous.",
+    "feedbackTypeQuestion": "De quoi parle votre commentaire ?",
+    "typeSuggestion": "Suggestion",
+    "typeError": "Erreur",
+    "typeCompliment": "Compliment",
+    "feedbackHint": "Dites-nous ce que vous aimez ou ce que nous pouvons améliorer...",
+    "sendFeedback": "Envoyer",
+    "feedbackSuccess": "Merci pour vos commentaires !",
+    "fullName": "Nom Complet",
+    "email": "E-mail",
+    "userId": "ID Utilisateur",
+    "close": "Fermer",
+    "scheduleReportTitle": "Programmer le Rapport",
+    "reportDescription": "Vous recevrez un fichier Excel avec vos transactions et une analyse financière générée par IA.",
+    "sendReportTo": "Envoyer le rapport à :",
+    "frequencyQuestion": "Tous les combien de jours ?",
+    "daysLoop": "{count} jours",
+    "@daysLoop": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "confirmAndSchedule": "Confirmer et Programmer",
+    "configSaved": "Configuration enregistrée avec succès !",
+    "language": "Langue"
+}
