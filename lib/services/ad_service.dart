@@ -23,11 +23,21 @@ class AdService {
         return 'ca-app-pub-3940256099942544/2934735716'; // iOS Test Banner
       }
     }
-    // Replace these with your REAL Ad Unit IDs for production
+    // Release Mode
     if (Platform.isAndroid) {
-      return 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx'; 
+      const androidRealId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+      if (androidRealId.contains('xxxx')) {
+        debugPrint('⚠️ Warning: Using Test Ad Unit ID because real Android ID is not configured.');
+        return 'ca-app-pub-3940256099942544/6300978111';
+      }
+      return androidRealId;
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+      const iosRealId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+      if (iosRealId.contains('xxxx')) {
+        debugPrint('⚠️ Warning: Using Test Ad Unit ID because real iOS ID is not configured.');
+        return 'ca-app-pub-3940256099942544/2934735716';
+      }
+      return iosRealId;
     }
     throw UnsupportedError('Unsupported platform');
   }
@@ -75,8 +85,13 @@ class AdService {
         return 'ca-app-pub-3940256099942544/1712485313'; // iOS Test Rewarded
       }
     }
-    // Replace with real ID
-    return 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+    // Release Mode
+    const realId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+    if (realId.contains('xxxx')) {
+      if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/5224354917';
+      if (Platform.isIOS) return 'ca-app-pub-3940256099942544/1712485313';
+    }
+    return realId;
   }
 
   /// Load a Rewarded Ad
@@ -100,8 +115,13 @@ class AdService {
         return 'ca-app-pub-3940256099942544/3986624511'; // iOS Test Native Advanced
       }
     }
-    // Replace with real ID
-    return 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+    // Release Mode
+    const realId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+    if (realId.contains('xxxx')) {
+      if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/2247696110';
+      if (Platform.isIOS) return 'ca-app-pub-3940256099942544/3986624511';
+    }
+    return realId;
   }
 
   /// Load a Native Ad

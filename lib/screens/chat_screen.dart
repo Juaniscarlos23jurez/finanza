@@ -34,11 +34,18 @@ class _ChatScreenState extends State<ChatScreen> {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
   bool _speechAvailable = false;
+  bool _showClearBtn = false;
 
   @override
   void initState() {
     super.initState();
     _currentConversationId = widget.conversationId;
+    _messageController.addListener(() {
+      final show = _messageController.text.isNotEmpty;
+      if (show != _showClearBtn) {
+        setState(() => _showClearBtn = show);
+      }
+    });
     _initSpeech();
   }
 
@@ -126,11 +133,13 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() => _currentConversationId = id);
         },
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.background,
-        ),
-        child: SafeArea(
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppTheme.background,
+          ),
+          child: SafeArea(
           child: Column(
             children: [
               _buildHeader(),
@@ -183,6 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           });
 
                           return ListView.builder(
+                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             controller: _scrollController,
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                             itemCount: messages.length + (_isTyping ? 1 : 0),
@@ -207,25 +217,17 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
   Widget _buildWelcomeMessage() {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(FontAwesomeIcons.robot, size: 48, color: AppTheme.primary),
-            ),
-            const SizedBox(height: 24),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 48),
             Text(
               '¡Hola! Soy tu asistente financiero.',
               textAlign: TextAlign.center,
@@ -259,35 +261,43 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildSuggestionChip(
-              icon: Icons.receipt_long_rounded,
-              label: 'Hoy gané 3000 y gasté 50 en café',
-              onTap: () => _useSuggestion('Hoy gané 3000 y gasté 50 en café'),
-            ),
-            _buildSuggestionChip(
-              icon: Icons.flag_rounded,
-              label: 'Quiero ahorrar para un viaje',
-              onTap: () => _useSuggestion('Quiero ahorrar para un viaje'),
-            ),
-            _buildSuggestionChip(
-              icon: Icons.auto_awesome_rounded,
-              label: 'Análisis de mis finanzas a 6 meses',
-              onTap: () => _useSuggestion('Hazme un análisis estratégico de mis finanzas para los próximos 6 meses'),
-            ),
-            _buildSuggestionChip(
-              icon: Icons.file_download_rounded,
-              label: 'Exportar mis movimientos a CSV',
-              onTap: () => _useSuggestion('Exportar mis movimientos a CSV'),
-            ),
-            _buildSuggestionChip(
-              icon: Icons.account_balance_wallet_rounded,
-              label: 'Ver mi balance actual',
-              onTap: () => _useSuggestion('¿Cuál es mi balance actual?'),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildSuggestionCard(
+                  icon: Icons.receipt_long_rounded,
+                  label: 'Gasto Rápido',
+                  subtitle: '"Gané 3000 y gasté 50"',
+                  color: Colors.orangeAccent,
+                  onTap: () => _useSuggestion('Hoy gané 3000 y gasté 50 en café'),
+                ),
+                _buildSuggestionCard(
+                  icon: Icons.flag_rounded,
+                  label: 'Nueva Meta',
+                  subtitle: '"Ahorrar para viaje"',
+                  color: Colors.blueAccent,
+                  onTap: () => _useSuggestion('Quiero ahorrar para un viaje'),
+                ),
+                _buildSuggestionCard(
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'Análisis IA',
+                  subtitle: '"Proyección 6 meses"',
+                  color: Colors.purpleAccent,
+                  onTap: () => _useSuggestion('Hazme un análisis estratégico de mis finanzas para los próximos 6 meses'),
+                ),
+                _buildSuggestionCard(
+                  icon: Icons.file_download_rounded,
+                  label: 'Exportar',
+                  subtitle: '"Descargar CSV"',
+                  color: Colors.green,
+                  onTap: () => _useSuggestion('Exportar mis movimientos a CSV'),
+                ),
+              ],
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   void _useSuggestion(String text) {
@@ -295,48 +305,66 @@ class _ChatScreenState extends State<ChatScreen> {
     _handleSend();
   }
 
-  Widget _buildSuggestionChip({
+  Widget _buildSuggestionCard({
     required IconData icon,
     required String label,
+    required String subtitle,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.08)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+    // Calculate width based on available screen width to make a 2-column grid roughly
+    // We'll use LayoutBuilder or just flexible constraints if inside Wrap?
+    // Wrap doesn't force width. Let's use a fixed width relative to screen or standard Container.
+    final width = (MediaQuery.of(context).size.width - 64 - 12) / 2; 
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: AppTheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.manrope(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.secondary,
-                  ),
-                ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primary,
               ),
-              Icon(Icons.arrow_forward_rounded, size: 14, color: AppTheme.secondary.withValues(alpha: 0.3)),
-            ],
-          ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: GoogleFonts.manrope(
+                fontSize: 11,
+                color: AppTheme.secondary,
+                height: 1.2,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -382,7 +410,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: Container(
-              minHeight: 56,
+              constraints: const BoxConstraints(minHeight: 56),
               decoration: BoxDecoration(
                 color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
                 borderRadius: BorderRadius.circular(28),
@@ -416,16 +444,23 @@ class _ChatScreenState extends State<ChatScreen> {
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
                         textCapitalization: TextCapitalization.sentences,
+                        style: GoogleFonts.manrope(fontSize: 16, color: AppTheme.primary),
                         decoration: InputDecoration(
                           hintText: _isListening 
                               ? "Escuchando..." 
-                              : "Pregunta sobre tus finanzas...",
+                              : "Escribe aquí...",
                           hintStyle: GoogleFonts.manrope(
-                            color: _isListening ? AppTheme.primary : AppTheme.secondary,
+                            color: _isListening ? AppTheme.primary : AppTheme.secondary.withValues(alpha: 0.5),
                             fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          suffixIcon: _showClearBtn
+                              ? IconButton(
+                                  icon: const Icon(Icons.close_rounded, color: AppTheme.secondary, size: 18),
+                                  onPressed: () => _messageController.clear(),
+                                )
+                              : null,
                         ),
                       ),
                     ),
