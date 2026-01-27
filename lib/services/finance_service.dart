@@ -1,13 +1,35 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart'; // For debugPrint
+import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
+import '../main.dart';
+import '../screens/login_screen.dart';
+import 'package:flutter/material.dart';
 
 class FinanceService {
   final Dio _dio = Dio();
   final AuthService _authService = AuthService();
   // Hardcoding for stability as .env seems to be having issues loading on some devices/builds immediately
   final String _baseUrl = 'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth/finance';
+
+  FinanceService() {
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (e, handler) async {
+        if (e.response?.statusCode == 401) {
+          debugPrint('FinanceService: 401 Unauthorized detected. Clearing session.');
+          await _authService.logout();
+          
+          if (navigatorKey.currentState != null) {
+            navigatorKey.currentState!.pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
+        }
+        return handler.next(e);
+      },
+    ));
+  }
 
   // Stream controller to broadcast data updates to the app
   static final StreamController<void> _updateController = StreamController<void>.broadcast();

@@ -2,14 +2,40 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class AdService {
   static final AdService _instance = AdService._internal();
   factory AdService() => _instance;
   AdService._internal();
 
-  /// Initialize the Google Mobile Ads SDK.
+  final ValueNotifier<bool> adsEnabled = ValueNotifier<bool>(true);
+
+  /// Initialize the Google Mobile Ads SDK and check remote status.
   Future<void> initialize() async {
+    // Escuchar cambios en tiempo real desde Firebase
+    FirebaseDatabase.instance.ref('AdMob').onValue.listen((event) {
+      final value = event.snapshot.value;
+      debugPrint('AdMob Remote Sync - Raw Value: $value (${value.runtimeType})');
+      
+      bool newValue = adsEnabled.value;
+      if (value is bool) {
+        newValue = value;
+      } else if (value is String) {
+        if (value.toLowerCase() == 'true' || value == '1') newValue = true;
+        if (value.toLowerCase() == 'false' || value == '0') newValue = false;
+      } else if (value is num) {
+        newValue = value == 1;
+      }
+      
+      if (adsEnabled.value != newValue) {
+        adsEnabled.value = newValue;
+      }
+      debugPrint('AdMob Remote Status Resolved: ${adsEnabled.value}');
+    }, onError: (error) {
+      debugPrint('AdMob Remote Error: $error');
+    });
+
     await MobileAds.instance.initialize();
   }
 
@@ -24,14 +50,10 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isAndroid) {
-      return 'ca-app-pub-8583703891478819/7850287315';
-    } else if (Platform.isIOS) {
-       // Using the same ID as Android because the user only provided one general ID or I should assume the same for now
-       // But typically they differ. The prompt gave ONE ID "ca-app-pub-8583703891478819/7850287315".
-       // I will use it for both or just return it. 
-       // Ideally I should ask, but I will put it in the "Release Mode" block for both or just use it.
-       return 'ca-app-pub-8583703891478819/7850287315'; 
+    if (Platform.isIOS) {
+      return 'ca-app-pub-8583703891478819/7850287315'; // Confirmado: Banner iOS
+    } else if (Platform.isAndroid) {
+      return ''; // No hay IDs para Android
     }
     throw UnsupportedError('Unsupported platform');
   }
@@ -56,16 +78,21 @@ class AdService {
   }
 
   /// Create a Banner Ad
-  BannerAd createBannerAd({required Function(Ad) onAdLoaded}) {
+  BannerAd createBannerAd({
+    required Function(Ad) onAdLoaded,
+    Function(Ad, LoadAdError)? onAdFailedToLoad,
+    AdSize size = AdSize.banner,
+  }) {
     return BannerAd(
       adUnitId: bannerAdUnitId,
-      size: AdSize.banner, 
+      size: size,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: onAdLoaded,
         onAdFailedToLoad: (ad, error) {
-          debugPrint('Ad failed to load: $error');
+          debugPrint('AdMob Banner error ($bannerAdUnitId): $error');
           ad.dispose();
+          if (onAdFailedToLoad != null) onAdFailedToLoad(ad, error);
         },
       ),
     );
@@ -80,8 +107,8 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isAndroid) return 'ca-app-pub-8583703891478819/5224123972';
-    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972';
+    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Intersticial Recompensado iOS
+    if (Platform.isAndroid) return '';
     return '';
   }
 
@@ -107,8 +134,8 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isAndroid) return 'ca-app-pub-8583703891478819/5224123972';
-    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972';
+    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Rewarded Interstitial iOS
+    if (Platform.isAndroid) return '';
     return '';
   }
 
@@ -137,8 +164,8 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isAndroid) return 'ca-app-pub-8583703891478819/4606651657';
-    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/4606651657';
+    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/4606651657'; // Confirmado: Native iOS
+    if (Platform.isAndroid) return '';
     return '';
   }
 

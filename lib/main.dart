@@ -3,7 +3,6 @@ import 'package:geminifinanzas/screens/login_screen.dart';
 import 'package:geminifinanzas/screens/main_screen.dart';
 import 'package:geminifinanzas/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -15,6 +14,11 @@ import 'package:geminifinanzas/l10n/app_localizations.dart';
 import 'package:geminifinanzas/providers/locale_provider.dart';
 
 import 'package:geminifinanzas/widgets/connectivity_wrapper.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'package:geminifinanzas/services/ad_service.dart';
+import 'dart:io';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,12 +39,26 @@ void main() async {
     debugPrint('Error initializing Firebase: $e');
   }
 
-  // Initialize AdMob
+  // Request Tracking Permission for iOS (ATT)
+  if (Platform.isIOS) {
+    try {
+      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      if (status == TrackingStatus.notDetermined) {
+        // Wait a bit to ensure the app is in the foreground
+        await Future.delayed(const Duration(milliseconds: 1000));
+        await AppTrackingTransparency.requestTrackingAuthorization();
+      }
+    } catch (e) {
+      debugPrint('Error requesting tracking authorization: $e');
+    }
+  }
+
+  // Initialize AdMob and Remote Config
   try {
-    await MobileAds.instance.initialize();
-    debugPrint('AdMob initialized successfully');
+    await AdService().initialize();
+    debugPrint('AdService initialized successfully');
   } catch (e) {
-    debugPrint('Error initializing AdMob: $e');
+    debugPrint('Error initializing AdService: $e');
   }
 
   final prefs = await SharedPreferences.getInstance();
@@ -66,6 +84,7 @@ class MyApp extends StatelessWidget {
     return Consumer<LocaleProvider>(
       builder: (context, localeProvider, child) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'Digital Minimalist Finance',
           theme: AppTheme.theme,
           debugShowCheckedModeBanner: false,
