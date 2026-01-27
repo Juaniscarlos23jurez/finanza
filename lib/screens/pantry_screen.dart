@@ -578,7 +578,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
     }
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: _categorizedIngredients.entries.map((entry) {
         return _buildCategorySection(entry.key, entry.value);
       }).toList(),
@@ -640,7 +640,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
 
   Widget _buildIngredientItem(Map<String, dynamic> item, Color categoryColor) {
     final bool bought = item['bought'] ?? false;
-    final bool inInventory = _inventory.containsKey(item['name']);
+    final String itemName = item['name'].toString();
+    final bool inInventory = _inventory.containsKey(NutritionService.sanitizeKey(itemName));
 
     return Dismissible(
       key: Key('shopping_${item['name']}'),
@@ -837,9 +838,11 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
     }
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: _inventory.entries.map((entry) {
-        return _buildInventoryItem(entry.key, entry.value);
+        final data = entry.value as Map<dynamic, dynamic>;
+        final String displayName = data['name'] ?? entry.key;
+        return _buildInventoryItem(displayName, data);
       }).toList(),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:intl/intl.dart';
 import 'auth_service.dart';
 
 class NutritionService {
@@ -67,10 +68,82 @@ class NutritionService {
     yield* _database.ref('users/$userId/daily_meals').onValue;
   }
 
-  Future<int> calculateDailyStreak() async {
-    // Simplified streak logic: returns 5 for demo purposes or calculates from historical records
-    // In a real app, this would query a historical timeline of 'completed' days
-    return 5; 
+  Stream<DatabaseEvent> getStreak() async* {
+    final userId = await _authService.getUserId();
+    if (userId == null) yield* const Stream.empty();
+
+    yield* _database.ref('users/$userId/streak').onValue;
+  }
+
+  Future<void> updateStreak(int increment) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    final ref = _database.ref('users/$userId/streak');
+    final snapshot = await ref.get();
+    int currentStreak = 0;
+    if (snapshot.exists) {
+      currentStreak = int.tryParse(snapshot.value.toString()) ?? 0;
+    }
+    await ref.set(currentStreak + increment);
+  }
+
+  Future<void> saveDailyTotal(double calories) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    await _database.ref('users/$userId/history/$date').set({
+      'calories': calories,
+      'timestamp': ServerValue.timestamp,
+    });
+  }
+
+  Stream<DatabaseEvent> getHistory() async* {
+    final userId = await _authService.getUserId();
+    if (userId == null) yield* const Stream.empty();
+
+    yield* _database.ref('users/$userId/history').onValue;
+  }
+
+  // ============ WEIGHT TRACKING ============
+
+  Future<void> saveWeight(double weight) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    await _database.ref('users/$userId/weight_history/$date').set({
+      'weight': weight,
+      'timestamp': ServerValue.timestamp,
+    });
+  }
+
+  Stream<DatabaseEvent> getWeightHistory() async* {
+    final userId = await _authService.getUserId();
+    if (userId == null) yield* const Stream.empty();
+
+    yield* _database.ref('users/$userId/weight_history').onValue;
+  }
+
+  // ============ GLOBAL RANKING ============
+
+  Stream<DatabaseEvent> getGlobalRanking() async* {
+    // We query the top 10 users by streak
+    // Note: In a real app, you'd want to sync streak to a public 'rankings' node 
+    // to avoid reading all users, but for this demo/MVP we'll use a public node.
+    yield* _database.ref('public_rankings').orderByChild('streak').limitToLast(10).onValue;
+  }
+
+  Future<void> syncUserRanking(String name, int streak) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    await _database.ref('public_rankings/$userId').set({
+      'name': name,
+      'streak': streak,
+      'last_update': ServerValue.timestamp,
+    });
   }
 
   // ============ INVENTORY MANAGEMENT ============
@@ -150,10 +223,30 @@ class NutritionService {
 
     await _database.ref('users/$userId/goals/$safeKey').set({
       ...goalData,
+      'id': safeKey,
       'created_at': ServerValue.timestamp,
       'status': 'active',
-      'current_value': 0,
+      'current_amount': goalData['current_amount'] ?? 0,
     });
+  }
+
+  Future<void> updateGoalProgress(String goalId, double amount, {bool isWithdrawal = false}) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    final ref = _database.ref('users/$userId/goals/$goalId/current_amount');
+    final snapshot = await ref.get();
+    double current = double.tryParse(snapshot.value.toString()) ?? 0.0;
+    
+    double newAmount = isWithdrawal ? current - amount : current + amount;
+    await ref.set(newAmount);
+  }
+
+  Future<void> deleteGoal(String goalId) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    await _database.ref('users/$userId/goals/$goalId').remove();
   }
 
   Stream<DatabaseEvent> getGoals() async* {
