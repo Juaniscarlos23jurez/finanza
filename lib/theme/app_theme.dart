@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color background = Color(0xFFF5F9F6); // Light mint/cream background
-  static const Color primary = Color(0xFF2A8659); // Fresh green
-  static const Color secondary = Color(0xFF7A8A7F); // Soft sage
-  static const Color accent = Color(0xFFFF9B5E); // Warm orange accent
-  static const Color cardBackground = Colors.white;
+  static const Color background = Color(0xFFF8F9FB); // Premium clean background
+  static const Color primary = Color(0xFF1A1A1A); // Sleek charcoal
+  static const Color secondary = Color(0xFF6E7191); // Modern muted slate
+  static const Color accent = Color(0xFF00D084); // Electric teal (more premium than leaf green)
+  static const Color surface = Colors.white;
+  static const Color error = Color(0xFFFF4D4D);
 
   static final ThemeData theme = ThemeData(
     useMaterial3: true,

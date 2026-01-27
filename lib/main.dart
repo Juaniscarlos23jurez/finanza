@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:nutrigpt/screens/login_screen.dart';
 import 'package:nutrigpt/screens/main_screen.dart';
+import 'package:nutrigpt/screens/onboarding_screen.dart';
 import 'package:nutrigpt/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -30,9 +31,18 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('auth_token');
-  debugPrint('Startup Token Check: ${token != null ? "Token Found" : "No Token"}');
+  final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+  
+  debugPrint('Startup Check - Token: ${token != null}, Onboarding: $onboardingCompleted');
 
-  runApp(MyApp(initialScreen: token != null ? const MainScreen() : const LoginScreen()));
+  Widget initialScreen;
+  if (token != null) {
+    initialScreen = onboardingCompleted ? const MainScreen() : const OnboardingScreen();
+  } else {
+    initialScreen = const LoginScreen();
+  }
+
+  runApp(MyApp(initialScreen: initialScreen));
 }
 
 class MyApp extends StatelessWidget {
@@ -42,7 +52,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Digital Minimalist Finance',
+      title: 'NutriGPT AI',
       theme: AppTheme.theme,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [

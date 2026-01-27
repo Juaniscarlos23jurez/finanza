@@ -3,9 +3,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'dashboard_screen.dart';
-import 'transactions_screen.dart';
+import 'pantry_screen.dart';
 import 'profile_screen.dart';
-import 'nutrition_plan_screen.dart';
+import 'progress_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -20,8 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const ChatScreen(),
-    const NutritionPlanScreen(),
-    const TransactionsScreen(),
+    const ProgressScreen(),
+    const PantryScreen(),
     const ProfileScreen(),
   ];
 
@@ -51,8 +51,8 @@ class _MainScreenState extends State<MainScreen> {
               children: [
                 _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard),
                 _buildNavItem(1, FontAwesomeIcons.commentDots, FontAwesomeIcons.solidCommentDots),
-                _buildNavItem(2, Icons.assignment_outlined, Icons.assignment),
-                _buildNavItem(3, Icons.receipt_long_outlined, Icons.receipt_long),
+                _buildNavItem(2, Icons.bar_chart_rounded, Icons.bar_chart_rounded),
+                _buildNavItem(3, Icons.shopping_basket_outlined, Icons.shopping_basket),
                 _buildNavItem(4, Icons.person_outline_rounded, Icons.person),
               ],
             ),

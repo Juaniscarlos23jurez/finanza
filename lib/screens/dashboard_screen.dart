@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:nutrigpt/services/nutrition_service.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/auth_service.dart';
@@ -17,9 +18,11 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final FinanceService _financeService = FinanceService();
   final AuthService _authService = AuthService();
+  final FinanceService _financeService = FinanceService();
+  final NutritionService _nutritionService = NutritionService();
   StreamSubscription? _updateSubscription;
+  StreamSubscription? _mealsSubscription;
   bool _isLoading = true;
   Map<String, dynamic> _summary = {
     'total_income': 0.0,
@@ -29,7 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, double> _categoryStats = {};
 
   List<dynamic> _goals = [];
-  List<dynamic> _recentTransactions = [];
+  List<Map<String, dynamic>> _dailyMeals = [];
   List<FlSpot> _balanceHistory = [];
   String _userName = '';
 
@@ -38,9 +41,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _fetchFinanceData();
     _fetchUserProfile();
+    _listenToDailyMeals();
     _requestNotificationPermissionAndSaveFCM();
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchFinanceData();
+    });
+  }
+
+  void _listenToDailyMeals() {
+    _mealsSubscription = _nutritionService.getDailyMeals().listen((event) {
+      if (event.snapshot.value != null) {
+        final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        final List<Map<String, dynamic>> mealsList = [];
+        data.forEach((key, value) {
+          mealsList.add(Map<String, dynamic>.from(value as Map));
+        });
+        
+        // Optionally sort by time if needed
+        if (mounted) {
+          setState(() {
+            _dailyMeals = mealsList;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _dailyMeals = [];
+          });
+        }
+      }
     });
   }
 
@@ -63,6 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     _updateSubscription?.cancel();
+    _mealsSubscription?.cancel();
     super.dispose();
   }
 
@@ -85,7 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final dateB = DateTime.tryParse(b['date'] ?? '') ?? DateTime(2000);
         return dateB.compareTo(dateA);
       });
-      final recent = records.take(5).toList();
+      // recent is used if needed, but the current UI shows a daily timeline instead.
 
       // Calculate category stats client-side
       final Map<String, double> stats = {};
@@ -142,7 +172,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _summary = summary;
           _categoryStats = stats;
           _goals = goals;
-          _recentTransactions = recent;
           _balanceHistory = historySpots.reversed.toList();
           _isLoading = false;
         });
@@ -193,10 +222,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  double get _totalBalance {
-    double balance = (double.tryParse((_summary['total_income'] ?? 0).toString()) ?? 0.0) - (double.tryParse((_summary['total_expense'] ?? 0).toString()) ?? 0.0);
-    return balance;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -215,23 +240,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     _buildHeader(),
                     const SizedBox(height: 32),
-                    _buildBalanceCard(),
+                    _buildCalorieCard(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Movimiento de Balance'),
+                    _buildSectionTitle('Historial Calórico (7 días)'),
                     const SizedBox(height: 16),
                     _buildHistoryChart(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Tus Metas', onAdd: _showAddGoalDialog),
+                    _buildSectionTitle('Mis Objetivos', onAdd: _showAddGoalDialog),
                     const SizedBox(height: 16),
                     _buildGoalsList(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Gastos por Categoría'),
+                    _buildSectionTitle('Distribución de Macros'),
                     const SizedBox(height: 16),
                     _buildCategoryChart(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Movimientos Recientes'),
+                    _buildSectionTitle('Plan de Hoy'),
                     const SizedBox(height: 16),
-                    _buildRecentTransactions(),
+                    _buildDailyTimeline(),
                   ],
                 ),
               ),
@@ -243,21 +268,101 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ... (Header and BalanceCard remain the same) ...
   // ... (Previous methods) ...
 
-  Widget _buildRecentTransactions() {
-    if (_recentTransactions.isEmpty) {
+  Widget _buildDailyTimeline() {
+    if (_dailyMeals.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
         width: double.infinity,
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-        child: Center(child: Text('Sin actividad reciente', style: GoogleFonts.manrope(color: AppTheme.secondary))),
+        child: Column(
+          children: [
+            Icon(Icons.calendar_today_outlined, color: AppTheme.secondary.withValues(alpha: 0.3), size: 48),
+            const SizedBox(height: 16),
+            Text('Sin plan para hoy', style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Pídele un plan a la IA en el chat', style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.6), fontSize: 12)),
+          ],
+        ),
       );
     }
 
+    // Sort meals if needed, for now use the order they come in
     return Column(
-      children: _recentTransactions.map((t) => _buildTransactionItem(t)).toList(),
+      children: _dailyMeals.map((meal) => _buildMealHabitItem(meal)).toList(),
     );
   }
 
+  Widget _buildMealHabitItem(Map<String, dynamic> meal) {
+    final String title = meal['name'] ?? 'Comida';
+    final String time = meal['time'] ?? '--:--';
+    final String id = meal['id'] ?? '';
+    final bool isCompleted = meal['completed'] ?? false;
+    final int calories = int.tryParse(meal['calories']?.toString() ?? '0') ?? 0;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isCompleted ? AppTheme.accent.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: isCompleted ? Border.all(color: AppTheme.accent.withValues(alpha: 0.2)) : null,
+        boxShadow: [
+          if (!isCompleted)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+        ],
+      ),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () => _nutritionService.toggleMealCompletion(id, !isCompleted),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted ? AppTheme.accent : Colors.transparent,
+                border: Border.all(
+                  color: isCompleted ? AppTheme.accent : AppTheme.secondary.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.check,
+                size: 16,
+                color: isCompleted ? Colors.white : Colors.transparent,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title, 
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 14,
+                    decoration: isCompleted ? TextDecoration.lineThrough : null,
+                    color: isCompleted ? AppTheme.secondary : AppTheme.primary,
+                  )
+                ),
+                Text(
+                  '$time • $calories kcal',
+                  style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
+                ),
+              ],
+            ),
+          ),
+          if (isCompleted)
+             const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
+        ],
+      ),
+    );
+  }
   Widget _buildHistoryChart() {
     if (_balanceHistory.isEmpty) return const SizedBox.shrink();
 
@@ -283,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
                 return touchedBarSpots.map((barSpot) {
                   return LineTooltipItem(
-                    '\$ ${barSpot.y.toStringAsFixed(0)}',
+                    '${barSpot.y.toStringAsFixed(0)} kcal',
                     GoogleFonts.manrope(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -362,67 +467,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTransactionItem(Map<String, dynamic> item) {
-    final String title = item['description'] ?? 'Sin descripción';
-    final String category = item['category'] ?? 'General';
-    final double amountVal = double.tryParse(item['amount'].toString()) ?? 0.0;
-    final bool isIncome = item['type'] == 'income';
-    final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
-    
-    // Simple icon logic (reused conceptualy)
-    IconData icon = Icons.attach_money;
-    if (category.toLowerCase().contains('comida')) icon = Icons.restaurant;
-    if (category.toLowerCase().contains('transporte')) icon = Icons.directions_car;
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: (isIncome ? Colors.green : AppTheme.primary).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: isIncome ? Colors.green : AppTheme.primary, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
-                Text(
-                  item['date'] ?? '',
-                  style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            amountStr,
-            style: GoogleFonts.manrope(
-              fontWeight: FontWeight.w800,
-              color: isIncome ? Colors.green : AppTheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ... (Keep existing methods: _buildHeader, _buildBalanceCard, _buildSectionTitle, _showAddGoalDialog, _buildGoalsList, _buildGoalCard, _buildCategoryChart, _buildCategoryItem) ...
 
   Widget _buildHeader() {
@@ -449,7 +493,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildCalorieCard() {
+    final double consumed = double.tryParse((_summary['total_income'] ?? 0).toString()) ?? 0.0;
+    final double target = double.tryParse((_summary['total_expense'] ?? 0).toString()) ?? 2000.0;
+    final double remaining = (target - consumed).clamp(0, target);
+    final double progress = (consumed / target).clamp(0, 1.0);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -467,37 +516,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'SALDO TOTAL',
-            style: GoogleFonts.manrope(
-              fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.6),
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'CONSUMO DE HOY',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                ),
+              ),
+              const Icon(Icons.bolt_rounded, color: Colors.amber, size: 20),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            '\$${_totalBalance.toStringAsFixed(2)}',
+            '${consumed.toStringAsFixed(0)} kcal',
             style: GoogleFonts.manrope(
-              fontSize: 36,
+              fontSize: 42,
               color: Colors.white,
               fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Simple progress indicator
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              minHeight: 8,
             ),
           ),
           const SizedBox(height: 24),
           Row(
             children: [
               _buildMiniStat(
-                'Ingresos', 
-                '+\$${(_summary['total_income'] ?? 0).toStringAsFixed(0)}', 
-                Colors.greenAccent
+                'Faltan', 
+                '${remaining.toStringAsFixed(0)} kcal', 
+                Colors.orangeAccent
               ),
               const SizedBox(width: 32),
               _buildMiniStat(
-                'Egresos', 
-                '-\$${(_summary['total_expense'] ?? 0).toStringAsFixed(0)}', 
-                Colors.redAccent
+                'Meta', 
+                '${target.toStringAsFixed(0)} kcal', 
+                Colors.greenAccent
               ),
             ],
           ),
@@ -574,18 +640,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Nueva Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          title: Text('Nuevo Objetivo', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Nombre de la meta (ej. Viaje)'),
+                decoration: const InputDecoration(labelText: 'Nombre del objetivo (ej. Perder Peso)'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: amountController,
-                decoration: const InputDecoration(labelText: 'Monto objetivo (\$)', prefixText: '\$'),
+                decoration: const InputDecoration(labelText: 'Valor objetivo (kg, kcal, etc.)'),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
             ],
@@ -607,7 +673,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     'title': titleController.text,
                     'target_amount': amount,
                     'current_amount': 0,
-                    'deadline': DateTime.now().add(const Duration(days: 90)).toIso8601String().split('T')[0],
+                    'deadline': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0],
                   });
                   if (!context.mounted) return;
                   Navigator.pop(context);
@@ -779,7 +845,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '\$${current.toStringAsFixed(0)}',
+                      current.toStringAsFixed(0),
                       style: GoogleFonts.manrope(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -787,7 +853,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Text(
-                      'de \$${target.toStringAsFixed(0)}',
+                      'objetivo ${target.toStringAsFixed(0)}',
                       style: GoogleFonts.manrope(
                         fontSize: 10,
                         color: AppTheme.secondary,
@@ -813,10 +879,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primary),
+                        Icon(Icons.add_task_rounded, size: 16, color: AppTheme.primary),
                         const SizedBox(width: 6),
                         Text(
-                          'Abonar',
+                          'Progreso',
                           style: GoogleFonts.manrope(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
