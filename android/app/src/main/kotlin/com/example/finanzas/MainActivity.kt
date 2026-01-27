@@ -1,4 +1,4 @@
-package com.fynlink.finanzas
+package com.fynlink.nutri
 
 import io.flutter.embedding.android.FlutterActivity
 

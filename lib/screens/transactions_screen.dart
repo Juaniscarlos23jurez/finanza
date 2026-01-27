@@ -965,21 +965,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               
               try {
                 await _financeService.deleteRecord(item['id']);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Movimiento eliminado'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Movimiento eliminado'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 // Refresh happens automatically via stream
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al eliminar: $e')),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al eliminar: $e')),
+                );
               }
             },
             style: ElevatedButton.styleFrom(

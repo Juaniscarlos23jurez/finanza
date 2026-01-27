@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:finanzas/screens/login_screen.dart';
-import 'package:finanzas/screens/main_screen.dart';
-import 'package:finanzas/theme/app_theme.dart';
+import 'package:nutrigpt/screens/login_screen.dart';
+import 'package:nutrigpt/screens/main_screen.dart';
+import 'package:nutrigpt/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

@@ -1260,21 +1260,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               
               try {
                 await _financeService.deleteGoal(goalId);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Meta "$title" eliminada'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Meta "$title" eliminada'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 _fetchFinanceData(); // Refresh UI
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                );
               }
             },
             style: ElevatedButton.styleFrom(

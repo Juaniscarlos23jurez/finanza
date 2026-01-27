@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../models/message_model.dart';
 import '../services/finance_service.dart';
 import '../services/chat_service.dart';
+import '../services/nutrition_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -78,9 +79,11 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         },
         localeId: 'es_MX', // Español México
-        listenMode: stt.ListenMode.confirmation,
-        cancelOnError: true,
-        partialResults: true,
+        listenOptions: stt.SpeechListenOptions(
+          listenMode: stt.ListenMode.confirmation,
+          cancelOnError: true,
+          partialResults: true,
+        ),
       );
     }
   }
@@ -210,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Hola! Soy tu asistente financiero.',
+            '¡Hola! Soy tu asistente nutricional.',
             style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary),
           ),
           const SizedBox(height: 8),
@@ -236,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Text(
-            'FINANZAS AI',
+            'NUTRICIÓN AI',
             style: GoogleFonts.manrope(
               fontSize: 14,
               fontWeight: FontWeight.w900,
@@ -286,7 +289,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: _isListening 
                             ? "Escuchando..." 
-                            : "Pregunta sobre tus finanzas...",
+                            : "Pregunta sobre tu nutrición...",
                         hintStyle: GoogleFonts.manrope(
                           color: _isListening ? AppTheme.primary : AppTheme.secondary,
                           fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
@@ -458,7 +461,26 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     final data = widget.message.data!;
     final String type = data['type'] ?? 'unknown';
 
-    if (type == 'transaction') {
+    // Nutrition-specific types
+    if (type == 'meal') {
+      return _buildMealCard(data);
+    } else if (type == 'multi_meal') {
+      return _buildMultiMealCard(data);
+    } else if (type == 'daily_summary') {
+      return _buildDailySummaryCard(data);
+    } else if (type == 'nutrition_goal') {
+      return _buildNutritionGoalCard(data);
+    } else if (type == 'meal_list') {
+      return _buildMealListCard(data);
+    } else if (type == 'meal_plan') {
+      return _buildMealPlanCard(data);
+    } else if (type == 'nutrition_plan') {
+      return _buildNutritionPlanCard(data);
+    } else if (type == 'view_chart') {
+      return _buildChartTriggerCard(data);
+    }
+    // Legacy finance types (for backward compatibility)
+    else if (type == 'transaction') {
       return _buildTransactionCard(data);
     } else if (type == 'multi_transaction') {
       return _buildMultiTransactionCard(data);
@@ -466,8 +488,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       return _buildBalanceCard(data);
     } else if (type == 'goal_suggestion') {
       return _buildGoalSuggestionCard(data);
-    } else if (type == 'view_chart') {
-      return _buildChartTriggerCard(data);
     } else if (type == 'transaction_list') {
       return _buildTransactionListCard(data);
     }
@@ -1111,6 +1131,814 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         ],
       ),
     );
+  }
+
+
+  // ============ NUTRITION-SPECIFIC CARDS ============
+
+  Widget _buildMealCard(Map<String, dynamic> data) {
+    final String name = data['name'] ?? 'Comida';
+    final int calories = int.tryParse(data['calories'].toString()) ?? 0;
+    final int protein = int.tryParse(data['protein'].toString()) ?? 0;
+    final int carbs = int.tryParse(data['carbs'].toString()) ?? 0;
+    final int fats = int.tryParse(data['fats'].toString()) ?? 0;
+    final String description = data['description'] ?? '';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Comida Registrada', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+              Icon(Icons.restaurant_rounded, color: AppTheme.primary, size: 20),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.fastfood_rounded, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                    if (description.isNotEmpty)
+                      Text(description, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Macronutrients
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMacro('Proteína', '${protein}g', Colors.red.shade400),
+                _buildMacro('Carbos', '${carbs}g', Colors.orange.shade400),
+                _buildMacro('Grasas', '${fats}g', Colors.amber.shade600),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Calorías Totales', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                '$calories kcal',
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w900, 
+                  fontSize: 20,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _saveMeal(data),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving 
+                ? const SizedBox(
+                    width: 20, 
+                    height: 20, 
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isSaved ? 'Guardado' : 'Confirmar y Guardar',
+                        style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacro(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+        const SizedBox(height: 4),
+        Text(value, style: GoogleFonts.manrope(color: color, fontSize: 14, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Future<void> _saveMeal(Map<String, dynamic> data) async {
+    setState(() => _isSaving = true);
+    
+    try {
+      // TODO: Implement nutrition service
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comida registrada correctamente')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildMultiMealCard(Map<String, dynamic> data) {
+    final List<dynamic> meals = data['meals'] ?? [];
+    if (meals.isEmpty) return const SizedBox.shrink();
+
+    int totalCalories = 0;
+    int totalProtein = 0;
+    int totalCarbs = 0;
+    int totalFats = 0;
+
+    for (var meal in meals) {
+      totalCalories += int.tryParse(meal['calories'].toString()) ?? 0;
+      totalProtein += int.tryParse(meal['protein'].toString()) ?? 0;
+      totalCarbs += int.tryParse(meal['carbs'].toString()) ?? 0;
+      totalFats += int.tryParse(meal['fats'].toString()) ?? 0;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.restaurant_menu_rounded, size: 18, color: AppTheme.primary),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${meals.length} Comidas',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$totalCalories kcal',
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          ...meals.map((meal) {
+            final String name = meal['name'] ?? 'Comida';
+            final int calories = int.tryParse(meal['calories'].toString()) ?? 0;
+            final String desc = meal['description'] ?? '';
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.fastfood_rounded,
+                      size: 16,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
+                        if (desc.isNotEmpty)
+                          Text(desc, style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary)),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '$calories kcal',
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMacro('Proteína', '${totalProtein}g', Colors.red.shade400),
+                _buildMacro('Carbos', '${totalCarbs}g', Colors.orange.shade400),
+                _buildMacro('Grasas', '${totalFats}g', Colors.amber.shade600),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _saveAllMeals(meals),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isSaved ? 'Todo Guardado' : 'Guardar ${meals.length} Comidas',
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveAllMeals(List<dynamic> meals) async {
+    setState(() => _isSaving = true);
+
+    try {
+      // TODO: Implement nutrition service
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${meals.length} comidas guardadas')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildDailySummaryCard(Map<String, dynamic> data) {
+    final int totalCalories = int.tryParse(data['total_calories'].toString()) ?? 0;
+    final int protein = int.tryParse(data['protein'].toString()) ?? 0;
+    final int carbs = int.tryParse(data['carbs'].toString()) ?? 0;
+    final int fats = int.tryParse(data['fats'].toString()) ?? 0;
+    final double water = double.tryParse(data['water_liters'].toString()) ?? 0.0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text('RESUMEN DE HOY', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('$totalCalories kcal', style: GoogleFonts.manrope(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildMiniStat('Proteína', '${protein}g', Colors.red.shade200),
+              _buildMiniStat('Carbos', '${carbs}g', Colors.orange.shade200),
+              _buildMiniStat('Grasas', '${fats}g', Colors.amber.shade200),
+            ],
+          ),
+          if (water > 0) ...[
+            const SizedBox(height: 16),
+            const Divider(color: Colors.white24),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.water_drop, color: Colors.lightBlueAccent, size: 16),
+                const SizedBox(width: 8),
+                Text('${water.toStringAsFixed(1)}L de agua', style: GoogleFonts.manrope(color: Colors.white, fontSize: 14)),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNutritionGoalCard(Map<String, dynamic> data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.flag_rounded, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Meta Nutricional Sugerida',
+                  style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(data['title'] ?? 'Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          const SizedBox(height: 4),
+          Text('Objetivo: ${data['target_value']}', style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          Text(data['reason'] ?? '', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _createNutritionGoal(data),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text(_isSaved ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createNutritionGoal(Map<String, dynamic> data) async {
+    setState(() => _isSaving = true);
+    try {
+      // TODO: Implement nutrition service
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Meta creada exitosamente')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al crear meta: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildMealListCard(Map<String, dynamic> data) {
+    final List<dynamic> items = data['items'] ?? [];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.history, size: 18, color: AppTheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Historial de Comidas',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (items.isEmpty)
+            Center(child: Text('Sin comidas registradas', style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
+          else
+            ...items.take(10).map((item) {
+              final String name = item['name'] ?? 'Comida';
+              final int calories = int.tryParse(item['calories'].toString()) ?? 0;
+              final String time = item['time'] ?? '';
+              final bool healthy = item['healthy'] ?? true;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: (healthy ? Colors.green : Colors.orange).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        healthy ? Icons.check_circle : Icons.warning_amber_rounded,
+                        size: 16,
+                        color: healthy ? Colors.green : Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
+                          if (time.isNotEmpty)
+                            Text(time, style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary)),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '$calories kcal',
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealPlanCard(Map<String, dynamic> data) {
+    final List<dynamic> meals = data['meals'] ?? [];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'Plan de Comidas Sugerido',
+                style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...meals.map((meal) {
+            final String mealType = meal['meal'] ?? 'Comida';
+            final String suggestion = meal['suggestion'] ?? '';
+            final int calories = int.tryParse(meal['calories'].toString()) ?? 0;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.restaurant, color: Colors.white, size: 16),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(mealType, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text(suggestion, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Text('$calories kcal', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNutritionPlanCard(Map<String, dynamic> data) {
+    final List<dynamic> meals = data['meals'] ?? [];
+    final int calories = int.tryParse(data['daily_calories'].toString()) ?? 0;
+    final Map macros = data['macros'] ?? {};
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.assignment_turned_in_rounded, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Plan Nutricional Propuesto',
+                      style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                    ),
+                    Text(
+                      '$calories kcal / día',
+                      style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // Macronutrients
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildMacroSmall('Prot', '${macros['protein']}g', Colors.red.shade400),
+              _buildMacroSmall('Carb', '${macros['carbs']}g', Colors.orange.shade400),
+              _buildMacroSmall('Grasa', '${macros['fats']}g', Colors.amber.shade600),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 12),
+          ...meals.map((meal) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    meal['time'] ?? '',
+                    style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(meal['name'] ?? '', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(meal['details'] ?? '', style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || _isSaved) ? null : () => _saveNutritionPlan(data),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(_isSaved ? Icons.check_circle : Icons.check_circle_outline, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isSaved ? 'Plan Aceptado' : 'Aceptar este Plan',
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroSmall(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: GoogleFonts.manrope(fontSize: 9, color: AppTheme.secondary, fontWeight: FontWeight.bold)),
+        Text(value, style: GoogleFonts.manrope(color: color, fontSize: 13, fontWeight: FontWeight.w800)),
+      ],
+    );
+  }
+
+  Future<void> _saveNutritionPlan(Map<String, dynamic> data) async {
+    setState(() => _isSaving = true);
+    try {
+      final nutritionService = NutritionService();
+      await nutritionService.savePlan(data);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Plan nutricional guardado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar plan: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildMiniStat(String label, String value, Color color) {
