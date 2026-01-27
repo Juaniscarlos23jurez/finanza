@@ -80,12 +80,9 @@ class AdService {
       }
     }
     // Release Mode
-    const realId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
-    if (realId.contains('xxxx')) {
-      if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/5224354917';
-      if (Platform.isIOS) return 'ca-app-pub-3940256099942544/1712485313';
-    }
-    return realId;
+    if (Platform.isAndroid) return 'ca-app-pub-8583703891478819/5224123972';
+    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972';
+    return '';
   }
 
   /// Load a Rewarded Ad
