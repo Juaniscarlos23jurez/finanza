@@ -36,6 +36,7 @@ class AiService {
       '3. PLAN NUTRICIONAL (nutrition_plan): { "type": "nutrition_plan", "daily_calories": 2000, "macros": {"protein": 150, "carbs": 200, "fats": 60}, "days": [ {"day": "Lunes", "meals": [...]}, {"day": "Martes", "meals": [...]} ] } '
       '4. VER GRÁFICAS (view_chart): { "type": "view_chart", "chart_type": "pie", "message": "Tu distribución de macros actual." } '
       '5. SUGERIR META (nutrition_goal): { "type": "nutrition_goal", "title": "...", "target_value": "...", "reason": "..." } '
+      '6. LISTA DE COMPRAS (shopping_list): { "type": "shopping_list", "title": "...", "items": [ {"name": "Pollo", "quantity": "500g", "category": "Proteínas"}, ... ] } (Usa cuando el usuario pida ingredientes o lista de compras) '
       'REGLA CRÍTICA: Nunca asumas ingredientes. Pregunta siempre por lo que el usuario tiene en su refrigerador para personalizar el plan al máximo.'
     ),
     generationConfig: GenerationConfig(

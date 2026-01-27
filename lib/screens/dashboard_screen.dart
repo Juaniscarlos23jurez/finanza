@@ -23,6 +23,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final NutritionService _nutritionService = NutritionService();
   StreamSubscription? _updateSubscription;
   StreamSubscription? _mealsSubscription;
+  StreamSubscription? _goalsSubscription;
+  StreamSubscription? _planSubscription;
   bool _isLoading = true;
   Map<String, dynamic> _summary = {
     'total_income': 0.0,
@@ -42,9 +44,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _fetchFinanceData();
     _fetchUserProfile();
     _listenToDailyMeals();
+    _listenToGoals();
+    _listenToPlan();
     _requestNotificationPermissionAndSaveFCM();
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchFinanceData();
+    });
+  }
+
+  void _listenToGoals() {
+    _goalsSubscription = _nutritionService.getGoals().listen((event) {
+      if (event.snapshot.value != null && mounted) {
+        final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        final List<dynamic> goalsList = [];
+        data.forEach((key, value) {
+          goalsList.add(Map<String, dynamic>.from(value as Map));
+        });
+        setState(() {
+          _goals = goalsList;
+        });
+      }
+    });
+  }
+
+  void _listenToPlan() {
+    _planSubscription = _nutritionService.getPlan().listen((event) {
+      if (event.snapshot.value != null && mounted) {
+        final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        setState(() {
+          _summary['total_expense'] = double.tryParse(data['daily_calories']?.toString() ?? '2000') ?? 2000.0;
+        });
+      }
     });
   }
 
@@ -53,20 +83,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (event.snapshot.value != null) {
         final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
         final List<Map<String, dynamic>> mealsList = [];
+        double totalCaloriesConsumed = 0;
+
         data.forEach((key, value) {
-          mealsList.add(Map<String, dynamic>.from(value as Map));
+          final meal = Map<String, dynamic>.from(value as Map);
+          mealsList.add(meal);
+          if (meal['completed'] == true) {
+            totalCaloriesConsumed += double.tryParse(meal['calories']?.toString() ?? '0') ?? 0;
+          }
         });
         
-        // Optionally sort by time if needed
         if (mounted) {
           setState(() {
             _dailyMeals = mealsList;
+            // Update summary with real-time calorie data from Firebase
+            _summary['total_income'] = totalCaloriesConsumed;
           });
         }
       } else {
         if (mounted) {
           setState(() {
             _dailyMeals = [];
+            _summary['total_income'] = 0.0;
           });
         }
       }
@@ -93,6 +131,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _updateSubscription?.cancel();
     _mealsSubscription?.cancel();
+    _goalsSubscription?.cancel();
+    _planSubscription?.cancel();
     super.dispose();
   }
 
@@ -239,7 +279,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
+                    _buildMotivationQuote(),
+                    const SizedBox(height: 24),
                     _buildCalorieCard(),
                     const SizedBox(height: 32),
                     _buildSectionTitle('Historial Calórico (7 días)'),
@@ -267,6 +309,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ... (Header and BalanceCard remain the same) ...
   // ... (Previous methods) ...
+
+  Widget _buildMotivationQuote() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lightbulb_outline, color: AppTheme.accent),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              '"Tu cuerpo es tu templo, pero solo si tú eres su guardián."',
+              style: GoogleFonts.manrope(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: AppTheme.primary.withValues(alpha: 0.8),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildDailyTimeline() {
     if (_dailyMeals.isEmpty) {
@@ -467,30 +537,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ... (Keep existing methods: _buildHeader, _buildBalanceCard, _buildSectionTitle, _showAddGoalDialog, _buildGoalsList, _buildGoalCard, _buildCategoryChart, _buildCategoryItem) ...
-
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          _userName.isNotEmpty ? 'Hola, $_userName' : 'Hola',
-          style: GoogleFonts.manrope(
-            fontSize: 14,
-            color: AppTheme.secondary,
-            fontWeight: FontWeight.w600,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _getGreeting(),
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                color: AppTheme.secondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              _userName.isNotEmpty ? 'Hola, $_userName' : 'Panel de Control',
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                color: AppTheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
-        Text(
-          'Panel de Control',
-          style: GoogleFonts.manrope(
-            fontSize: 24,
-            color: AppTheme.primary,
-            fontWeight: FontWeight.w900,
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+              )
+            ],
           ),
+          child: const Icon(Icons.notifications_none_rounded, color: AppTheme.primary),
         ),
       ],
     );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return '¡Buenos días! ☀️';
+    if (hour < 20) return '¡Buenas tardes! 🌤️';
+    return '¡Buenas noches! 🌙';
   }
 
   Widget _buildCalorieCard() {

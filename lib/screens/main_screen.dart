@@ -5,7 +5,6 @@ import 'chat_screen.dart';
 import 'dashboard_screen.dart';
 import 'pantry_screen.dart';
 import 'profile_screen.dart';
-import 'progress_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -20,7 +19,6 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const ChatScreen(),
-    const ProgressScreen(),
     const PantryScreen(),
     const ProfileScreen(),
   ];

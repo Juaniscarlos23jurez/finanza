@@ -536,6 +536,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       return _buildNutritionPlanCard(data);
     } else if (type == 'view_chart') {
       return _buildChartTriggerCard(data);
+    } else if (type == 'shopping_list') {
+      return _buildShoppingListCard(data);
     }
     // Legacy finance types (for backward compatibility)
     else if (type == 'transaction') {
@@ -1331,8 +1333,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     setState(() => _isSaving = true);
     
     try {
-      // TODO: Implement nutrition service
-      await Future.delayed(const Duration(seconds: 1));
+      final nutritionService = NutritionService();
+      await nutritionService.saveDailyMeals([data]);
 
       if (mounted) {
         setState(() {
@@ -1340,7 +1342,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comida registrada correctamente')),
+          const SnackBar(
+            content: Text('Comida registrada correctamente'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -1487,8 +1492,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     setState(() => _isSaving = true);
 
     try {
-      // TODO: Implement nutrition service
-      await Future.delayed(const Duration(seconds: 1));
+      final nutritionService = NutritionService();
+      await nutritionService.saveDailyMeals(meals);
 
       if (mounted) {
         setState(() {
@@ -1496,7 +1501,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${meals.length} comidas guardadas')),
+          SnackBar(
+            content: Text('${meals.length} comidas guardadas'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -1623,8 +1631,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Future<void> _createNutritionGoal(Map<String, dynamic> data) async {
     setState(() => _isSaving = true);
     try {
-      // TODO: Implement nutrition service
-      await Future.delayed(const Duration(seconds: 1));
+      final nutritionService = NutritionService();
+      await nutritionService.saveGoal(data);
 
       if (mounted) {
         setState(() {
@@ -1632,7 +1640,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Meta creada exitosamente')),
+          const SnackBar(
+            content: Text('Meta creada exitosamente'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -1987,6 +1998,264 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         Text(value, style: GoogleFonts.manrope(color: color, fontSize: 16, fontWeight: FontWeight.bold)),
       ],
     );
+  }
+
+  Widget _buildShoppingListCard(Map<String, dynamic> data) {
+    final String title = data['title'] ?? 'Lista de Compras';
+    final List<dynamic> items = data['items'] ?? [];
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 25,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.shopping_cart, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LISTA GENERADA',
+                        style: GoogleFonts.manrope(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      Text(
+                        title,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${items.length} items',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                ...items.map((item) {
+                  final String name = item['name'] ?? item.toString();
+                  final String quantity = item['quantity'] ?? '1 unidad';
+                  final String category = item['category'] ?? 'Otros';
+                  
+                  Color categoryColor = AppTheme.secondary;
+                  IconData categoryIcon = Icons.shopping_basket_outlined;
+                  
+                  if (category.contains('Proteína')) {
+                    categoryColor = Colors.red.shade400;
+                    categoryIcon = Icons.egg_outlined;
+                  } else if (category.contains('Verdura')) {
+                    categoryColor = Colors.green.shade400;
+                    categoryIcon = Icons.eco_outlined;
+                  } else if (category.contains('Fruta')) {
+                    categoryColor = Colors.orange.shade400;
+                    categoryIcon = Icons.apple_outlined;
+                  } else if (category.contains('Grano')) {
+                    categoryColor = Colors.amber.shade600;
+                    categoryIcon = Icons.grain_outlined;
+                  } else if (category.contains('Lácteo')) {
+                    categoryColor = Colors.blue.shade300;
+                    categoryIcon = Icons.water_drop_outlined;
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: categoryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(categoryIcon, size: 18, color: categoryColor),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    quantity,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: 11,
+                                      color: AppTheme.secondary.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: categoryColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      category,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: categoryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: (_isSaving || _isSaved) ? null : () => _saveShoppingList(items),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isSaved ? Colors.green : AppTheme.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _isSaved ? Icons.check_circle : Icons.add_shopping_cart,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isSaved ? 'AGREGADO A LA DESPENSA' : 'AGREGAR TODO A LA DESPENSA',
+                                style: GoogleFonts.manrope(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveShoppingList(List<dynamic> items) async {
+    setState(() => _isSaving = true);
+
+    try {
+      final nutritionService = NutritionService();
+      
+      // Save all items to Firebase shopping_list node
+      await nutritionService.saveShoppingList(items);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${items.length} items agregados a la Despensa'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'VER',
+              textColor: Colors.white,
+              onPressed: () {
+                // Navigate to pantry screen (index 2 in main_screen)
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
+    }
   }
 }
 
