@@ -93,7 +93,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
-    - assets/logo.png
+    - assets/newlogo.png
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -126,6 +126,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo.png"
+  image_path: "assets/newlogo.png"
   remove_alpha_ios: true
   min_sdk_android: 21
