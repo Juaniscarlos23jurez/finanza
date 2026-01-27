@@ -367,5 +367,6 @@
     "aiAnalysisSuggestion": "Donnez-moi une analyse stratégique de mes finances pour les 6 prochains mois",
     "exportCsvSuggestion": "Exporter mes transactions vers CSV",
     "transactionAi": "Transaction IA",
-    "goalAiDescription": "Objectif créé par l'IA"
+    "goalAiDescription": "Objectif créé par l'IA",
+    "shareLinkAndCode": "Partager le lien et le code"
 }

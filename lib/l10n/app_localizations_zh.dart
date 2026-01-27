@@ -682,4 +682,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get goalAiDescription => '由 AI 创建的目标';
+
+  @override
+  String get shareLinkAndCode => '分享链接和代码';
 }

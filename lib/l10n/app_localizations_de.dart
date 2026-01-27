@@ -694,4 +694,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalAiDescription => 'Von KI erstelltes Ziel';
+
+  @override
+  String get shareLinkAndCode => 'Link und Code teilen';
 }

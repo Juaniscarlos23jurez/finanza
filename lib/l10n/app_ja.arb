@@ -366,5 +366,6 @@
     "aiAnalysisSuggestion": "今後6ヶ月間の財務状況を戦略的に分析してください",
     "exportCsvSuggestion": "取引履歴をCSVで書き出してください",
     "transactionAi": "AI取引",
-    "goalAiDescription": "AIによって作成された目標"
+    "goalAiDescription": "AIによって作成された目標",
+    "shareLinkAndCode": "リンクとコードを共有"
 }

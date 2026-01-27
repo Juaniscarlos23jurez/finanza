@@ -366,5 +366,6 @@
     "aiAnalysisSuggestion": "请对我未来6个月的财务状况进行战略分析",
     "exportCsvSuggestion": "将我的交易导出为 CSV",
     "transactionAi": "AI 交易",
-    "goalAiDescription": "由 AI 创建的目标"
+    "goalAiDescription": "由 AI 创建的目标",
+    "shareLinkAndCode": "分享链接和代码"
 }

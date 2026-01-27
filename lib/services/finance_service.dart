@@ -137,9 +137,9 @@ class FinanceService {
       final token = await _authService.getToken();
       if (token == null) throw Exception('No authentication token found');
 
-      debugPrint('DEBUG: Fetching goals from ${AuthService.baseUrl}/goals');
+      debugPrint('DEBUG: Fetching goals from $_baseUrl/goals');
       final response = await _dio.get(
-        '${AuthService.baseUrl}/goals',
+        '$_baseUrl/goals',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -149,15 +149,48 @@ class FinanceService {
       );
 
       debugPrint('DEBUG: Goals response status: ${response.statusCode}');
-      debugPrint('DEBUG: Goals response data: ${response.data}');
+      // debugPrint('DEBUG: Goals response data: ${response.data}');
 
-      return response.data;
+      if (response.data is Map && response.data.containsKey('data')) {
+        return response.data['data'] as List<dynamic>;
+      } else if (response.data is List) {
+        return response.data as List<dynamic>;
+      }
+      return [];
     } catch (e) {
       debugPrint('DEBUG: Error querying goals: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> getGoal(int id) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      debugPrint('DEBUG: Fetching goal details from $_baseUrl/goals/$id');
+      final response = await _dio.get(
+        '$_baseUrl/goals/$id',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      debugPrint('DEBUG: Goal detail response: ${response.data}');
+      
+      if (response.data is Map && response.data.containsKey('data')) {
+        return response.data['data'];
+      }
+      return response.data;
+    } catch (e) {
+      debugPrint('DEBUG: Error fetching goal detail: $e');
       if (e is DioException) {
          debugPrint('DEBUG: API Error Data: ${e.response?.data}');
       }
-      return [];
+      throw Exception('Error fetching goal details');
     }
   }
 
@@ -172,7 +205,7 @@ class FinanceService {
       // Based on previous code it was $_baseUrl/goals.
       // If _baseUrl is .../finance, then this makes .../finance/goals.
       final response = await _dio.post(
-        '${AuthService.baseUrl}/goals',
+        '$_baseUrl/goals',
         data: data,
         options: Options(
           headers: {
@@ -203,7 +236,7 @@ class FinanceService {
 
       debugPrint('DEBUG: Updating goal $id with data: $data');
       final response = await _dio.put(
-        '${AuthService.baseUrl}/goals/$id',
+        '$_baseUrl/goals/$id',
         data: data,
         options: Options(
           headers: {
@@ -235,7 +268,7 @@ class FinanceService {
 
       debugPrint('DEBUG: Contributing $amount to goal $goalId');
       final response = await _dio.post(
-        '${AuthService.baseUrl}/goals/$goalId/contribute',
+        '$_baseUrl/goals/$goalId/contribute',
         data: {'amount': amount},
         options: Options(
           headers: {
@@ -267,7 +300,7 @@ class FinanceService {
 
       debugPrint('DEBUG: Deleting goal $id');
       await _dio.delete(
-        '${AuthService.baseUrl}/goals/$id',
+        '$_baseUrl/goals/$id',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -296,7 +329,7 @@ class FinanceService {
 
       debugPrint('DEBUG: Withdrawing $amount from goal $goalId');
       final response = await _dio.post(
-        '${AuthService.baseUrl}/goals/$goalId/withdraw',
+        '$_baseUrl/goals/$goalId/withdraw',
         data: {'amount': amount},
         options: Options(
           headers: {
@@ -317,6 +350,36 @@ class FinanceService {
         throw Exception(e.response?.data['message'] ?? 'Error withdrawing from goal');
       }
       throw Exception('Error withdrawing from goal: $e');
+    }
+  }
+
+  /// Join a shared goal (accept invitation)
+  Future<Map<String, dynamic>> joinGoal(int goalId) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No authentication token found');
+
+      debugPrint('DEBUG: Joining goal $goalId');
+      final response = await _dio.post(
+        '$_baseUrl/goals/$goalId/join',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      debugPrint('DEBUG: Join goal response: ${response.data}');
+      _updateController.add(null); // Notify listeners
+      return response.data;
+    } catch (e) {
+      debugPrint('DEBUG: Error joining goal: $e');
+      if (e is DioException) {
+        debugPrint('DEBUG: Join Goal API Error: ${e.response?.data}');
+        throw Exception(e.response?.data['message'] ?? 'Error joining goal');
+      }
+      throw Exception('Error joining goal: $e');
     }
   }
 

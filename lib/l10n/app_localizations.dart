@@ -1375,6 +1375,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Meta creada por AI'**
   String get goalAiDescription;
+
+  /// No description provided for @shareLinkAndCode.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir Enlace y Código'**
+  String get shareLinkAndCode;
 }
 
 class _AppLocalizationsDelegate

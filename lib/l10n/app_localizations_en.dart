@@ -692,4 +692,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalAiDescription => 'Goal created by AI';
+
+  @override
+  String get shareLinkAndCode => 'Share Link and Code';
 }

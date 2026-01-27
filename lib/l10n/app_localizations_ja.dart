@@ -682,4 +682,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get goalAiDescription => 'AIによって作成された目標';
+
+  @override
+  String get shareLinkAndCode => 'リンクとコードを共有';
 }

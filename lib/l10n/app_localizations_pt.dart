@@ -693,4 +693,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get goalAiDescription => 'Meta criada por IA';
+
+  @override
+  String get shareLinkAndCode => 'Compartilhar Link e Código';
 }

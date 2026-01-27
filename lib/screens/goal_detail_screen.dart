@@ -6,8 +6,8 @@ import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/firebase_service.dart';
 import '../services/auth_service.dart';
-import '../widgets/native_ad_widget.dart';
 import 'dart:async';
+import 'package:share_plus/share_plus.dart';
 
 class GoalDetailScreen extends StatefulWidget {
   final Map<String, dynamic> goal;
@@ -52,13 +52,28 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   }
 
   Future<void> _refreshGoal() async {
-    // Only refreshing the specific goal logic would typically require finding it again in the list
-    // For simplicity, we can just re-fetch all goals or ideally have a single getGoal endpoint.
-    // Here we'll rely on the actions updating the local state or re-fetching goals.
     try {
-      final goals = await _financeService.getGoals();
-      final updatedGoal = goals.firstWhere((g) => g['id'].toString() == _goal['id'].toString(), orElse: () => null);
-      if (updatedGoal != null && mounted) {
+      final int? id = int.tryParse(_goal['id'].toString());
+      if (id == null) return;
+      
+      debugPrint("DEBUG: Refreshing specific goal ID: $id via API");
+      final updatedGoal = await _financeService.getGoal(id);
+      
+      if (updatedGoal.isNotEmpty && mounted) {
+        debugPrint("DEBUG: Updated goal found via direct fetch.");
+        final List<dynamic> txs = (updatedGoal['transactions'] ?? 
+                                   updatedGoal['history'] ?? 
+                                   updatedGoal['records'] ?? 
+                                   updatedGoal['contributions'] ?? 
+                                   updatedGoal['items'] ?? 
+                                   updatedGoal['logs'] ?? []) as List<dynamic>;
+        
+        if (txs.isNotEmpty) {
+          debugPrint("DEBUG: Transactions fetched: ${txs.length}");
+        } else {
+          debugPrint("DEBUG: No transactions in updated goal object.");
+        }
+        
         setState(() {
           _goal = updatedGoal;
         });
@@ -161,7 +176,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final double progress = (current / target).clamp(0.0, 1.0);
     final int percentage = (progress * 100).round();
     final String title = _goal['title'] ?? l10n.goal;
-    final List<dynamic> transactionsList = (_goal['transactions'] ?? _goal['history'] ?? _goal['records'] ?? _goal['contributions'] ?? []) as List<dynamic>;
+    final List<dynamic> transactionsList = (_goal['transactions'] ?? _goal['history'] ?? _goal['records'] ?? _goal['contributions'] ?? _goal['items'] ?? _goal['logs'] ?? []) as List<dynamic>;
+    
+    debugPrint("DEBUG: Rendering goal: ${_goal['title']} (ID: ${_goal['id']})");
+    debugPrint("DEBUG: Current amount: $current, Target amount: $target");
+    debugPrint("DEBUG: Transactions raw list size: ${transactionsList.length}");
     
     // Sort transactions by date descending
     final List<dynamic> transactions = List.from(transactionsList);
@@ -170,6 +189,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       final dateB = DateTime.tryParse(b['created_at']?.toString() ?? b['date']?.toString() ?? '') ?? DateTime(2000);
       return dateB.compareTo(dateA);
     });
+
+    if (transactions.isNotEmpty) {
+      debugPrint("DEBUG: Sorted transactions count: ${transactions.length}");
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -321,6 +344,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     children: [
                       if (transactions.isNotEmpty)
                         ...transactions.map((t) {
+                          debugPrint("DEBUG: Mapping transaction: $t");
                           final bool isContribution = t['type'] == 'contribution' ||
                               t['type'] == 'deposit' ||
                               (double.tryParse(t['amount']?.toString() ?? '0') ?? 0) > 0;
@@ -346,11 +370,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 ),
               ),
 
-              // Ad Banner at Bottom
-              const Padding(
-                padding: EdgeInsets.only(top: 16, bottom: 8),
-                child: NativeAdWidget(),
-              ),
+              // Ad Banner at Bottom - REMOVED AS REQUESTED
             ],
           ),
         ),
@@ -504,6 +524,37 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           l10n.sendInvitation,
                           style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                         ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // New Share Link Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final code = await _authService.getOrCreateUserCode();
+                    final appLink = "https://geminifinanzas.page.link/download"; // Placeholder or real link
+                    final shareText = "${l10n.inviteCollaboratorSubtitle}\n\n"
+                        "${l10n.invitationUserCode}: $code\n\n"
+                        "${l10n.goal}: ${_goal['title']}\n"
+                        "Download: $appLink";
+                    
+                    await SharePlus.instance.share(ShareParams(text: shareText));
+                  },
+                  icon: const Icon(Icons.share_rounded, color: Colors.purpleAccent),
+                  label: Text(
+                    l10n.shareLinkAndCode,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.purpleAccent,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: const BorderSide(color: Colors.purpleAccent),
+                  ),
                 ),
               ),
             ],

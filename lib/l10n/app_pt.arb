@@ -366,5 +366,6 @@
     "aiAnalysisSuggestion": "Faça uma análise estratégica das minhas finanças para os próximos 6 meses",
     "exportCsvSuggestion": "Exportar minhas movimentações para CSV",
     "transactionAi": "Transação IA",
-    "goalAiDescription": "Meta criada por IA"
+    "goalAiDescription": "Meta criada por IA",
+    "shareLinkAndCode": "Compartilhar Link e Código"
 }

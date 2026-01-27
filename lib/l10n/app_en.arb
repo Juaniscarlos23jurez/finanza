@@ -367,5 +367,6 @@
     "aiAnalysisSuggestion": "Give me a strategic analysis of my finances for the next 6 months",
     "exportCsvSuggestion": "Export my transactions to CSV",
     "transactionAi": "AI Transaction",
-    "goalAiDescription": "Goal created by AI"
+    "goalAiDescription": "Goal created by AI",
+    "shareLinkAndCode": "Share Link and Code"
 }

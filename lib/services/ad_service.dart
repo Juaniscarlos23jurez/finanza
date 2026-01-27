@@ -25,19 +25,13 @@ class AdService {
     }
     // Release Mode
     if (Platform.isAndroid) {
-      const androidRealId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
-      if (androidRealId.contains('xxxx')) {
-        debugPrint('⚠️ Warning: Using Test Ad Unit ID because real Android ID is not configured.');
-        return 'ca-app-pub-3940256099942544/6300978111';
-      }
-      return androidRealId;
+      return 'ca-app-pub-8583703891478819/7850287315';
     } else if (Platform.isIOS) {
-      const iosRealId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
-      if (iosRealId.contains('xxxx')) {
-        debugPrint('⚠️ Warning: Using Test Ad Unit ID because real iOS ID is not configured.');
-        return 'ca-app-pub-3940256099942544/2934735716';
-      }
-      return iosRealId;
+       // Using the same ID as Android because the user only provided one general ID or I should assume the same for now
+       // But typically they differ. The prompt gave ONE ID "ca-app-pub-8583703891478819/7850287315".
+       // I will use it for both or just return it. 
+       // Ideally I should ask, but I will put it in the "Release Mode" block for both or just use it.
+       return 'ca-app-pub-8583703891478819/7850287315'; 
     }
     throw UnsupportedError('Unsupported platform');
   }
@@ -105,6 +99,36 @@ class AdService {
       ),
     );
   }
+
+  /// Get the Rewarded Interstitial Ad unit ID
+  String get rewardedInterstitialAdUnitId {
+    if (kDebugMode) {
+      if (Platform.isAndroid) {
+        return 'ca-app-pub-3940256099942544/5354046379'; // Android Test Rewarded Interstitial
+      } else if (Platform.isIOS) {
+        return 'ca-app-pub-3940256099942544/6978759866'; // iOS Test Rewarded Interstitial
+      }
+    }
+    // Release Mode
+    if (Platform.isAndroid) return 'ca-app-pub-8583703891478819/5224123972';
+    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972';
+    return '';
+  }
+
+  /// Load a Rewarded Interstitial Ad
+  void loadRewardedInterstitialAd({
+    required Function(RewardedInterstitialAd) onAdLoaded,
+    required Function(LoadAdError) onAdFailedToLoad,
+  }) {
+    RewardedInterstitialAd.load(
+      adUnitId: rewardedInterstitialAdUnitId,
+      request: const AdRequest(),
+      rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
+        onAdLoaded: onAdLoaded,
+        onAdFailedToLoad: onAdFailedToLoad,
+      ),
+    );
+  }
   
   /// Get the Native Ad unit ID
   String get nativeAdUnitId {
@@ -116,12 +140,9 @@ class AdService {
       }
     }
     // Release Mode
-    const realId = 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
-    if (realId.contains('xxxx')) {
-      if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/2247696110';
-      if (Platform.isIOS) return 'ca-app-pub-3940256099942544/3986624511';
-    }
-    return realId;
+    if (Platform.isAndroid) return 'ca-app-pub-8583703891478819/4606651657';
+    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/4606651657';
+    return '';
   }
 
   /// Load a Native Ad

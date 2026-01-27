@@ -14,6 +14,8 @@ import 'package:provider/provider.dart';
 import 'package:geminifinanzas/l10n/app_localizations.dart';
 import 'package:geminifinanzas/providers/locale_provider.dart';
 
+import 'package:geminifinanzas/widgets/connectivity_wrapper.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es', null);
@@ -76,6 +78,9 @@ class MyApp extends StatelessWidget {
           supportedLocales: AppLocalizations.supportedLocales,
           locale: localeProvider.locale,
           home: initialScreen,
+          builder: (context, child) {
+            return ConnectivityWrapper(child: child!);
+          },
         );
       },
     );

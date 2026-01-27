@@ -116,15 +116,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // TODO: Call Laravel API to link user to goal
-              // For now, we simulate acceptance by removing from RTDB
-              if (email != null) await _firebaseService.removeInvitation(email, key);
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)!.invitationAccepted), backgroundColor: Colors.green),
-                );
-                _fetchFinanceData(); // Refresh to see new goal if it was linked in backend
+              try {
+                // Parse goalId safely
+                int? goalId;
+                if (invitation['goalId'] is int) {
+                  goalId = invitation['goalId'];
+                } else if (invitation['goalId'] is String) {
+                  goalId = int.tryParse(invitation['goalId']);
+                }
+
+                if (goalId != null) {
+                  // Call API to link user to goal
+                  await _financeService.joinGoal(goalId);
+                  
+                  // If successful, remove from Firebase
+                  if (email != null) await _firebaseService.removeInvitation(email, key);
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(AppLocalizations.of(context)!.invitationAccepted), backgroundColor: Colors.green),
+                    );
+                    _fetchFinanceData(); // Refresh to see new goal
+                  }
+                } else {
+                   debugPrint("Error: Invalid goalId in invitation: ${invitation['goalId']}");
+                   if (email != null) await _firebaseService.removeInvitation(email, key); // Remove invalid
+                   if (context.mounted) Navigator.pop(context);
+                }
+              } catch (e) {
+                debugPrint("Error accepting invitation: $e");
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
