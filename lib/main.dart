@@ -39,7 +39,7 @@ void main() async {
     debugPrint('Error initializing Firebase: $e');
   }
 
-  final prefs = await SharedPreferences.getInstance();
+
   final String? token = prefs.getString('auth_token');
   final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
   

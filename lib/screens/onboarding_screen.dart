@@ -124,8 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final bytes = await _progressImage!.readAsBytes();
       
-      // Call AI to get the vision description
-      final vision = await _aiService.generateGoalVision(_visualGoalText, bytes);
+      await _aiService.generateGoalVision(_visualGoalText, bytes);
       
       // Upload image to Firebase Storage
       final imageUrl = await _nutritionService.uploadProgressImage(_progressImage!);
