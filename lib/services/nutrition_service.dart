@@ -17,11 +17,32 @@ class NutritionService {
     await _database.ref('users/$userId/nutrition_plan').set(planData);
   }
 
+  Future<void> saveUserProfile(Map<String, dynamic> profileData) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    await _database.ref('users/$userId/profile').set({
+      ...profileData,
+      'updated_at': ServerValue.timestamp,
+    });
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return null;
+
+    final snapshot = await _database.ref('users/$userId/profile').get();
+    if (snapshot.exists) {
+      return Map<String, dynamic>.from(snapshot.value as Map);
+    }
+    return null;
+  }
+
   Future<void> resetAIMemory() async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
-    // Ethical reset: delete conversation history and nutrition plan
+    // Ethical reset: delete conversation history, nutrition plan, and daily meals
     await _database.ref('users/$userId/conversations').remove();
     await _database.ref('users/$userId/nutrition_plan').remove();
     await _database.ref('users/$userId/daily_meals').remove();

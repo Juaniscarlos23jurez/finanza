@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/nutrition_service.dart';
 import 'login_screen.dart';
+import 'onboarding_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -57,7 +58,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 48),
                   _buildMenuSection('CUENTA', [
                     _buildMenuItem(Icons.person_outline_rounded, 'Información Personal', onTap: () => _showPersonalInfoModal(context)),
-                    _buildMenuItem(Icons.auto_awesome_outlined, 'Borrar Memoria de IA', onTap: () => _showResetAIModal(context)),
+                    _buildMenuItem(Icons.auto_awesome_outlined, 'Personalizar mi Nutrición', onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                      );
+                    }),
+                    _buildMenuItem(Icons.history_rounded, 'Borrar Memoria de IA', onTap: () => _showResetAIModal(context)),
                   ]),
                   const SizedBox(height: 32),
                   _buildMenuSection('TRANSPARENCIA RADICAL', [
@@ -103,7 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)],
           ),
           child: ClipOval(
             child: photoUrl != null
@@ -123,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
       ),
       child: TableCalendar(
         locale: 'es',
@@ -160,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Color? _getDayColor(DateTime day) {
     final now = DateTime.now();
     if (day.isAfter(now.subtract(const Duration(days: 6))) && day.isBefore(now.add(const Duration(days: 1)))) {
-       return Colors.green.withValues(alpha: 0.2);
+       return Colors.green.withOpacity(0.2);
     }
     return null;
   }
@@ -177,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
           ),
           child: Column(children: items),
         ),

@@ -243,7 +243,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.redAccent.withValues(alpha: 0.3),
+            color: Colors.redAccent.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -283,7 +283,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Text(
             '¡Estás en el top ${(_ranking.indexWhere((e) => e['name'] == _userName) + 1).clamp(1, 100)} del ranking!',
             style: GoogleFonts.manrope(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.white.withOpacity(0.7),
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
@@ -343,7 +343,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: Colors.black.withOpacity(0.02),
                 blurRadius: 10,
               ),
             ],
@@ -383,7 +383,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             belowBarData: BarAreaData(
                               show: true,
                               gradient: LinearGradient(
-                                colors: [AppTheme.primary.withValues(alpha: 0.2), Colors.transparent],
+                                colors: [AppTheme.primary.withOpacity(0.2), Colors.transparent],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -523,7 +523,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: Colors.black.withOpacity(0.02),
                 blurRadius: 10,
               ),
             ],
@@ -540,7 +540,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     margin: const EdgeInsets.only(bottom: 4),
                     decoration: BoxDecoration(
-                      color: isMe ? AppTheme.primary.withValues(alpha: 0.05) : Colors.transparent,
+                      color: isMe ? AppTheme.primary.withOpacity(0.05) : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -613,13 +613,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: achieved ? Colors.white : Colors.white.withValues(alpha: 0.5),
+        color: achieved ? Colors.white : Colors.white.withOpacity(0.5),
         borderRadius: BorderRadius.circular(20),
-        border: achieved ? null : Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        border: achieved ? null : Border.all(color: Colors.grey.withOpacity(0.1)),
         boxShadow: [
           if (achieved)
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withOpacity(0.02),
               blurRadius: 5,
             ),
         ],
@@ -629,7 +629,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: achieved ? color.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
+              color: achieved ? color.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: achieved ? color : Colors.grey, size: 24),

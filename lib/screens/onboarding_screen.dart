@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import 'main_screen.dart';
+import '../services/nutrition_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -81,6 +82,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setStringList('user_restrictions', _restrictions);
     await prefs.setString('user_cooking', _cookingSkill);
     
+    // Save to Firebase
+    try {
+      final nutritionService = NutritionService();
+      await nutritionService.saveUserProfile({
+        'goal': _goal,
+        'activity_level': _activityLevel,
+        'restrictions': _restrictions,
+        'cooking_skill': _cookingSkill,
+      });
+    } catch (e) {
+      debugPrint('Error saving profile to Firebase: $e');
+    }
+    
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainScreen()),
@@ -110,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.all(24.0),
               child: LinearProgressIndicator(
                 value: (_currentPage + 1) / _steps.length,
-                backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                backgroundColor: AppTheme.primary.withOpacity(0.1),
                 valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent),
                 borderRadius: BorderRadius.circular(10),
                 minHeight: 6,
@@ -238,7 +252,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: Colors.black.withOpacity(0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   )

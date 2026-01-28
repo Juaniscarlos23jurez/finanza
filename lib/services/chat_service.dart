@@ -38,6 +38,7 @@ class ChatService {
 
     final conversationsRef = _database.ref('users/$userId/conversations');
     final newConvRef = conversationsRef.push(); // Generate ID
+    debugPrint('Creating new conversation with ID: ${newConvRef.key}');
 
     await newConvRef.set({
       'title': initialMessage.length > 30 ? '${initialMessage.substring(0, 30)}...' : initialMessage,
@@ -80,6 +81,7 @@ class ChatService {
     final messagesRef = conversationRef.child('messages');
 
     // 1. Save User Message
+    debugPrint('Saving user message to RTDB in conversation: $currentConversationId');
     await messagesRef.push().set({
       'text': text,
       'is_ai': false,
@@ -88,9 +90,11 @@ class ChatService {
 
     // 2. Get AI Response
     try {
+      debugPrint('Requesting AI response for text: $text');
       final aiMessage = await _aiService.sendMessage(text);
       
       // 3. Save AI Message
+      debugPrint('Saving AI response to RTDB (isGenUI: ${aiMessage.isGenUI})');
       await messagesRef.push().set({
         'text': aiMessage.text,
         'is_ai': true,

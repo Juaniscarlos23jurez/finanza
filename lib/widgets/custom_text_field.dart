@@ -36,7 +36,7 @@ class CustomTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 12,
                 offset: const Offset(0, 2),
               ),
@@ -53,7 +53,7 @@ class CustomTextField extends StatelessWidget {
               isDense: true,
               hintText: hintText,
               hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
+                color: Colors.grey.withOpacity(0.5),
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),

@@ -3,18 +3,18 @@ import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/message_model.dart';
-import 'finance_service.dart';
+import 'nutrition_service.dart';
 
 class AiService {
   // Use dotenv to get the API Key
   static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
   
   final GenerativeModel _model;
-  final FinanceService _financeService = FinanceService();
+  final NutritionService _nutritionService = NutritionService();
   ChatSession? _chat;
 
   AiService() : _model = GenerativeModel(
-    model: 'gemini-2.0-flash-lite-preview-02-05',
+    model: 'gemini-2.5-flash-lite',
     apiKey: _apiKey,
     systemInstruction: Content.system(
       'Eres el asistente nutricional de "Nutrición AI", un experto en dietética y salud con un tono motivacional, profesional y empático. '
@@ -23,19 +23,18 @@ class AiService {
       '1. SOLO responde temas de nutrición, alimentación, recetas, macros y uso de la app. '
       '2. Si preguntan temas ajenos, declina amablemente: "Soy un experto en nutrición, prefiero mantenernos en el camino de tu salud alimenticia." '
       '3. NO des diagnósticos médicos. Sugiere profesionales si detectas síntomas graves. '
-      'PLAN NUTRICIONAL SEMANAL / RECETAS: '
-      '- SI EL USUARIO PIDE UN "PLAN SEMANAL" o "DIETA": '
-      '  1. SIEMPRE categoriza las comidas en: Desayuno, Media Mañana, Comida, Merienda y Cena. '
-      '  2. Para CADA COMIDA, debes incluir una "RECETA COMPLETA" detallada. '
-      '  3. Ofrece variedad: si el usuario no tiene un ingrediente, sugiere una alternativa rápida en el texto. '
+      '4. USA EL CONTEXTO: Tienes acceso al perfil del usuario (objetivo, restricciones, etc.). NO vuelvas a preguntar cosas que ya están en el contexto. Personaliza SIEMPRE tus planes y sugerencias basándote en esto (ej: si es vegano, no sugieras carne). '
+      'PLAN NUTRICIONAL / RECETAS: '
+      '- Cuando el usuario pida una "receta" o "qué comer": '
+      '  1. SIEMPRE incluye una explicación motivadora en el texto. '
+      '  2. Genera el bloque JSON "meal" con la receta completa. '
       'GENUI (INTERFAZ PREMIUM): '
       'Genera bloques JSON SIEMPRE al final de tus respuestas. Las recetas deben ser de alta calidad. '
       'Formatos soportados: '
-      '1. REGISTRAR COMIDA (meal): { "type": "meal", "name": "...", "category": "Desayuno|Comida|Cena|Snack", "calories": 500, "protein": 30, "carbs": 50, "fats": 20, "recipe": { "ingredients": ["...", "..."], "steps": ["...", "..."], "tips": "..." }, "score": 9.5 } '
-      '2. PLAN NUTRICIONAL (nutrition_plan): { "type": "nutrition_plan", "daily_calories": 2000, "days": [ { "day": "Lunes", "meals": [ { "name": "...", "category": "Desayuno", "recipe": {...}, "calories": 400 }, ... ] } ] } '
-      '3. LISTA DE COMPRAS (shopping_list): { "type": "shopping_list", ... } '
-      'RECOMIENDA como nutriólogo: 5 comidas al día para mantener el metabolismo activo. '
-      'REGLA CRÍTICA: La receta debe ser "completa" y fácil de seguir, con pasos numerados.'
+      '1. REGISTRAR COMIDA (meal): { "type": "meal", "name": "...", "category": "Desayuno|Comida|Cena|Snack", "calories": 500, "protein": 30, "carbs": 50, "fats": 20, "recipe": { "ingredients": ["1 taza de...", "200g de..."], "steps": ["Primer paso...", "Segundo paso..."], "tips": "Tip de chef..." }, "score": 9.5 } '
+      '2. PLAN NUTRICIONAL (nutrition_plan): { "type": "nutrition_plan", "daily_calories": 2000, "macros": {"protein": 150, "carbs": 200, "fats": 70}, "days": [ { "day": "Lunes", "meals": [ { "name": "...", "category": "Desayuno", "calories": 400, "recipe": {...} }, ... ] } ] } '
+      '3. LISTA DE COMPRAS (shopping_list): { "type": "shopping_list", "title": "Lista para la semana", "items": [ {"name": "Huevos", "quantity": "1 docena", "category": "Proteína"}, {"name": "Espinaca", "quantity": "1 bolsa", "category": "Verdura"} ] } '
+      'REGLA CRÍTICA: La receta debe ser "completa" y fácil de seguir. Si el usuario dice "tengo hambre" o "ayúdame", ofrece una receta rápida basada en su perfil.'
     ),
     generationConfig: GenerationConfig(
       temperature: 0.7,
@@ -51,26 +50,20 @@ class AiService {
 
   Future<String> _getNutritionContext() async {
     try {
-      final futures = await Future.wait([
-        _financeService.getFinanceData(),
-        _financeService.getGoals(),
-      ]);
+      final profile = await _nutritionService.getUserProfile();
+      String profileContext = '';
+      if (profile != null) {
+        profileContext = 'PERFIL DEL USUARIO: '
+            'Objetivo: ${profile['goal']}, '
+            'Actividad: ${profile['activity_level']}, '
+            'Restricciones: ${profile['restrictions'] is List ? (profile['restrictions'] as List).join(', ') : profile['restrictions']}, '
+            'Habilidad Cocina: ${profile['cooking_skill']}. ';
+      }
 
-      final data = futures[0] as Map<String, dynamic>;
-      final goals = futures[1] as List<dynamic>;
-      
-      final summary = data['summary'];
-      
-      final goalsString = goals.map((g) => 
-        "${g['title']}: \$${g['current_amount']}/\$${g['target_amount']}"
-      ).join(', ');
-
-      return '[CONTEXTO NUTRICIONAL ACTUAL: '
-             'Calorías Totales: ${(summary['total_income'] - summary['total_expense']).toStringAsFixed(0)} kcal, '
-             'Comidas Registradas: ${summary['total_income']}, '
-             'Meta Calórica Diaria: ${summary['total_expense']}, '
-             'Metas Activas: ${goalsString.isEmpty ? "Ninguna" : goalsString}]';
+      // We can add more context here like current plan, streak, etc. if needed
+      return '[CONTEXTO NUTRICIONAL RELEVANTE: $profileContext]';
     } catch (e) {
+      debugPrint('Error getting nutrition context: $e');
       return '[No se pudo obtener el contexto nutricional actual]';
     }
   }
@@ -86,6 +79,7 @@ class AiService {
 
       final response = await _chat!.sendMessage(Content.text(fullPrompt));
       String responseText = response.text ?? 'No pude procesar tu solicitud.';
+      debugPrint('AI Raw Response: $responseText');
       
       Map<String, dynamic>? genUiData;
       bool isGenUI = false;
@@ -111,6 +105,7 @@ class AiService {
            
           genUiData = json.decode(jsonString);
           isGenUI = true;
+          debugPrint('Successfully parsed GenUI JSON: $genUiData');
           
           responseText = responseText.replaceRange(jsonMatch.start, jsonMatch.end, '').trim();
         } catch (e) {
@@ -126,6 +121,7 @@ class AiService {
         data: genUiData,
       );
     } catch (e) {
+      debugPrint('CRITICAL ERROR in AiService.sendMessage: $e');
       return Message(
         text: 'Error al conectar con la IA: $e',
         isAi: true,

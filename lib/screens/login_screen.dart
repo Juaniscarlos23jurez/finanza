@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../services/auth_service.dart';
 import 'main_screen.dart';
+import 'onboarding_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -125,12 +127,19 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _processAuthResult(Map<String, dynamic> result) {
+  void _processAuthResult(Map<String, dynamic> result) async {
     if (result['success']) {
+      if (!mounted) return;
+      
+      final prefs = await SharedPreferences.getInstance();
+      final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+        MaterialPageRoute(
+          builder: (context) => onboardingCompleted ? const MainScreen() : const OnboardingScreen(),
+        ),
       );
     } else {
       if (!mounted) return;
@@ -176,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Expanded(child: Divider(color: AppTheme.secondary.withOpacity(0.3))),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
@@ -184,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
-                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Expanded(child: Divider(color: AppTheme.secondary.withOpacity(0.3))),
                 ],
               ),
               const SizedBox(height: 24),
