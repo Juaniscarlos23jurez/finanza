@@ -30,7 +30,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
   double _currentWeight = 0;
   double _weightDiff = 0;
   bool _canRegisterToday = true;
-  DateTime? _lastRegistrationTime;
 
   @override
   void initState() {
@@ -108,7 +107,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
         double current = 0;
         double diff = 0;
         bool canRegister = true;
-        DateTime? lastTime;
 
         if (event.snapshot.value != null) {
           final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
@@ -119,7 +117,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             canRegister = false;
             final lastEntry = data[today];
             if (lastEntry['timestamp'] != null) {
-              lastTime = DateTime.fromMillisecondsSinceEpoch(lastEntry['timestamp'] as int);
+              // Time check could be used here if needed, but removed to clear warning
             }
           }
 
@@ -149,7 +147,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
           _currentWeight = current;
           _weightDiff = diff;
           _canRegisterToday = canRegister;
-          _lastRegistrationTime = lastTime;
         });
       }
     });
