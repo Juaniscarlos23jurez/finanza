@@ -323,13 +323,13 @@ abstract class AppLocalizations {
   /// No description provided for @googleError.
   ///
   /// In es, this message translates to:
-  /// **'Error con Google: {error}'**
+  /// **'Error con Google:'**
   String googleError(String error);
 
   /// No description provided for @appleError.
   ///
   /// In es, this message translates to:
-  /// **'Error con Apple: {error}'**
+  /// **'Error con Apple:'**
   String appleError(String error);
 
   /// No description provided for @welcomeBack.
@@ -569,7 +569,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteError.
   ///
   /// In es, this message translates to:
-  /// **'Error al eliminar: {error}'**
+  /// **'Error al eliminar:'**
   String deleteError(String error);
 
   /// No description provided for @today.
@@ -977,7 +977,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorGeneric.
   ///
   /// In es, this message translates to:
-  /// **'Error: {error}'**
+  /// **'Error:'**
   String errorGeneric(String error);
 
   /// No description provided for @aiThinking.
@@ -989,7 +989,7 @@ abstract class AppLocalizations {
   /// No description provided for @speechError.
   ///
   /// In es, this message translates to:
-  /// **'Error de voz: {error}'**
+  /// **'Error de voz:'**
   String speechError(String error);
 
   /// No description provided for @voiceRecognitionUnavailable.
@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @csvShareError.
   ///
   /// In es, this message translates to:
-  /// **'Error al compartir CSV: {error}'**
+  /// **'Error al compartir CSV:'**
   String csvShareError(String error);
 
   /// No description provided for @transactionSummary.
@@ -1313,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveError.
   ///
   /// In es, this message translates to:
-  /// **'Error al guardar: {error}'**
+  /// **'Error al guardar:'**
   String saveError(String error);
 
   /// No description provided for @total.

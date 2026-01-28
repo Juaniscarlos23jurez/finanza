@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:geminifinanzas/screens/login_screen.dart';
 import 'package:geminifinanzas/screens/main_screen.dart';
-import 'package:geminifinanzas/screens/onboarding_screen.dart';
 import 'package:geminifinanzas/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -74,9 +73,7 @@ void main() async {
       child: MyApp(
         initialScreen: token != null 
             ? const MainScreen() 
-            : (prefs.getBool('onboarding_completed') ?? false 
-                ? const LoginScreen() 
-                : const OnboardingScreen()),
+            : const LoginScreen(),
       ),
     ),
   );

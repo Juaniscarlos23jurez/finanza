@@ -98,6 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       debugPrint('Step 2: Starting Apple Auth Provider Flow');
       final appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      
       final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
       
       debugPrint('Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}');
@@ -114,7 +117,18 @@ class _LoginScreenState extends State<LoginScreen> {
         _processAuthResult(result);
       } else {
         debugPrint('Error: Apple idToken is NULL');
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: No se pudo obtener el token de autenticación.')),
+          );
+        }
       }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('CRITICAL ERROR during Apple Sign In (Firebase): ${e.code} - ${e.message}');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Apple Auth Error: ${e.message} (Code: ${e.code})')),
+      );
     } catch (e) {
       debugPrint('CRITICAL ERROR during Apple Sign In: $e');
       if (!mounted) return;
@@ -122,7 +136,9 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(content: Text(AppLocalizations.of(context)!.appleError(e.toString()))),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

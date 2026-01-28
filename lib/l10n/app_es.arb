@@ -42,7 +42,7 @@
     "configSaved": "¡Configuración guardada con éxito!",
     "language": "Idioma",
     "fillAllFields": "Por favor llena todos los campos",
-    "googleError": "Error con Google: {error}",
+    "googleError": "Error con Google:",
     "@googleError": {
         "placeholders": {
             "error": {
@@ -50,7 +50,7 @@
             }
         }
     },
-    "appleError": "Error con Apple: {error}",
+    "appleError": "Error con Apple:",
     "@appleError": {
         "placeholders": {
             "error": {
@@ -97,7 +97,7 @@
     "delete": "Eliminar",
     "deleteTransactionConfirm": "¿Estás seguro de eliminar este movimiento?",
     "transactionDeleted": "Movimiento eliminado",
-    "deleteError": "Error al eliminar: {error}",
+    "deleteError": "Error al eliminar:",
     "@deleteError": {
         "placeholders": {
             "error": {
@@ -238,7 +238,7 @@
     "errorSendingInvitation": "Error al enviar invitación",
     "sendInvitation": "Enviar Invitación",
     "add": "Añadir",
-    "errorGeneric": "Error: {error}",
+    "errorGeneric": "Error:",
     "@errorGeneric": {
         "placeholders": {
             "error": {
@@ -247,7 +247,7 @@
         }
     },
     "aiThinking": "La IA está pensando...",
-    "speechError": "Error de voz: {error}",
+    "speechError": "Error de voz:",
     "@speechError": {
         "placeholders": {
             "error": {
@@ -295,7 +295,7 @@
     "downloadAdPrompt": "Ve un anuncio para descargar",
     "shareCsv": "Compartir / Guardar CSV",
     "shareCsvText": "Aquí tienes mi reporte financiero.",
-    "csvShareError": "Error al compartir CSV: {error}",
+    "csvShareError": "Error al compartir CSV:",
     "@csvShareError": {
         "placeholders": {
             "error": {
@@ -350,7 +350,7 @@
     "ticketGenerated": "Ticket Generado",
     "confirmAndSave": "Confirmar y Guardar",
     "balanceActual": "SALDO ACTUAL",
-    "saveError": "Error al guardar: {error}",
+    "saveError": "Error al guardar:",
     "@saveError": {
         "placeholders": {
             "error": {

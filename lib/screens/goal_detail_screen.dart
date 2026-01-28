@@ -31,6 +31,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     super.initState();
     _goal = widget.goal;
     _setupSync();
+    // Fetch full goal details including transactions immediately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshGoal();
+    });
   }
 
   void _setupSync() {
@@ -57,23 +61,46 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       if (id == null) return;
       
       debugPrint("DEBUG: Refreshing specific goal ID: $id via API");
-      final updatedGoal = await _financeService.getGoal(id);
+      Map<String, dynamic> updatedGoal = await _financeService.getGoal(id);
       
       if (updatedGoal.isNotEmpty && mounted) {
-        debugPrint("DEBUG: Updated goal found via direct fetch.");
-        final List<dynamic> txs = (updatedGoal['transactions'] ?? 
-                                   updatedGoal['history'] ?? 
-                                   updatedGoal['records'] ?? 
-                                   updatedGoal['contributions'] ?? 
-                                   updatedGoal['items'] ?? 
-                                   updatedGoal['logs'] ?? []) as List<dynamic>;
+        debugPrint("DEBUG: Updated goal found via direct fetch. Keys: ${updatedGoal.keys}");
         
-        if (txs.isNotEmpty) {
-          debugPrint("DEBUG: Transactions fetched: ${txs.length}");
-        } else {
-          debugPrint("DEBUG: No transactions in updated goal object.");
+        // Robust check for transaction lists
+        List<dynamic> getBestList(Map<String, dynamic> goal) {
+           final keys = ['transactions', 'records', 'history', 'contributions', 'items', 'logs'];
+           for (var key in keys) {
+             final val = goal[key];
+             if (val is List && val.isNotEmpty) return val;
+           }
+           return [];
         }
+
+        List<dynamic> txs = getBestList(updatedGoal);
         
+        // Fallback: If no transactions in goal object, fetch global records and filter
+        // This solves the issue where some goal responses are "thin"
+        if (txs.isEmpty) {
+          debugPrint("DEBUG: No transactions found in standard keys. Fetching global records as fallback...");
+          try {
+            final globalData = await _financeService.getFinanceData();
+            final allRecords = globalData['records'] as List<dynamic>? ?? [];
+            txs = allRecords.where((r) {
+              final gid = r['financial_goal_id']?.toString() ?? r['goal_id']?.toString();
+              return gid == id.toString();
+            }).toList();
+            debugPrint("DEBUG: Fallback found ${txs.length} transactions for goal $id.");
+            
+            // Inject filtered records into a new map to update state
+            updatedGoal = Map<String, dynamic>.from(updatedGoal);
+            updatedGoal['transactions'] = txs;
+          } catch (e) {
+            debugPrint("DEBUG: Error in global fallback: $e");
+          }
+        } else {
+          debugPrint("DEBUG: Transactions extracted count: ${txs.length}");
+        }
+
         setState(() {
           _goal = updatedGoal;
         });
@@ -124,27 +151,48 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               setState(() => _isLoading = true);
 
               try {
+                if (!isDeposit) {
+                   final current = double.tryParse(_goal['current_amount'].toString()) ?? 0.0;
+                   if (val > current) {
+                     if (!context.mounted) return;
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                         content: Text(l10n.insufficientFunds), backgroundColor: Colors.red));
+                     setState(() => _isLoading = false);
+                     return;
+                   }
+                }
+
+                final Map<String, dynamic> result = isDeposit 
+                  ? await _financeService.contributeToGoal(_goal['id'], val)
+                  : await _financeService.withdrawFromGoal(_goal['id'], val);
+
+                if (mounted) {
+                   if (result.containsKey('goal')) {
+                     debugPrint("DEBUG: Updating goal from transaction result");
+                     setState(() {
+                       _goal = result['goal'];
+                     });
+                   } else if (result.containsKey('data')) {
+                     debugPrint("DEBUG: Updating goal from transaction result (data key)");
+                     setState(() {
+                       _goal = result['data'];
+                     });
+                   }
+                }
+
                 if (isDeposit) {
-                  await _financeService.contributeToGoal(_goal['id'], val);
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(l10n.savingAddedSuccess), backgroundColor: Colors.green));
                 } else {
-                  final current = double.tryParse(_goal['current_amount'].toString()) ?? 0.0;
-                  if (val > current) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(l10n.insufficientFunds), backgroundColor: Colors.red));
-                    setState(() => _isLoading = false);
-                    return;
-                  }
-                  await _financeService.withdrawFromGoal(_goal['id'], val);
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(l10n.withdrawalSuccess), backgroundColor: Colors.orange));
                 }
                 
+                // Still refresh to be safe, but we already updated state above
                 await _refreshGoal();
+                
                 final int? goalId = int.tryParse(_goal['id'].toString());
                 if (goalId != null) {
                   await _firebaseService.notifyGoalUpdate(goalId);
@@ -176,7 +224,18 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final double progress = (current / target).clamp(0.0, 1.0);
     final int percentage = (progress * 100).round();
     final String title = _goal['title'] ?? l10n.goal;
-    final List<dynamic> transactionsList = (_goal['transactions'] ?? _goal['history'] ?? _goal['records'] ?? _goal['contributions'] ?? _goal['items'] ?? _goal['logs'] ?? []) as List<dynamic>;
+    
+    // Robust check for transaction lists
+    List<dynamic> getBestList(Map<String, dynamic> goal) {
+      final keys = ['transactions', 'records', 'history', 'contributions', 'items', 'logs'];
+      for (var key in keys) {
+        final val = goal[key];
+        if (val is List && val.isNotEmpty) return val;
+      }
+      return (goal['transactions'] ?? goal['records'] ?? []) as List<dynamic>;
+    }
+    
+    final List<dynamic> transactionsList = getBestList(_goal);
     
     debugPrint("DEBUG: Rendering goal: ${_goal['title']} (ID: ${_goal['id']})");
     debugPrint("DEBUG: Current amount: $current, Target amount: $target");
@@ -345,9 +404,20 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       if (transactions.isNotEmpty)
                         ...transactions.map((t) {
                           debugPrint("DEBUG: Mapping transaction: $t");
-                          final bool isContribution = t['type'] == 'contribution' ||
-                              t['type'] == 'deposit' ||
-                              (double.tryParse(t['amount']?.toString() ?? '0') ?? 0) > 0;
+                          final String type = (t['type'] ?? '').toString().toLowerCase();
+                          final String category = (t['category'] ?? '').toString().toLowerCase();
+                          final String description = (t['description'] ?? '').toString().toLowerCase();
+                          
+                          // Correct mapping for this backend:
+                          // Abonos (contributions) are labeled as 'expense' (from wallet) or 'ahorro' category.
+                          // Retiros (withdrawals) are labeled as 'income' (to wallet) or 'retiro' category.
+                          final bool isContribution = type == 'contribution' ||
+                              type == 'deposit' ||
+                              type == 'expense' ||
+                              category.contains('ahorro') ||
+                              description.contains('abono') ||
+                              (description.contains('meta') && !description.contains('retiro'));
+                              
                           final double amount = (double.tryParse(t['amount']?.toString() ?? '0') ?? 0).abs();
 
                           return _buildGoalTransactionItem(

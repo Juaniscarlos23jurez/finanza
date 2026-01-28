@@ -119,12 +119,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String googleError(String error) {
-    return 'Error con Google: $error';
+    return 'Error con Google:';
   }
 
   @override
   String appleError(String error) {
-    return 'Error con Apple: $error';
+    return 'Error con Apple:';
   }
 
   @override
@@ -247,7 +247,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String deleteError(String error) {
-    return 'Error al eliminar: $error';
+    return 'Error al eliminar:';
   }
 
   @override
@@ -470,7 +470,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String errorGeneric(String error) {
-    return 'Error: $error';
+    return 'Error:';
   }
 
   @override
@@ -478,7 +478,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String speechError(String error) {
-    return 'Error de voz: $error';
+    return 'Error de voz:';
   }
 
   @override
@@ -587,7 +587,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String csvShareError(String error) {
-    return 'Error al compartir CSV: $error';
+    return 'Error al compartir CSV:';
   }
 
   @override
@@ -658,7 +658,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String saveError(String error) {
-    return 'Error al guardar: $error';
+    return 'Error al guardar:';
   }
 
   @override

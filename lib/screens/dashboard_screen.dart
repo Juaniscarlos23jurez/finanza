@@ -12,8 +12,7 @@ import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
 import 'category_details_screen.dart';
 import 'goal_detail_screen.dart';
-import '../services/gamification_service.dart';
-import '../widgets/streak_widget.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,7 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final FinanceService _financeService = FinanceService();
   final AuthService _authService = AuthService();
   final FirebaseService _firebaseService = FirebaseService();
-  final GamificationService _gamificationService = GamificationService();
+
   StreamSubscription? _updateSubscription;
   StreamSubscription? _invitationSubscription;
   bool _isLoading = true;
@@ -53,7 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _fetchFinanceData();
     });
     _setupInvitationListener();
-    _gamificationService.checkIn();
+
   }
 
   Future<void> _setupInvitationListener() async {
@@ -587,48 +586,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.dashboard,
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                color: AppTheme.primary,
-                fontWeight: FontWeight.w900,
-              ),
+        Text(
+          AppLocalizations.of(context)!.dashboard,
+          style: GoogleFonts.manrope(
+            fontSize: 24,
+            color: AppTheme.primary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        if (_userCode.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.purpleAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.2)),
             ),
-            Row(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                StreakWidget(),
-                const SizedBox(width: 8),
-                if (_userCode.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.purpleAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.qr_code_2_rounded, size: 14, color: Colors.purpleAccent),
-                        const SizedBox(width: 6),
-                        Text(
-                          _userCode,
-                          style: GoogleFonts.manrope(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purpleAccent,
-                          ),
-                        ),
-                      ],
-                    ),
+                const Icon(Icons.qr_code_2_rounded, size: 14, color: Colors.purpleAccent),
+                const SizedBox(width: 6),
+                Text(
+                  _userCode,
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purpleAccent,
                   ),
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ],
     );
   }

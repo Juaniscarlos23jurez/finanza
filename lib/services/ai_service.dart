@@ -14,7 +14,7 @@ class AiService {
   ChatSession? _chat;
 
   AiService() : _model = GenerativeModel(
-    model: 'gemini-2.0-flash-lite-preview-02-05',
+    model: 'gemini-2.5-flash-lite',
     apiKey: _apiKey,
     systemInstruction: Content.system(
       'Eres el asistente financiero de "Finanzas AI". '

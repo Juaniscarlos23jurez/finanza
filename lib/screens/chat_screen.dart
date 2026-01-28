@@ -420,11 +420,17 @@ class _ChatScreenState extends State<ChatScreen> {
               color: AppTheme.primary,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add_rounded, color: AppTheme.primary),
-            onPressed: () {
-               setState(() => _currentConversationId = null);
-            },
+          Visibility(
+            visible: _currentConversationId != null,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: IconButton(
+              icon: const Icon(Icons.add_rounded, color: AppTheme.primary),
+              onPressed: () {
+                 setState(() => _currentConversationId = null);
+              },
+            ),
           ),
         ],
       ),
