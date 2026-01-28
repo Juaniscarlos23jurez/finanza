@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'dashboard_screen.dart';
 import 'pantry_screen.dart';
+import 'nutrition_plan_screen.dart';
 import 'profile_screen.dart';
 import 'progress_screen.dart';
 
@@ -22,6 +23,7 @@ class _MainScreenState extends State<MainScreen> {
     const ChatScreen(),
     const ProgressScreen(),
     const PantryScreen(),
+    const NutritionPlanScreen(),
     const ProfileScreen(),
   ];
 
@@ -45,15 +47,16 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), // Reduced padding to fit more items
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Changed to spaceBetween
               children: [
                 _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard),
                 _buildNavItem(1, FontAwesomeIcons.commentDots, FontAwesomeIcons.solidCommentDots),
                 _buildNavItem(2, Icons.local_fire_department_rounded, Icons.local_fire_department_rounded),
                 _buildNavItem(3, Icons.shopping_basket_outlined, Icons.shopping_basket),
-                _buildNavItem(4, Icons.person_outline_rounded, Icons.person),
+                _buildNavItem(4, Icons.restaurant_menu_rounded, Icons.restaurant_menu),
+                _buildNavItem(5, Icons.person_outline_rounded, Icons.person),
               ],
             ),
           ),
@@ -76,15 +79,15 @@ class _MainScreenState extends State<MainScreen> {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Slightly smaller padding
         decoration: BoxDecoration(
           color: isSelected ? (index == 2 ? Colors.redAccent : AppTheme.primary) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16), // Slightly smaller radius
         ),
         child: Icon(
           isSelected ? activeIcon : icon,
           color: iconColor,
-          size: 24,
+          size: 22, // Slightly smaller icon
         ),
       ),
     );

@@ -87,7 +87,7 @@ class NutritionService {
     
     // If we completed a meal during initialization, check streak update
     if (completedIndex != null) {
-      // Logic for streak update could go here, but maybe better to keep it simple for now
+      await addXp(50);
     }
   }
 
@@ -96,6 +96,10 @@ class NutritionService {
     if (userId == null) throw Exception('No user logged in');
 
     await _database.ref('users/$userId/daily_meals/$mealId/completed').set(completed);
+
+    if (completed) {
+      await addXp(50);
+    }
   }
 
   Stream<DatabaseEvent> getPlan() async* {

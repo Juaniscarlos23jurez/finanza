@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
 import '../services/nutrition_service.dart';
+import '../services/gamification_service.dart';
 
 class NutritionPlanScreen extends StatefulWidget {
   const NutritionPlanScreen({super.key});
@@ -17,13 +18,19 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   // Need to listen to two streams: Plan (for targets) and Daily Meals (for execution)
   late Stream<DatabaseEvent> _planStream;
   late Stream<DatabaseEvent> _dailyMealsStream;
+  
+  // Track which macro goals have been celebrated today to avoid duplicates
+  final Set<String> _celebratedMacros = {};
 
   @override
   void initState() {
     super.initState();
     _planStream = _nutritionService.getPlan();
     _dailyMealsStream = _nutritionService.getDailyMeals();
+    _statsStream = _nutritionService.getGamificationStats();
   }
+
+  late Stream<DatabaseEvent> _statsStream;
 
   @override
   Widget build(BuildContext context) {
@@ -117,55 +124,175 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return StreamBuilder<DatabaseEvent>(
+      stream: _statsStream,
+      builder: (context, snapshot) {
+        int lives = 5;
+        if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+          final data = Map<String, dynamic>.from(snapshot.data!.snapshot.value as Map);
+          lives = data['lives'] ?? 5;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'ANTI-TRACKER',
-                style: GoogleFonts.manrope(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.secondary,
-                  letterSpacing: 2.0,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Row(
+                    children: [
+                      Text(
+                        'ANTI-TRACKER',
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.secondary,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Lives Counter (Clickable for Cheat Meal)
+                      GestureDetector(
+                        onTap: () => _handleCheatMeal(lives),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3))
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.favorite, size: 14, color: Colors.redAccent),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$lives', 
+                                style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent)
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                   ),
+                  Text(
+                    'Plan de Hoy',
+                    style: GoogleFonts.manrope(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                'Plan de Hoy',
-                style: GoogleFonts.manrope(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.primary,
-                ),
-              ),
+              // Visual Hint
+              Container(
+                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                 decoration: BoxDecoration(
+                   color: Colors.green.withValues(alpha: 0.1),
+                   borderRadius: BorderRadius.circular(20),
+                   border: Border.all(color: Colors.green.withValues(alpha: 0.2))
+                 ),
+                 child: Row(
+                   children: [
+                     const Icon(Icons.check_circle_outline, size: 14, color: Colors.green),
+                     const SizedBox(width: 4),
+                     Text(
+                       'Toca para comer', 
+                       style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)
+                     )
+                   ],
+                 ),
+              )
             ],
           ),
-          // Visual Hint
-          Container(
-             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-             decoration: BoxDecoration(
-               color: Colors.green.withValues(alpha: 0.1),
-               borderRadius: BorderRadius.circular(20),
-               border: Border.all(color: Colors.green.withValues(alpha: 0.2))
-             ),
-             child: Row(
-               children: [
-                 const Icon(Icons.check_circle_outline, size: 14, color: Colors.green),
-                 const SizedBox(width: 4),
-                 Text(
-                   'Toca para comer', 
-                   style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)
-                 )
-               ],
-             ),
-          )
-        ],
-      ),
+        );
+      }
     );
+  }
+
+  Future<void> _checkMacroGoals(Map meal) async {
+    // Get current plan to check targets
+    final planSnapshot = await _nutritionService.getPlan().first;
+    if (!planSnapshot.snapshot.exists) return;
+    
+    final planData = Map<String, dynamic>.from(planSnapshot.snapshot.value as Map);
+    final Map macroTargets = planData['macros'] ?? {};
+    
+    // Get all daily meals to calculate totals
+    final mealsSnapshot = await _nutritionService.getDailyMeals().first;
+    if (!mealsSnapshot.snapshot.exists) return;
+    
+    final Map<dynamic, dynamic> mealsData = mealsSnapshot.snapshot.value as Map<dynamic, dynamic>;
+    
+    double totalProtein = 0;
+    double totalCarbs = 0;
+    double totalFats = 0;
+    
+    mealsData.forEach((key, value) {
+      final mealData = Map<String, dynamic>.from(value as Map);
+      if (mealData['completed'] == true) {
+        totalProtein += double.tryParse(mealData['protein']?.toString() ?? '0') ?? 0;
+        totalCarbs += double.tryParse(mealData['carbs']?.toString() ?? '0') ?? 0;
+        totalFats += double.tryParse(mealData['fats']?.toString() ?? '0') ?? 0;
+      }
+    });
+    
+    // Check each macro and trigger modal if goal reached (and not already celebrated)
+    final targetProtein = macroTargets['protein'] ?? 0;
+    final targetCarbs = macroTargets['carbs'] ?? 0;
+    final targetFats = macroTargets['fats'] ?? 0;
+    
+    if (totalProtein >= targetProtein && !_celebratedMacros.contains('protein')) {
+      _celebratedMacros.add('protein');
+      if (mounted) {
+        GamificationService().checkAndShowModal(context, PandaTrigger.goalMet);
+      }
+    }
+    
+    if (totalCarbs >= targetCarbs && !_celebratedMacros.contains('carbs')) {
+      _celebratedMacros.add('carbs');
+      if (mounted) {
+        GamificationService().checkAndShowModal(context, PandaTrigger.goalMet);
+      }
+    }
+    
+    if (totalFats >= targetFats && !_celebratedMacros.contains('fats')) {
+      _celebratedMacros.add('fats');
+      if (mounted) {
+        GamificationService().checkAndShowModal(context, PandaTrigger.goalMet);
+      }
+    }
+  }
+
+  Future<void> _handleCheatMeal(int currentLives) async {
+    if (currentLives <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No te quedan vidas para Cheat Meals 😱'))
+      );
+      return;
+    }
+
+    final bool? confirm = await showDialog<bool>(
+      context: context, 
+      builder: (context) => AlertDialog(
+        title: const Text('¿Usar una vida?'),
+        content: const Text('Esto registrará un Cheat Meal y consumirá 1 corazón ❤️.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('¡Dale!')),
+        ],
+      )
+    );
+
+    if (confirm == true) {
+      final success = await _nutritionService.consumeLife();
+      if (success && mounted) {
+        GamificationService().checkAndShowModal(context, PandaTrigger.lifeUsed);
+      }
+    }
   }
 
   Widget _buildContent(Map<String, dynamic>? plan, List<Map<String, dynamic>> dailyMeals) {
@@ -220,11 +347,20 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   }
 
   Widget _buildSummaryCard(int targetCalories, Map macros, List<Map<String, dynamic>> dailyMeals) {
-    // Calculate consumed
+    // Calculate consumed calories and macros
     int consumed = 0;
+    double consumedProtein = 0;
+    double consumedCarbs = 0;
+    double consumedFats = 0;
+    
     for (var meal in dailyMeals) {
       if (meal['completed'] == true) {
         consumed += int.tryParse(meal['calories']?.toString() ?? '0') ?? 0;
+        
+        // Extract macros from meal (if available)
+        consumedProtein += double.tryParse(meal['protein']?.toString() ?? '0') ?? 0;
+        consumedCarbs += double.tryParse(meal['carbs']?.toString() ?? '0') ?? 0;
+        consumedFats += double.tryParse(meal['fats']?.toString() ?? '0') ?? 0;
       }
     }
     
@@ -299,9 +435,24 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMacroStat('Proteína', '${macros['protein']}g', Colors.red.shade200),
-              _buildMacroStat('Carbos', '${macros['carbs']}g', Colors.orange.shade200),
-              _buildMacroStat('Grasas', '${macros['fats']}g', Colors.amber.shade200),
+              _buildMacroStat(
+                'Proteína', 
+                '${consumedProtein.toInt()}/${macros['protein']}g', 
+                Colors.red.shade200,
+                consumedProtein >= (macros['protein'] ?? 0)
+              ),
+              _buildMacroStat(
+                'Carbos', 
+                '${consumedCarbs.toInt()}/${macros['carbs']}g', 
+                Colors.orange.shade200,
+                consumedCarbs >= (macros['carbs'] ?? 0)
+              ),
+              _buildMacroStat(
+                'Grasas', 
+                '${consumedFats.toInt()}/${macros['fats']}g', 
+                Colors.amber.shade200,
+                consumedFats >= (macros['fats'] ?? 0)
+              ),
             ],
           ),
         ],
@@ -309,17 +460,30 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildMacroStat(String label, String value, Color color) {
+  Widget _buildMacroStat(String label, String value, Color color, [bool isComplete = false]) {
     return Column(
       children: [
-        Text(
-          label,
-          style: GoogleFonts.manrope(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.bold),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.manrope(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.bold),
+            ),
+            if (isComplete) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.check_circle, size: 12, color: Colors.greenAccent),
+            ],
+          ],
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.manrope(fontSize: 16, color: color, fontWeight: FontWeight.w800),
+          style: GoogleFonts.manrope(
+            fontSize: 14, 
+            color: isComplete ? Colors.greenAccent : color, 
+            fontWeight: FontWeight.w800
+          ),
         ),
       ],
     );
@@ -328,44 +492,50 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   Widget _buildInteractiveMealItem(Map meal, int index, bool isLive, List allExisitingMeals) {
     final bool isCompleted = meal['completed'] ?? false;
     final String title = meal['name'] ?? 'Comida';
-    final String time = meal['time'] ?? 'Flexible';
     final String details = meal['details'] ?? '';
     final String id = meal['id'] ?? 'temp_$index';
 
-    return GestureDetector(
-      onTap: () async {
-        if (isLive) {
-          // Toggle existing
-          await _nutritionService.toggleMealCompletion(id, !isCompleted);
-        } else {
-          // Initialize and toggle this one
-          await _nutritionService.initializeTodayMeals(allExisitingMeals, index);
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isCompleted ? Colors.green.withValues(alpha: 0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: isCompleted ? Border.all(color: Colors.green.withValues(alpha: 0.3), width: 1.5) : Border.all(color: Colors.transparent),
-          boxShadow: [
-            if (!isCompleted)
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Checkbox Area
-            AnimatedContainer(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isCompleted ? Colors.green.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: isCompleted ? Border.all(color: Colors.green.withValues(alpha: 0.3), width: 1.5) : Border.all(color: Colors.transparent),
+        boxShadow: [
+          if (!isCompleted)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Checkbox Area (Tap here to complete)
+          GestureDetector(
+            onTap: () async {
+              if (isLive) {
+                final bool newStatus = !isCompleted;
+                await _nutritionService.toggleMealCompletion(id, newStatus);
+                if (newStatus && mounted) {
+                   GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+                   _checkMacroGoals(meal);
+                }
+              } else {
+                await _nutritionService.initializeTodayMeals(allExisitingMeals, index);
+                if (mounted) {
+                   GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+                   _checkMacroGoals(meal);
+                }
+              }
+            },
+            child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 28,
-              height: 28,
+              width: 32, // Slightly larger touch area
+              height: 32,
               decoration: BoxDecoration(
                 color: isCompleted ? Colors.green : Colors.transparent,
                 shape: BoxShape.circle,
@@ -375,54 +545,147 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                 )
               ),
               child: isCompleted 
-                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                ? const Icon(Icons.check, color: Colors.white, size: 20)
                 : null,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.w800, 
-                            fontSize: 16,
-                            decoration: isCompleted ? TextDecoration.lineThrough : null,
-                            color: isCompleted ? AppTheme.secondary.withValues(alpha: 0.6) : AppTheme.primary
+          ),
+          const SizedBox(width: 16),
+          // Content Area (Tap here to see Recipe)
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showRecipeModal(context, meal),
+              child: Container(
+                color: Colors.transparent, // Make entire area tappable
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: GoogleFonts.manrope(
+                              fontWeight: FontWeight.w800, 
+                              fontSize: 16,
+                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                              color: isCompleted ? AppTheme.secondary.withValues(alpha: 0.6) : AppTheme.primary
+                            ),
                           ),
                         ),
-                      ),
+                        if (meal['calories'] != null)
+                          Text(
+                            '${meal['calories']} kcal',
+                            style: GoogleFonts.manrope(
+                              fontSize: 12,
+                              color: isCompleted ? Colors.green.withValues(alpha: 0.6) : AppTheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (details.isNotEmpty)
                       Text(
-                        time,
+                        details,
+                        maxLines: isCompleted ? 1 : 2,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.manrope(
-                          fontSize: 12,
-                          color: isCompleted ? Colors.green.withValues(alpha: 0.6) : AppTheme.primary,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 13, 
+                          color: AppTheme.secondary.withValues(alpha: isCompleted ? 0.4 : 1.0), 
+                          height: 1.4
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  if (details.isNotEmpty)
-                    Text(
-                      details,
-                      maxLines: isCompleted ? 1 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                        fontSize: 13, 
-                        color: AppTheme.secondary.withValues(alpha: isCompleted ? 0.4 : 1.0), 
-                        height: 1.4
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRecipeModal(BuildContext context, Map meal) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: ListView(
+            controller: controller,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, 
+                  height: 4, 
+                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                meal['name'] ?? 'Receta',
+                style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.local_fire_department_rounded, size: 16, color: Colors.orange),
+                  const SizedBox(width: 4),
+                  Text('${meal['calories'] ?? 0} kcal', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.secondary)),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.timer_outlined, size: 16, color: Colors.blue),
+                  const SizedBox(width: 4),
+                  Text('15-20 min', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.secondary)), // Placeholder or data
+                ],
+              ),
+              const SizedBox(height: 32),
+              if (meal['recipe'] != null) ...[
+                Text('Ingredientes', style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                const SizedBox(height: 12),
+                ...?meal['recipe']['ingredients']?.map<Widget>((ing) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.circle, size: 6, color: AppTheme.accent),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(ing.toString(), style: GoogleFonts.manrope(fontSize: 15, color: AppTheme.secondary))),
+                    ],
+                  ),
+                )),
+                const SizedBox(height: 32),
+                Text('Instrucciones', style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                const SizedBox(height: 12),
+                ...?meal['recipe']['steps']?.asMap().entries.map((entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                        child: Text('${entry.key + 1}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(entry.value.toString(), style: GoogleFonts.manrope(fontSize: 15, color: AppTheme.secondary, height: 1.5))),
+                    ],
+                  ),
+                )),
+              ],
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );

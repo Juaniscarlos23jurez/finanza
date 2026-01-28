@@ -9,6 +9,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:nutrigpt/services/nutrition_service.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
+import '../services/gamification_service.dart';
 import '../services/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -432,15 +433,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
                 }
                 if (allDone) {
-                  // This is a simple logic, in a real app we'd check if streak was already updated today
                   _nutritionService.updateStreak(1);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('¡Increíble! Has completado todas tus comidas de hoy. +1 Día de Racha'),
-                        backgroundColor: Colors.orangeAccent,
-                      ),
-                    );
+                    GamificationService().checkAndShowModal(context, PandaTrigger.streakKeep);
+                  }
+                } else {
+                  if (mounted) {
+                    GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
                   }
                 }
               }
@@ -631,12 +630,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             GestureDetector(
-              onTap: () {
-                 // Easter egg or info about lives
-                 ScaffoldMessenger.of(context).showSnackBar(
-                   const SnackBar(content: Text('❤️ Vidas: Usa una vida para un "Cheat Meal" sin perder racha.')),
-                 );
-              },
+              onTap: () => _handleCheatMeal(lives),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
@@ -747,6 +741,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (hour < 12) return '¡Buenos días! ☀️';
     if (hour < 20) return '¡Buenas tardes! 🌤️';
     return '¡Buenas noches! 🌙';
+  }
+
+  Future<void> _handleCheatMeal(int currentLives) async {
+    if (currentLives <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No te quedan vidas para Cheat Meals 😱'))
+      );
+      return;
+    }
+
+    final bool? confirm = await showDialog<bool>(
+      context: context, 
+      builder: (context) => AlertDialog(
+        title: const Text('¿Usar una vida?'),
+        content: const Text('Esto registrará un Cheat Meal y consumirá 1 corazón ❤️.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('¡Dale!')),
+        ],
+      )
+    );
+
+    if (confirm == true) {
+      final success = await _nutritionService.consumeLife();
+      if (success && mounted) {
+        GamificationService().checkAndShowModal(context, PandaTrigger.lifeUsed);
+      }
+    }
   }
 
   Widget _buildCalorieCard() {
