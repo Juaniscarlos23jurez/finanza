@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
 import '../main.dart';
 import '../screens/login_screen.dart';
