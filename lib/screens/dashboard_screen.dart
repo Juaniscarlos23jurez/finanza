@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
 import '../services/gamification_service.dart';
 import '../services/auth_service.dart';
+import '../l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onChallengeClick;
@@ -318,6 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
@@ -337,28 +339,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildMotivationQuote(),
                     const SizedBox(height: 24),
                     if (!_challengeCompleted) ...[
-                      _buildDailyChallenge(),
+                      _buildDailyChallenge(l10n),
                       const SizedBox(height: 24),
                     ],
                     _buildVisualGoalCard(),
                     const SizedBox(height: 24),
                     _buildCalorieCard(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Historial Calórico (7 días)'),
+                    _buildSectionTitle(l10n.caloricHistory7d),
                     const SizedBox(height: 16),
                     _buildHistoryChart(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Mis Objetivos', onAdd: _showAddGoalDialog),
+                    _buildSectionTitle(l10n.myGoals, onAdd: _showAddGoalDialog),
                     const SizedBox(height: 16),
                     _buildGoalsList(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Distribución de Macros'),
+                    _buildSectionTitle(l10n.macroDistribution),
                     const SizedBox(height: 16),
                     _buildCategoryChart(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Plan de Hoy'),
+                    _buildSectionTitle(l10n.todayPlan),
                     const SizedBox(height: 16),
-                    _buildDailyTimeline(),
+                    _buildDailyTimeline(l10n),
                   ],
                 ),
               ),
@@ -394,7 +396,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const Icon(Icons.auto_awesome_rounded, color: Colors.amber, size: 24),
               const SizedBox(width: 12),
               Text(
-                'VISIÓN AI: ${(_visualGoal!['prompt'] ?? 'TU META').toString().toUpperCase()}',
+                '${l10n.aiVision}: ${(_visualGoal!['prompt'] ?? l10n.targetLabel.toUpperCase()).toString().toUpperCase()}',
                 style: GoogleFonts.manrope(
                   fontWeight: FontWeight.w900,
                   fontSize: 12,
@@ -420,7 +422,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('AHORA', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary)),
+                    Text(l10n.nowLabel, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary)),
                   ],
                 ),
               ),
@@ -451,7 +453,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('TU META', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accent)),
+                    Text(l10n.yourGoalLabel, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accent)),
                   ],
                 ),
               ),
@@ -466,7 +468,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               border: Border.all(color: AppTheme.accent.withValues(alpha: 0.1)),
             ),
             child: Text(
-              'La IA predice: "Continuando con este plan, verás cambios notables en la definición de abdomen y mayor energía vital en 4 semanas."',
+              l10n.aiPredictionMsg,
               style: GoogleFonts.manrope(
                 fontSize: 12,
                 color: AppTheme.primary.withValues(alpha: 0.8),
@@ -495,7 +497,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              '"Tu cuerpo es tu templo, pero solo si tú eres su guardián."',
+              l10n.motivationQuote1,
               style: GoogleFonts.manrope(
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
@@ -509,7 +511,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDailyTimeline() {
+  Widget _buildDailyTimeline(AppLocalizations l10n) {
     if (_dailyMeals.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
@@ -519,9 +521,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(Icons.calendar_today_outlined, color: AppTheme.secondary.withValues(alpha: 0.3), size: 48),
             const SizedBox(height: 16),
-            Text('Sin plan para hoy', style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold)),
+            Text(l10n.noPlanToday, style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Pídele un plan a la IA en el chat', style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.6), fontSize: 12)),
+            Text(l10n.askAiPlanChat, style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.6), fontSize: 12)),
           ],
         ),
       );
@@ -743,7 +745,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
            // Try to init if null
            _nutritionService.initializeGamificationStats();
         }
-
+        final l10n = AppLocalizations.of(context)!;
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -751,7 +753,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _getGreeting(),
+                  _getGreeting(l10n),
                   style: GoogleFonts.manrope(
                     fontSize: 14,
                     color: AppTheme.secondary,
@@ -759,7 +761,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Text(
-                  _userName.isNotEmpty ? 'Hola, $_userName' : 'Panel de Control',
+                  _userName.isNotEmpty ? 'Hola, $_userName' : l10n.profile, // Or another key if more appropriate
                   style: GoogleFonts.manrope(
                     fontSize: 24,
                     color: AppTheme.primary,
@@ -804,7 +806,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDailyChallenge() {
+  Widget _buildDailyChallenge(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -838,7 +840,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'RETO DEL DÍA',
+                  l10n.dailyChallenge,
                   style: GoogleFonts.manrope(
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
@@ -847,7 +849,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Text(
-                  'Registra tu peso actual',
+                  l10n.logCurrentWeight,
                   style: GoogleFonts.manrope(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -866,7 +868,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             child: Text(
-              '¡IR!',
+              l10n.goBtn,
               style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12),
             ),
           ),
@@ -875,17 +877,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  String _getGreeting() {
+  String _getGreeting(AppLocalizations l10n) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return '¡Buenos días! ☀️';
-    if (hour < 20) return '¡Buenas tardes! 🌤️';
-    return '¡Buenas noches! 🌙';
+    if (hour < 12) return l10n.goodMorning;
+    if (hour < 20) return l10n.goodAfternoon;
+    return l10n.goodEvening;
   }
 
   Future<void> _handleCheatMeal(int currentLives) async {
+    final l10n = AppLocalizations.of(context)!;
     if (currentLives <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No te quedan vidas para Cheat Meals 😱'))
+        SnackBar(content: Text(l10n.noLivesLeft))
       );
       return;
     }
@@ -893,11 +896,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final bool? confirm = await showDialog<bool>(
       context: context, 
       builder: (context) => AlertDialog(
-        title: const Text('¿Usar una vida?'),
-        content: const Text('Esto registrará un Cheat Meal y consumirá 1 corazón ❤️.'),
+        title: Text(l10n.useLifeTitle),
+        content: Text(l10n.useLifeDesc),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('¡Dale!')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancelLabel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.goBtn)),
         ],
       )
     );
@@ -937,7 +940,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$_streak DÍAS DE RACHA',
+                '$_streak ${l10n.daysStreakLabel}',
                 style: GoogleFonts.manrope(
                   fontSize: 12,
                   color: Colors.white.withValues(alpha: 0.6),
@@ -972,13 +975,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             children: [
               _buildMiniStat(
-                'Faltan', 
+                l10n.remainingLabel, 
                 '${remaining.toStringAsFixed(0)} kcal', 
                 Colors.orangeAccent
               ),
               const SizedBox(width: 32),
               _buildMiniStat(
-                'Meta', 
+                l10n.targetLabel, 
                 '${target.toStringAsFixed(0)} kcal', 
                 Colors.greenAccent
               ),
@@ -1081,7 +1084,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Nuevo Objetivo',
+                l10n.newGoalTitle,
                 style: GoogleFonts.manrope(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
@@ -1090,7 +1093,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Define una meta clara para tu salud',
+                l10n.newGoalSubtitle,
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   color: AppTheme.secondary,
@@ -1099,7 +1102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 32),
               // Goal Type Selector
               Text(
-                'Tipo de Objetivo',
+                l10n.goalTypeLabel,
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -1111,36 +1114,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildGoalTypeChip(
-                      '⚖️ Peso',
+                      l10n.goalWeight,
                       'weight',
                       selectedType == 'weight',
                       () => setBottomSheetState(() {
                         selectedType = 'weight';
-                        titleController.text = 'Meta de Peso';
+                        titleController.text = l10n.goalWeight;
                       }),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _buildGoalTypeChip(
-                      '⏱️ Ejercicio',
+                      l10n.goalExercise,
                       'exercise_minutes',
                       selectedType == 'exercise_minutes',
                       () => setBottomSheetState(() {
                         selectedType = 'exercise_minutes';
-                        titleController.text = 'Minutos de Ejercicio';
+                        titleController.text = l10n.goalExercise;
                       }),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _buildGoalTypeChip(
-                      '🏃 Distancia',
+                      l10n.goalDistance,
                       'distance_km',
                       selectedType == 'distance_km',
                       () => setBottomSheetState(() {
                         selectedType = 'distance_km';
-                        titleController.text = 'Kilómetros Corridos';
+                        titleController.text = l10n.goalDistance;
                       }),
                     ),
                   ),
@@ -1150,7 +1153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: titleController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre del Objetivo',
+                  labelText: l10n.goalNameLabel,
                   hintText: _getGoalHint(selectedType),
                   prefixIcon: Icon(_getGoalIcon(selectedType)),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
@@ -1163,7 +1166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: amountController,
                 decoration: InputDecoration(
-                  labelText: 'Valor Meta',
+                  labelText: l10n.goalTargetValueLabel,
                   hintText: _getGoalValueHint(selectedType),
                   suffixText: _getGoalUnit(selectedType),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
@@ -1202,7 +1205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('¡Objetivo creado con éxito!'), backgroundColor: Colors.green),
+                        SnackBar(content: Text(l10n.goalCreatedSuccess), backgroundColor: Colors.green),
                       );
                     } catch (e) {
                       if (!context.mounted) return;
@@ -1212,7 +1215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   child: isSaving 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)) 
-                    : Text('Crear Meta', style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : Text(l10n.createGoalBtn, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -1455,7 +1458,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          'Progreso',
+                          AppLocalizations.of(context)!.progressLabel,
                           style: GoogleFonts.manrope(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
@@ -1477,7 +1480,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.delete_outline_rounded,
                       size: 18,
                       color: Colors.redAccent,
@@ -1569,7 +1572,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         Text(
-                          isWithdrawMode ? 'Registrar decremento' : 'Registrar progreso',
+                          isWithdrawMode ? l10n.subtract_label : l10n.add_label,
                           style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
                         ),
                       ],
@@ -1599,15 +1602,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _buildModalStat('Actual', '${current.toStringAsFixed(1)} $unit', AppTheme.primary),
+                      child: _buildModalStat(l10n.actualLabel, '${current.toStringAsFixed(1)} $unit', AppTheme.primary),
                     ),
                     Container(height: 40, width: 1, color: Colors.grey.withValues(alpha: 0.2)),
                     Expanded(
-                      child: _buildModalStat('Meta', '${target.toStringAsFixed(1)} $unit', AppTheme.secondary),
+                      child: _buildModalStat(l10n.targetLabel, '${target.toStringAsFixed(1)} $unit', AppTheme.secondary),
                     ),
                     Container(height: 40, width: 1, color: Colors.grey.withValues(alpha: 0.2)),
                     Expanded(
-                      child: _buildModalStat('Resta', '${remaining.toStringAsFixed(1)} $unit', Colors.orangeAccent),
+                      child: _buildModalStat(l10n.restLabel, '${remaining.toStringAsFixed(1)} $unit', Colors.orangeAccent),
                     ),
                   ],
                 ),
@@ -1618,7 +1621,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildModeButton(
-                      'Sumar', 
+                      l10n.add_label, 
                       Icons.add_circle_outline, 
                       !isWithdrawMode, 
                       () => setBottomSheetState(() => isWithdrawMode = false)
@@ -1627,7 +1630,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildModeButton(
-                      'Restar', 
+                      l10n.subtract_label, 
                       Icons.remove_circle_outline, 
                       isWithdrawMode, 
                       () => setBottomSheetState(() => isWithdrawMode = true)
@@ -1639,7 +1642,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: amountController,
                 decoration: InputDecoration(
-                  labelText: 'Monto a registrar',
+                  labelText: l10n.amountToLog,
                   prefixIcon: const Icon(Icons.edit_note),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   filled: true,
@@ -1687,7 +1690,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Progreso actualizado con éxito'),
+                            content: Text(l10n.progressUpdatedSuccess),
                             backgroundColor: isWithdrawMode ? Colors.orange : Colors.green,
                           ),
                         );
@@ -1700,7 +1703,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   child: isSaving 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)) 
-                    : Text('Confirmar', style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : Text(l10n.confirm_btn, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -1749,6 +1752,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showDeleteGoalConfirmation(Map<String, dynamic> goal) {
+    final l10n = AppLocalizations.of(context)!;
     final String title = goal['title'] ?? 'esta meta';
     final String? goalId = goal['id']?.toString();
 
@@ -1758,12 +1762,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('¿Eliminar objetivo?', style: GoogleFonts.manrope(fontWeight: FontWeight.w900)),
-        content: Text('Esta acción no se puede deshacer. Se eliminarán los datos de "$title".'),
+        title: Text(l10n.delete_goal_title, style: GoogleFonts.manrope(fontWeight: FontWeight.w900)),
+        content: Text(l10n.delete_goal_desc.replaceAll('{title}', title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(l10n.cancelLabel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1777,14 +1781,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Objetivo eliminado')),
+                  SnackBar(content: Text(l10n.goalDeleted)),
                 );
               } catch (e) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
-            child: const Text('Eliminar'),
+            child: Text(l10n.deleteBtn),
           ),
         ],
       ),
@@ -1815,7 +1819,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Balance de Nutrientes',
+                l10n.nutrientBalanceTitle,
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -1831,17 +1835,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 40),
                 child: Text(
-                  'Completa comidas hoy para ver tus macros 🥗',
+                  l10n.completeMealsMacrosMsg,
                   style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13),
                 ),
               ),
             )
           else ...[
-            _buildMacroRow('Proteínas', _categoryStats['Proteínas'] ?? 0, Colors.blueAccent),
+            _buildMacroRow(l10n.protein, _categoryStats['Proteínas'] ?? 0, Colors.blueAccent),
             const SizedBox(height: 16),
-            _buildMacroRow('Carbohidratos', _categoryStats['Carbohidratos'] ?? 0, Colors.orangeAccent),
+            _buildMacroRow(l10n.carbs, _categoryStats['Carbohidratos'] ?? 0, Colors.orangeAccent),
             const SizedBox(height: 16),
-            _buildMacroRow('Grasas', _categoryStats['Grasas'] ?? 0, Colors.redAccent),
+            _buildMacroRow(l10n.fats, _categoryStats['Grasas'] ?? 0, Colors.redAccent),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
@@ -1855,7 +1859,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Tu balance actual es ideal para ${(_categoryStats['Proteínas'] ?? 0) > 30 ? 'ganar músculo' : 'mantener energía'}.',
+                      l10n.balance_ideal_msg.replaceAll('{state}', (_categoryStats['Proteínas'] ?? 0) > 30 ? l10n.gainMuscle : l10n.maintainEnergy),
                       style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
                     ),
                   ),

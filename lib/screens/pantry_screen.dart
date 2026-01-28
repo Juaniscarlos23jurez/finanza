@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../services/nutrition_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class PantryScreen extends StatefulWidget {
   const PantryScreen({super.key});
@@ -150,32 +151,38 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
     final lower = name.toLowerCase();
     if (lower.contains('pollo') || lower.contains('carne') || lower.contains('pescado') || 
         lower.contains('huevo') || lower.contains('atún')) {
-      return 'Proteínas';
+      return 'cat_proteins';
     } else if (lower.contains('lechuga') || lower.contains('tomate') || lower.contains('cebolla') || 
                lower.contains('zanahoria') || lower.contains('espinaca') || lower.contains('brócoli')) {
-      return 'Verduras';
+      return 'cat_vegetables';
     } else if (lower.contains('manzana') || lower.contains('plátano') || lower.contains('naranja') || 
                lower.contains('fresa') || lower.contains('uva')) {
-      return 'Frutas';
+      return 'cat_fruits';
     } else if (lower.contains('arroz') || lower.contains('pasta') || lower.contains('pan') || 
                lower.contains('avena') || lower.contains('quinoa')) {
-      return 'Granos';
+      return 'cat_grains';
     } else if (lower.contains('leche') || lower.contains('yogur') || lower.contains('queso')) {
-      return 'Lácteos';
+      return 'cat_dairy';
     } else if (lower.contains('aceite') || lower.contains('sal') || lower.contains('pimienta') || 
                lower.contains('ajo') || lower.contains('especias')) {
-      return 'Condimentos';
+      return 'cat_condiments';
     }
-    return 'Otros';
+    return 'cat_others';
   }
 
   IconData _getCategoryIcon(String category) {
     switch (category) {
+      case 'cat_proteins':
       case 'Proteínas': return Icons.egg_outlined;
+      case 'cat_vegetables':
       case 'Verduras': return Icons.eco_outlined;
+      case 'cat_fruits':
       case 'Frutas': return Icons.apple_outlined;
+      case 'cat_grains':
       case 'Granos': return Icons.grain_outlined;
+      case 'cat_dairy':
       case 'Lácteos': return Icons.water_drop_outlined;
+      case 'cat_condiments':
       case 'Condimentos': return Icons.local_fire_department_outlined;
       default: return Icons.shopping_basket_outlined;
     }
@@ -183,13 +190,38 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
 
   Color _getCategoryColor(String category) {
     switch (category) {
+      case 'cat_proteins':
       case 'Proteínas': return Colors.red.shade400;
+      case 'cat_vegetables':
       case 'Verduras': return Colors.green.shade400;
+      case 'cat_fruits':
       case 'Frutas': return Colors.orange.shade400;
+      case 'cat_grains':
       case 'Granos': return Colors.amber.shade600;
+      case 'cat_dairy':
       case 'Lácteos': return Colors.blue.shade300;
+      case 'cat_condiments':
       case 'Condimentos': return Colors.purple.shade300;
       default: return AppTheme.secondary;
+    }
+  }
+
+  String _getCategoryName(BuildContext context, String category) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (category) {
+      case 'cat_proteins':
+      case 'Proteínas': return l10n.catProteins;
+      case 'cat_vegetables':
+      case 'Verduras': return l10n.catVegetables;
+      case 'cat_fruits':
+      case 'Frutas': return l10n.catFruits;
+      case 'cat_grains':
+      case 'Granos': return l10n.catGrains;
+      case 'cat_dairy':
+      case 'Lácteos': return l10n.catDairy;
+      case 'cat_condiments':
+      case 'Condimentos': return l10n.catCondiments;
+      default: return l10n.catOthers;
     }
   }
 
@@ -219,6 +251,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Widget _buildSpeedDial() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -229,7 +262,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
           backgroundColor: AppTheme.primary,
           icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
           label: Text(
-            'Añadir a Compras',
+            l10n.addToShopping,
             style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
@@ -240,7 +273,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
           backgroundColor: Colors.green,
           icon: const Icon(Icons.inventory, color: Colors.white),
           label: Text(
-            'Añadir a Inventario',
+            l10n.addToInventory,
             style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
@@ -249,9 +282,10 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   void _showAddItemDialog({required bool isInventory}) {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController nameController = TextEditingController();
     final TextEditingController quantityController = TextEditingController();
-    String selectedCategory = 'Otros';
+    String selectedCategory = 'cat_others';
 
     showModalBottomSheet(
       context: context,
@@ -291,7 +325,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isInventory ? 'Añadir a Inventario' : 'Añadir a Lista de Compras',
+                            isInventory ? l10n.addToInventory : l10n.add_to_shopping,
                             style: GoogleFonts.manrope(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -299,7 +333,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                             ),
                           ),
                           Text(
-                            isInventory ? 'Lo que ya tienes en casa' : 'Lo que necesitas comprar',
+                            isInventory ? l10n.pantryInventoryDesc : l10n.pantryShoppingDesc,
                             style: GoogleFonts.manrope(
                               fontSize: 12,
                               color: AppTheme.secondary,
@@ -315,8 +349,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   controller: nameController,
                   autofocus: true,
                   decoration: InputDecoration(
-                    labelText: 'Nombre del ingrediente',
-                    hintText: 'Ej: Pollo, Arroz, Manzanas...',
+                    labelText: l10n.ingredientNameLabel,
+                    hintText: 'Ej: Pollo, Arroz...',
                     prefixIcon: const Icon(Icons.restaurant_menu),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -330,8 +364,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   TextField(
                     controller: quantityController,
                     decoration: InputDecoration(
-                      labelText: 'Cantidad (opcional)',
-                      hintText: 'Ej: 500g, 2 unidades...',
+                      labelText: l10n.quantity_optional,
+                      hintText: 'Ej: 500g, 2 units...',
                       prefixIcon: const Icon(Icons.scale),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -342,7 +376,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Categoría',
+                    l10n.categoryLabel,
                     style: GoogleFonts.manrope(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -353,12 +387,13 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: ['Proteínas', 'Verduras', 'Frutas', 'Granos', 'Lácteos', 'Condimentos', 'Otros']
-                        .map((cat) {
-                      final isSelected = selectedCategory == cat;
-                      final color = _getCategoryColor(cat);
+                    children: ['cat_proteins', 'cat_vegetables', 'cat_fruits', 'cat_grains', 'cat_dairy', 'cat_condiments', 'cat_others']
+                        .map((catKey) {
+                      final isSelected = selectedCategory == catKey;
+                      final color = _getCategoryColor(catKey);
+                      final catDisplayName = _getCategoryName(context, catKey);
                       return GestureDetector(
-                        onTap: () => setModalState(() => selectedCategory = cat),
+                        onTap: () => setModalState(() => selectedCategory = catKey),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
@@ -373,13 +408,13 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _getCategoryIcon(cat),
+                                _getCategoryIcon(catKey),
                                 size: 16,
                                 color: isSelected ? Colors.white : color,
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                cat,
+                                catDisplayName,
                                 style: GoogleFonts.manrope(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -401,7 +436,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                       final name = nameController.text.trim();
                       if (name.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Por favor ingresa un nombre')),
+                          SnackBar(content: Text(l10n.enterNameError)),
                         );
                         return;
                       }
@@ -413,7 +448,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                         await _addToInventory(name);
                       } else {
                         final quantity = quantityController.text.trim().isEmpty 
-                            ? '1 unidad' 
+                            ? '1 ${l10n.itemQuantityUnit}' 
                             : quantityController.text.trim();
                         await _nutritionService.addShoppingItem(name, quantity, selectedCategory);
                       }
@@ -424,8 +459,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                         SnackBar(
                           content: Text(
                             isInventory 
-                                ? '$name agregado al inventario' 
-                                : '$name agregado a la lista de compras',
+                                ? '$name ${l10n.addedToInventoryMsg}' 
+                                : '$name ${l10n.addedToShoppingMsg}',
                           ),
                           backgroundColor: isInventory ? Colors.green : AppTheme.primary,
                         ),
@@ -439,7 +474,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                       ),
                     ),
                     child: Text(
-                      isInventory ? 'Agregar a Inventario' : 'Agregar a Lista',
+                      isInventory ? l10n.addToInventory : l10n.add_to_shopping,
                       style: GoogleFonts.manrope(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -457,6 +492,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Column(
@@ -469,7 +505,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'La Despensa',
+                    l10n.pantryTitle,
                     style: GoogleFonts.manrope(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -477,7 +513,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                     ),
                   ),
                   Text(
-                    'Gestión inteligente de compras',
+                    l10n.pantrySubtitle,
                     style: GoogleFonts.manrope(
                       fontSize: 14,
                       color: AppTheme.secondary,
@@ -491,12 +527,12 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                     IconButton(
                       onPressed: _shareShoppingList,
                       icon: const Icon(Icons.share_outlined, color: AppTheme.primary),
-                      tooltip: 'Compartir lista',
+                      tooltip: l10n.shareList,
                     ),
                     IconButton(
                       onPressed: _showClearConfirmation,
                       icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
-                      tooltip: 'Limpiar lista',
+                      tooltip: l10n.clearList,
                     ),
                     const SizedBox(width: 8),
                     Container(
@@ -536,6 +572,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Widget _buildTabBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
@@ -554,14 +591,14 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
         labelStyle: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13),
         labelPadding: const EdgeInsets.symmetric(vertical: 12),
         dividerColor: Colors.transparent,
-        tabs: const [
+        tabs: [
           Tab(
             height: 48,
-            child: Center(child: Text('🛒 Lista de Compras')),
+            child: Center(child: Text(l10n.shoppingList)),
           ),
           Tab(
             height: 48,
-            child: Center(child: Text('📦 Mi Inventario')),
+            child: Center(child: Text(l10n.myInventory)),
           ),
         ],
       ),
@@ -574,20 +611,21 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
     }
 
     if (_categorizedIngredients.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(context);
     }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: _categorizedIngredients.entries.map((entry) {
-        return _buildCategorySection(entry.key, entry.value);
+        return _buildCategorySection(context, entry.key, entry.value);
       }).toList(),
     );
   }
 
-  Widget _buildCategorySection(String category, List<Map<String, dynamic>> items) {
+  Widget _buildCategorySection(BuildContext context, String category, List<Map<String, dynamic>> items) {
     final color = _getCategoryColor(category);
     final icon = _getCategoryIcon(category);
+    final categoryName = _getCategoryName(context, category);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,7 +644,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
               ),
               const SizedBox(width: 12),
               Text(
-                category,
+                categoryName,
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -639,6 +677,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Widget _buildIngredientItem(Map<String, dynamic> item, Color categoryColor) {
+    final l10n = AppLocalizations.of(context)!;
     final bool bought = item['bought'] ?? false;
     final String itemName = item['name'].toString();
     final bool inInventory = _inventory.containsKey(NutritionService.sanitizeKey(itemName));
@@ -674,7 +713,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
         
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$itemName eliminado')),
+          SnackBar(content: Text('$itemName ${l10n.itemDeleted}')),
         );
       },
       child: Container(
@@ -775,7 +814,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                     Icon(Icons.check_circle, color: Colors.green.shade600, size: 12),
                     const SizedBox(width: 4),
                     Text(
-                      'En casa',
+                      l10n.atHome,
                       style: GoogleFonts.manrope(
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
@@ -815,6 +854,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Widget _buildInventoryTab() {
+    final l10n = AppLocalizations.of(context)!;
     if (_inventory.isEmpty) {
       return Center(
         child: Column(
@@ -823,12 +863,12 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
             Icon(Icons.inventory_2_outlined, size: 80, color: AppTheme.secondary.withValues(alpha: 0.2)),
             const SizedBox(height: 24),
             Text(
-              'Inventario vacío',
+              l10n.emptyInventory,
               style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.secondary),
             ),
             const SizedBox(height: 8),
             Text(
-              'Agrega ingredientes que ya tienes en casa',
+              l10n.pantryInventoryEmptyDesc,
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary.withValues(alpha: 0.6)),
             ),
@@ -848,6 +888,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Widget _buildInventoryItem(String name, dynamic data) {
+    final l10n = AppLocalizations.of(context)!;
     final Map<String, dynamic> item = data is Map ? Map<String, dynamic>.from(data) : {'added_at': DateTime.now().millisecondsSinceEpoch};
     final DateTime addedAt = DateTime.fromMillisecondsSinceEpoch(item['added_at'] ?? DateTime.now().millisecondsSinceEpoch);
     final int daysAgo = DateTime.now().difference(addedAt).inDays;
@@ -890,7 +931,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   ),
                 ),
                 Text(
-                  daysAgo == 0 ? 'Agregado hoy' : 'Hace $daysAgo día${daysAgo > 1 ? 's' : ''}',
+                  daysAgo == 0 ? l10n.addedToday : l10n.daysAgo(daysAgo),
                   style: GoogleFonts.manrope(
                     fontSize: 11,
                     color: AppTheme.secondary.withValues(alpha: 0.7),
@@ -912,7 +953,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -920,14 +962,14 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
           Icon(Icons.shopping_basket_outlined, size: 80, color: AppTheme.secondary.withValues(alpha: 0.2)),
           const SizedBox(height: 24),
           Text(
-            'Tu lista está vacía',
+            l10n.emptyShoppingList,
             style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.secondary),
           ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 48),
             child: Text(
-              'Activa un plan en el chat para generar tu lista de compras automáticamente',
+              l10n.pantryEmptyDesc,
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary.withValues(alpha: 0.6), height: 1.5),
             ),
@@ -951,11 +993,12 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Future<void> _addToInventory(String itemName) async {
+    final l10n = AppLocalizations.of(context)!;
     await _nutritionService.addToInventory(itemName);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$itemName agregado al inventario'),
+          content: Text('$itemName ${l10n.addedToInventoryMsg}'),
           backgroundColor: Colors.green,
         ),
       );
@@ -963,11 +1006,12 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   Future<void> _removeFromInventory(String itemName) async {
+    final l10n = AppLocalizations.of(context)!;
     await _nutritionService.removeFromInventory(itemName);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$itemName eliminado del inventario'),
+          content: Text('$itemName ${l10n.itemDeleted}'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -975,15 +1019,16 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   }
 
   void _showClearConfirmation() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('¿Limpiar lista?', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-        content: const Text('Se eliminarán todos los productos de tu lista de compras.'),
+        title: Text(l10n.clearList, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        content: Text(l10n.clearListConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('CANCELAR', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(l10n.cancelLabel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
           ),
           TextButton(
             onPressed: () async {
@@ -993,7 +1038,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                 if (nav.canPop()) nav.pop();
               }
             },
-            child: Text('LIMPIAR TODO', style: GoogleFonts.manrope(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: Text(l10n.clearAllLabel, style: GoogleFonts.manrope(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

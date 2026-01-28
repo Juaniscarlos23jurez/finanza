@@ -2,6 +2,7 @@ import 'package:health/health.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 class FitnessService {
   final Health _health = Health();
@@ -28,35 +29,26 @@ class FitnessService {
 
   /// Solicita permisos para acceder a datos de salud
   Future<bool> requestAuthorization() async {
-    print('🔐 [FitnessService] Solicitando autorización...');
-    print('🔐 [FitnessService] Tipos de datos: $_healthDataTypes');
-    print('🔐 [FitnessService] Permisos: $_permissions');
+    debugPrint('🔐 [FitnessService] Solicitando autorización...');
+    debugPrint('🔐 [FitnessService] Tipos de datos: $_healthDataTypes');
+    debugPrint('🔐 [FitnessService] Permisos: $_permissions');
     
     try {
       // Verificar si HealthKit está disponible en el dispositivo
-      print('🔐 [FitnessService] Verificando disponibilidad de HealthKit...');
+      debugPrint('🔐 [FitnessService] Verificando disponibilidad de HealthKit...');
       final available = await _health.hasPermissions(_healthDataTypes, permissions: _permissions);
-      print('🔐 [FitnessService] HealthKit disponible: $available');
+      debugPrint('🔐 [FitnessService] HealthKit disponible: $available');
       
-      print('🔐 [FitnessService] Llamando a _health.requestAuthorization()...');
-      bool? authorized = await _health.requestAuthorization(_healthDataTypes, permissions: _permissions);
-      print('🔐 [FitnessService] Respuesta de autorización: $authorized');
+      debugPrint('🔐 [FitnessService] Llamando a _health.requestAuthorization()...');
+      bool authorized = await _health.requestAuthorization(_healthDataTypes, permissions: _permissions);
+      debugPrint('🔐 [FitnessService] Respuesta de autorización: $authorized');
       
-      if (authorized == null) {
-        print('⚠️ [FitnessService] Autorización retornó null');
-        print('⚠️ [FitnessService] Esto puede significar:');
-        print('   - iPad (no tiene Apple Health)');
-        print('   - Android sin Google Fit instalado');
-        print('   - Simulador sin soporte de Health');
-        return false;
-      }
-      
-      print('✅ [FitnessService] Autorización: ${authorized ? "CONCEDIDA" : "DENEGADA"}');
+      debugPrint('✅ [FitnessService] Autorización: ${authorized ? "CONCEDIDA" : "DENEGADA"}');
       return authorized;
     } catch (e, stackTrace) {
-      print('❌ [FitnessService] Error requesting health authorization: $e');
-      print('❌ [FitnessService] StackTrace: $stackTrace');
-      print('❌ [FitnessService] Tipo de error: ${e.runtimeType}');
+      debugPrint('❌ [FitnessService] Error requesting health authorization: $e');
+      debugPrint('❌ [FitnessService] StackTrace: $stackTrace');
+      debugPrint('❌ [FitnessService] Tipo de error: ${e.runtimeType}');
       return false;
     }
   }
@@ -70,7 +62,7 @@ class FitnessService {
       final steps = await _health.getTotalStepsInInterval(midnight, now);
       return steps ?? 0;
     } catch (e) {
-      print('Error getting steps: $e');
+      debugPrint('Error getting steps: $e');
       return 0;
     }
   }
@@ -96,7 +88,7 @@ class FitnessService {
       
       return totalCalories;
     } catch (e) {
-      print('Error getting calories: $e');
+      debugPrint('Error getting calories: $e');
       return 0;
     }
   }
@@ -122,7 +114,7 @@ class FitnessService {
       
       return totalDistance;
     } catch (e) {
-      print('Error getting distance: $e');
+      debugPrint('Error getting distance: $e');
       return 0;
     }
   }
@@ -151,7 +143,7 @@ class FitnessService {
       
       return totalMinutes;
     } catch (e) {
-      print('Error getting active minutes: $e');
+      debugPrint('Error getting active minutes: $e');
       return 0;
     }
   }
@@ -172,7 +164,7 @@ class FitnessService {
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       };
     } catch (e) {
-      print('Error getting fitness data: $e');
+      debugPrint('Error getting fitness data: $e');
       return {
         'steps': 0,
         'calories': 0,
@@ -194,7 +186,7 @@ class FitnessService {
           .ref('users/$userId/fitness/$today')
           .set(data);
     } catch (e) {
-      print('Error saving fitness data: $e');
+      debugPrint('Error saving fitness data: $e');
     }
   }
 
@@ -249,7 +241,7 @@ class FitnessService {
 
       return history;
     } catch (e) {
-      print('Error getting steps history: $e');
+      debugPrint('Error getting steps history: $e');
       return [];
     }
   }
@@ -262,7 +254,7 @@ class FitnessService {
       
       return steps >= 5000 || activeMinutes >= 20;
     } catch (e) {
-      print('Error checking activity: $e');
+      debugPrint('Error checking activity: $e');
       return false;
     }
   }

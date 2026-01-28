@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../services/nutrition_service.dart';
 import '../services/auth_service.dart';
 import '../services/fitness_service.dart';
+import '../l10n/app_localizations.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -53,27 +54,27 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Future<void> _initializeFitness() async {
-    print('🏃 [FITNESS] Iniciando proceso de autorización...');
+    debugPrint('🏃 [FITNESS] Iniciando proceso de autorización...');
     try {
       final authorized = await _fitnessService.requestAuthorization();
-      print('🏃 [FITNESS] Resultado de autorización: $authorized');
+      debugPrint('🏃 [FITNESS] Resultado de autorización: $authorized');
       
       if (mounted) {
         setState(() {
           _fitnessAuthorized = authorized;
         });
-        print('🏃 [FITNESS] Estado actualizado: _fitnessAuthorized = $_fitnessAuthorized');
+        debugPrint('🏃 [FITNESS] Estado actualizado: _fitnessAuthorized = $_fitnessAuthorized');
         
         if (authorized) {
-          print('🏃 [FITNESS] Autorización concedida, cargando datos...');
+          debugPrint('🏃 [FITNESS] Autorización concedida, cargando datos...');
           _loadFitnessData();
         } else {
-          print('⚠️ [FITNESS] Autorización denegada o no disponible');
+          debugPrint('⚠️ [FITNESS] Autorización denegada o no disponible');
         }
       }
     } catch (e, stackTrace) {
-      print('❌ [FITNESS] Error en _initializeFitness: $e');
-      print('❌ [FITNESS] StackTrace: $stackTrace');
+      debugPrint('❌ [FITNESS] Error en _initializeFitness: $e');
+      debugPrint('❌ [FITNESS] StackTrace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -86,13 +87,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Future<void> _loadFitnessData() async {
-    print('📊 [FITNESS] Cargando datos de fitness...');
+    debugPrint('📊 [FITNESS] Cargando datos de fitness...');
     try {
       final data = await _fitnessService.syncFitnessData();
-      print('📊 [FITNESS] Datos recibidos: $data');
+      debugPrint('📊 [FITNESS] Datos recibidos: $data');
       
       final history = await _fitnessService.getStepsHistory(days: 7);
-      print('📊 [FITNESS] Historial recibido: ${history.length} días');
+      debugPrint('📊 [FITNESS] Historial recibido: ${history.length} días');
       
       if (mounted) {
         setState(() {
@@ -101,49 +102,20 @@ class _ProgressScreenState extends State<ProgressScreen> {
           _todayDistance = data['distance'] ?? '0.0';
           _todayActiveMinutes = data['activeMinutes'] ?? 0;
           
-          print('📊 [FITNESS] Pasos: $_todaySteps, Calorías: $_todayCalories, Distancia: $_todayDistance km, Minutos: $_todayActiveMinutes');
+          debugPrint('📊 [FITNESS] Pasos: $_todaySteps, Calorías: $_todayCalories, Distancia: $_todayDistance km, Minutos: $_todayActiveMinutes');
           
           // Crear datos para gráfico de pasos
           _stepsSpots = history.asMap().entries.map((entry) {
             return FlSpot(entry.key.toDouble(), (entry.value['steps'] as int).toDouble());
           }).toList();
           
-          print('📊 [FITNESS] Gráfico creado con ${_stepsSpots.length} puntos');
+          debugPrint('📊 [FITNESS] Gráfico creado con ${_stepsSpots.length} puntos');
         });
       }
     } catch (e, stackTrace) {
-      print('❌ [FITNESS] Error en _loadFitnessData: $e');
-      print('❌ [FITNESS] StackTrace: $stackTrace');
+      debugPrint('❌ [FITNESS] Error en _loadFitnessData: $e');
+      debugPrint('❌ [FITNESS] StackTrace: $stackTrace');
     }
-  }
-
-  void _enableDemoMode() {
-    print('🎭 [FITNESS] Activando modo demo...');
-    setState(() {
-      _fitnessAuthorized = true;
-      _todaySteps = 8547;
-      _todayCalories = 342;
-      _todayDistance = '6.8';
-      _todayActiveMinutes = 45;
-      
-      // Datos de ejemplo para el gráfico (últimos 7 días)
-      _stepsSpots = [
-        const FlSpot(0, 5234),
-        const FlSpot(1, 7891),
-        const FlSpot(2, 6543),
-        const FlSpot(3, 9012),
-        const FlSpot(4, 8234),
-        const FlSpot(5, 7456),
-        const FlSpot(6, 8547),
-      ];
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🎭 Modo Demo activado - Mostrando datos simulados'),
-        backgroundColor: Colors.green,
-      ),
-    );
   }
 
   Future<void> _loadProfile() async {
@@ -316,11 +288,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'EL ESPEJO DE DATOS',
+          l10n.progressTitle,
           style: GoogleFonts.manrope(
             fontSize: 12,
             fontWeight: FontWeight.w800,
@@ -329,7 +302,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
         Text(
-          'Tu Evolución',
+          l10n.progressSubtitle,
           style: GoogleFonts.manrope(
             fontSize: 28,
             fontWeight: FontWeight.w900,
@@ -341,6 +314,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildStreakCard() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -365,7 +339,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'RACHA ACTUAL',
+                l10n.currentStreak,
                 style: GoogleFonts.manrope(
                   color: Colors.white70,
                   fontSize: 12,
@@ -381,7 +355,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             duration: const Duration(seconds: 2),
             tween: Tween(begin: 0, end: _streak.toDouble()),
             builder: (context, value, child) => Text(
-              '${value.toInt()} Días',
+              '${value.toInt()} ${l10n.days_label}',
               style: GoogleFonts.manrope(
                 color: Colors.white,
                 fontSize: 56,
@@ -391,7 +365,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '¡Estás en el top ${(_ranking.indexWhere((e) => e['name'] == _userName) + 1).clamp(1, 100)} del ranking!',
+            l10n.ranking_top.replaceAll('{n}', ((_ranking.indexWhere((e) => e['name'] == _userName) + 1).clamp(1, 100)).toString()),
             style: GoogleFonts.manrope(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,
@@ -404,6 +378,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildFitnessSection() {
+    final l10n = AppLocalizations.of(context)!;
     // Si no está autorizado, mostrar mensaje de autorización
     if (!_fitnessAuthorized) {
       return Container(
@@ -422,7 +397,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Icon(Icons.watch_rounded, size: 64, color: Colors.blue.shade700),
             const SizedBox(height: 16),
             Text(
-              'Conecta tu reloj inteligente',
+              l10n.connect_watch,
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
@@ -432,7 +407,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Autoriza el acceso a Apple Health (iPhone) o Google Fit (Android) para ver tus pasos, calorías y actividad física.\n\nNota: iPad no tiene Apple Health. Usa esta app en iPhone para ver tus datos de salud.',
+              l10n.fitness_auth_desc,
               style: GoogleFonts.manrope(
                 fontSize: 14,
                 color: AppTheme.secondary,
@@ -443,7 +418,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ElevatedButton.icon(
               onPressed: _initializeFitness,
               icon: const Icon(Icons.health_and_safety),
-              label: Text('Autorizar acceso', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+              label: Text(l10n.auth_access, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -467,7 +442,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ACTIVIDAD FÍSICA',
+                  l10n.physical_activity,
                   style: GoogleFonts.manrope(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -476,7 +451,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
                 Text(
-                  'Desde tu reloj',
+                  l10n.from_watch,
                   style: GoogleFonts.manrope(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -500,7 +475,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: _buildFitnessCard(
                 '🚶',
                 _todaySteps.toString(),
-                'Pasos',
+                l10n.steps,
                 Colors.blue,
               ),
             ),
@@ -509,7 +484,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: _buildFitnessCard(
                 '🔥',
                 _todayCalories.toString(),
-                'Calorías',
+                l10n.calories,
                 Colors.orange,
               ),
             ),
@@ -522,7 +497,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: _buildFitnessCard(
                 '📍',
                 '$_todayDistance km',
-                'Distancia',
+                l10n.distance,
                 Colors.green,
               ),
             ),
@@ -531,7 +506,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: _buildFitnessCard(
                 '⏱️',
                 '$_todayActiveMinutes min',
-                'Activo',
+                l10n.active,
                 Colors.purple,
               ),
             ),
@@ -557,7 +532,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Pasos de la semana',
+                l10n.steps_week,
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -648,6 +623,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
 
   Widget _buildWeightSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -655,7 +631,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Peso Corporal',
+              l10n.body_weight,
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -665,8 +641,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             IconButton(
               onPressed: _canRegisterToday ? _showLogWeightDialog : () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Ya registraste tu peso hoy. ¡Vuelve mañana!'),
+                  SnackBar(
+                    content: Text(l10n.weight_logged_today),
                     backgroundColor: Colors.orange,
                   ),
                 );
@@ -682,7 +658,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              'Próximo registro disponible en unos días.',
+              l10n.weight_next_log,
               style: GoogleFonts.manrope(
                 fontSize: 12,
                 color: AppTheme.secondary,
@@ -707,9 +683,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                   _buildWeightStat('Actual', '$_currentWeight', 'kg'),
+                   _buildWeightStat(l10n.current, '$_currentWeight', 'kg'),
                    _buildWeightStat(
-                     'Tendencia', 
+                     l10n.trend, 
                      '${_weightDiff > 0 ? '+' : ''}${_weightDiff.toStringAsFixed(1)}', 
                      'kg',
                      color: _weightDiff < 0 ? Colors.green : (_weightDiff > 0 ? Colors.red : AppTheme.secondary),
@@ -794,6 +770,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   void _showLogWeightDialog() {
+    final l10n = AppLocalizations.of(context)!;
     final weightController = TextEditingController();
     showModalBottomSheet(
       context: context,
@@ -810,11 +787,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Registrar Peso',
+              l10n.log_weight,
               style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
             ),
             const SizedBox(height: 8),
-            Text('Ingresa tu peso actual en kg', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            Text(l10n.enter_weight_hint, style: GoogleFonts.manrope(color: AppTheme.secondary)),
             const SizedBox(height: 24),
             TextField(
               controller: weightController,
@@ -844,11 +821,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     if (!context.mounted) return;
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Peso registrado con éxito')),
+                      SnackBar(content: Text(l10n.weight_success)),
                     );
                   }
                 },
-                child: Text('Guardar', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                child: Text(l10n.save, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -858,11 +835,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildRankingSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Ranking de Guerrero',
+          l10n.warrior_ranking,
           style: GoogleFonts.manrope(
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -946,11 +924,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildMilestones() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Hitos Alcanzados',
+          l10n.milestones,
           style: GoogleFonts.manrope(
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -958,18 +937,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildMilestoneItem('Guerrero Consistente', 'Has mantenido tu racha por 3 o más días.', Icons.workspace_premium, Colors.amber, _streak >= 3),
-        _buildMilestoneItem('Control de Peso', 'Has registrado tu primer peso en el sistema.', Icons.monitor_weight, Colors.green, _weightSpots.isNotEmpty),
-        _buildMilestoneItem('Maestro del Ranking', '¡Has entrado en el Top 5 global!', Icons.auto_awesome, Colors.purple, _ranking.indexWhere((e) => e['name'] == _userName) < 5 && _ranking.isNotEmpty),
+        _buildMilestoneItem(l10n.milestone_streak_title, l10n.milestone_streak_desc, Icons.workspace_premium, Colors.amber, _streak >= 3),
+        _buildMilestoneItem(l10n.milestone_weight_title, l10n.milestone_weight_desc, Icons.monitor_weight, Colors.green, _weightSpots.isNotEmpty),
+        _buildMilestoneItem(l10n.milestone_ranking_title, l10n.milestone_ranking_desc, Icons.auto_awesome, Colors.purple, _ranking.indexWhere((e) => e['name'] == _userName) < 5 && _ranking.isNotEmpty),
         if (_fitnessAuthorized) ...[
-          _buildMilestoneItem('Caminante Activo', 'Has alcanzado 10,000 pasos en un día.', Icons.directions_walk, Colors.blue, _todaySteps >= 10000),
-          _buildMilestoneItem('Quemador de Calorías', 'Has quemado más de 500 calorías hoy.', Icons.local_fire_department, Colors.deepOrange, _todayCalories >= 500),
+          _buildMilestoneItem(l10n.milestone_steps_title, l10n.milestone_steps_desc, Icons.directions_walk, Colors.blue, _todaySteps >= 10000),
+          _buildMilestoneItem(l10n.milestone_calories_title, l10n.milestone_calories_desc, Icons.local_fire_department, Colors.deepOrange, _todayCalories >= 500),
         ],
       ],
     );
   }
 
   Widget _buildMilestoneItem(String title, String subtitle, IconData icon, Color color, bool achieved) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -1009,7 +989,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
                 Text(
-                  achieved ? subtitle : 'Bloqueado',
+                  achieved ? subtitle : l10n.locked,
                   style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
                 ),
               ],

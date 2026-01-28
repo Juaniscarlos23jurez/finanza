@@ -128,7 +128,9 @@ class AiService {
         timestamp: DateTime.now(),
       );
     }
-    Future<String> generateGoalVision(String textGoal, Uint8List imageBytes) async {
+  }
+
+  Future<String> generateGoalVision(String textGoal, Uint8List imageBytes) async {
     try {
       final content = [
         Content.multi([
