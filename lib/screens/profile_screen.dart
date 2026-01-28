@@ -22,20 +22,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
   final DateTime _focusedDay = DateTime.now();
+  String _userEmoji = '🦊'; // Default emoji
+  int _streak = 0;
+  Map<String, bool> _streakDays = {}; // Map of dates with streak
 
   @override
   void initState() {
     super.initState();
     _fetchProfile();
+    _listenToStreak();
+  }
+
+  void _listenToStreak() {
+    _nutritionService.getStreak().listen((event) {
+      if (event.snapshot.value != null && mounted) {
+        final newStreak = int.tryParse(event.snapshot.value.toString()) ?? 0;
+        setState(() {
+          _streak = newStreak;
+          _calculateStreakDays();
+        });
+      }
+    });
+  }
+
+  void _calculateStreakDays() {
+    final Map<String, bool> days = {};
+    final now = DateTime.now();
+    
+    // Mark the last N days as streak days (where N = current streak)
+    for (int i = 0; i < _streak; i++) {
+      final date = now.subtract(Duration(days: i));
+      final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      days[dateKey] = true;
+    }
+    
+    _streakDays = days;
   }
 
   Future<void> _fetchProfile() async {
     final result = await _authService.getProfile();
+    final emoji = await _nutritionService.getUserEmoji();
     if (mounted) {
       setState(() {
         if (result['success']) {
           _userData = result['data'];
         }
+        _userEmoji = emoji ?? '🦊';
         _isLoading = false;
       });
     }
@@ -132,19 +164,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Stack(
               alignment: Alignment.bottomRight,
               children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
-                    border: Border.all(color: AppTheme.primary, width: 3),
-                  ),
-                  child: ClipOval(
-                    child: photoUrl != null
-                        ? Image.network(photoUrl, fit: BoxFit.cover)
-                        : const Center(child: Icon(Icons.person_rounded, size: 60, color: AppTheme.primary)),
+                GestureDetector(
+                  onTap: () => _showEmojiSelector(context),
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
+                      border: Border.all(color: AppTheme.primary, width: 3),
+                    ),
+                    child: ClipOval(
+                      child: photoUrl != null
+                          ? Image.network(photoUrl, fit: BoxFit.cover)
+                          : Center(child: Text(_userEmoji, style: const TextStyle(fontSize: 60))),
+                    ),
                   ),
                 ),
                 Container(
@@ -221,28 +256,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         calendarBuilders: CalendarBuilders(
           defaultBuilder: (context, day, focusedDay) {
-            final color = _getDayColor(day);
-            if (color != null) {
+            final dateKey = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+            final hasStreak = _streakDays[dateKey] ?? false;
+            
+            if (hasStreak) {
               return Container(
                 margin: const EdgeInsets.all(4),
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: Text('${day.day}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade400, Colors.red.shade500],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Positioned(
+                      top: 2,
+                      child: Text('🔥', style: TextStyle(fontSize: 10)),
+                    ),
+                    Positioned(
+                      bottom: 4,
+                      child: Text(
+                        '${day.day}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               );
             }
+            return null;
+          },
+          todayBuilder: (context, day, focusedDay) {
+            final dateKey = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+            final hasStreak = _streakDays[dateKey] ?? false;
+            
+            if (hasStreak) {
+              // Today with streak - special design
+              return Container(
+                margin: const EdgeInsets.all(4),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade400, Colors.red.shade500],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Positioned(
+                      top: 2,
+                      child: Text('🔥', style: TextStyle(fontSize: 10)),
+                    ),
+                    Positioned(
+                      bottom: 4,
+                      child: Text(
+                        '${day.day}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            // Today without streak - default style
             return null;
           },
         ),
       ),
     );
-  }
-
-  Color? _getDayColor(DateTime day) {
-    final now = DateTime.now();
-    if (day.isAfter(now.subtract(const Duration(days: 6))) && day.isBefore(now.add(const Duration(days: 1)))) {
-       return Colors.green.withValues(alpha: 0.2);
-    }
-    return null;
   }
 
   Widget _buildMenuSection(String title, List<Widget> items) {
@@ -354,6 +466,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showFeedbackModal(BuildContext context) {
      // Simplifying for space
      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gracias por tu interés en darnos feedback!')));
+  }
+
+  void _showEmojiSelector(BuildContext context) {
+    final animalEmojis = [
+      '🦊', '🐼', '🐨', '🦁', '🐯', '🐻', '🐰', '🐱', 
+      '🐶', '🐺', '🦝', '🦌', '🐮', '🐷', '🐸', '🐵',
+      '🦉', '🦅', '🦆', '🐧', '🦜', '🦩', '🐢', '🦎',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Elige tu Animal',
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Este emoji aparecerá en el ranking',
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                color: AppTheme.secondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 200,
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 6,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
+                itemCount: animalEmojis.length,
+                itemBuilder: (context, index) {
+                  final emoji = animalEmojis[index];
+                  final isSelected = emoji == _userEmoji;
+                  return GestureDetector(
+                    onTap: () async {
+                      setState(() {
+                        _userEmoji = emoji;
+                      });
+                      await _nutritionService.saveUserEmoji(emoji);
+                      
+                      // Sync with ranking
+                      final result = await _authService.getProfile();
+                      if (result['success']) {
+                        final name = result['data']['name'] ?? 'Usuario';
+                        // Get current streak
+                        final streakSnapshot = await _nutritionService.getStreak().first;
+                        final streak = streakSnapshot.snapshot.value != null 
+                            ? int.tryParse(streakSnapshot.snapshot.value.toString()) ?? 0 
+                            : 0;
+                        await _nutritionService.syncUserRanking(name, streak, emoji: emoji);
+                      }
+                      
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('¡Emoji actualizado a $emoji!')),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected 
+                            ? AppTheme.primary.withValues(alpha: 0.1) 
+                            : AppTheme.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: isSelected 
+                            ? Border.all(color: AppTheme.primary, width: 2) 
+                            : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildLogoutButton(BuildContext context) {

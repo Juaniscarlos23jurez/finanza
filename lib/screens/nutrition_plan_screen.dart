@@ -317,6 +317,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSummaryCard(targetCalories, macros, dailyMeals), // Pass dailyMeals to calculate eaten cals
+          const SizedBox(height: 24),
+          _buildMacroProgressChart(macros, dailyMeals),
           const SizedBox(height: 32),
           Text(
             'Menú Inteligente',
@@ -483,6 +485,197 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             fontSize: 14, 
             color: isComplete ? Colors.greenAccent : color, 
             fontWeight: FontWeight.w800
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMacroProgressChart(Map macros, List<Map<String, dynamic>> dailyMeals) {
+    // Calculate consumed macros
+    double consumedProtein = 0;
+    double consumedCarbs = 0;
+    double consumedFats = 0;
+    
+    for (var meal in dailyMeals) {
+      if (meal['completed'] == true) {
+        consumedProtein += double.tryParse(meal['protein']?.toString() ?? '0') ?? 0;
+        consumedCarbs += double.tryParse(meal['carbs']?.toString() ?? '0') ?? 0;
+        consumedFats += double.tryParse(meal['fats']?.toString() ?? '0') ?? 0;
+      }
+    }
+
+    final targetProtein = (macros['protein'] ?? 0).toDouble();
+    final targetCarbs = (macros['carbs'] ?? 0).toDouble();
+    final targetFats = (macros['fats'] ?? 0).toDouble();
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Progreso de Macros',
+                style: GoogleFonts.manrope(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'HOY',
+                  style: GoogleFonts.manrope(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.accent,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildMacroProgressBar(
+            'Proteína',
+            consumedProtein,
+            targetProtein,
+            Colors.red,
+            '🥩',
+          ),
+          const SizedBox(height: 20),
+          _buildMacroProgressBar(
+            'Carbohidratos',
+            consumedCarbs,
+            targetCarbs,
+            Colors.orange,
+            '🍞',
+          ),
+          const SizedBox(height: 20),
+          _buildMacroProgressBar(
+            'Grasas',
+            consumedFats,
+            targetFats,
+            Colors.amber,
+            '🥑',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroProgressBar(String label, double consumed, double target, Color color, String emoji) {
+    final progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
+    final isComplete = consumed >= target;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  '${consumed.toInt()}g',
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: isComplete ? Colors.green : color,
+                  ),
+                ),
+                Text(
+                  ' / ${target.toInt()}g',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.secondary.withValues(alpha: 0.6),
+                  ),
+                ),
+                if (isComplete) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            // Background bar
+            Container(
+              height: 8,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            // Progress bar
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              height: 8,
+              width: MediaQuery.of(context).size.width * 0.8 * progress,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isComplete 
+                    ? [Colors.green, Colors.greenAccent]
+                    : [color, color.withValues(alpha: 0.6)],
+                ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isComplete ? Colors.green : color).withValues(alpha: 0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${(progress * 100).toInt()}% completado',
+          style: GoogleFonts.manrope(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.secondary.withValues(alpha: 0.5),
           ),
         ),
       ],

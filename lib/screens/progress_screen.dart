@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/nutrition_service.dart';
 import '../services/auth_service.dart';
+import '../services/fitness_service.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -17,9 +18,11 @@ class ProgressScreen extends StatefulWidget {
 class _ProgressScreenState extends State<ProgressScreen> {
   final NutritionService _nutritionService = NutritionService();
   final AuthService _authService = AuthService();
+  final FitnessService _fitnessService = FitnessService();
   
   int _streak = 0;
   String _userName = 'Tú';
+  String _userEmoji = '🦊';
   List<Map<String, dynamic>> _ranking = [];
   List<FlSpot> _weightSpots = [];
   
@@ -31,6 +34,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
   double _weightDiff = 0;
   bool _canRegisterToday = true;
 
+  // Fitness data
+  int _todaySteps = 0;
+  int _todayCalories = 0;
+  String _todayDistance = '0.0';
+  int _todayActiveMinutes = 0;
+  bool _fitnessAuthorized = false;
+  List<FlSpot> _stepsSpots = [];
+
   @override
   void initState() {
     super.initState();
@@ -38,16 +49,113 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _listenToStreak();
     _listenToRanking();
     _listenToWeight();
+    _initializeFitness();
+  }
+
+  Future<void> _initializeFitness() async {
+    print('🏃 [FITNESS] Iniciando proceso de autorización...');
+    try {
+      final authorized = await _fitnessService.requestAuthorization();
+      print('🏃 [FITNESS] Resultado de autorización: $authorized');
+      
+      if (mounted) {
+        setState(() {
+          _fitnessAuthorized = authorized;
+        });
+        print('🏃 [FITNESS] Estado actualizado: _fitnessAuthorized = $_fitnessAuthorized');
+        
+        if (authorized) {
+          print('🏃 [FITNESS] Autorización concedida, cargando datos...');
+          _loadFitnessData();
+        } else {
+          print('⚠️ [FITNESS] Autorización denegada o no disponible');
+        }
+      }
+    } catch (e, stackTrace) {
+      print('❌ [FITNESS] Error en _initializeFitness: $e');
+      print('❌ [FITNESS] StackTrace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al solicitar permisos: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadFitnessData() async {
+    print('📊 [FITNESS] Cargando datos de fitness...');
+    try {
+      final data = await _fitnessService.syncFitnessData();
+      print('📊 [FITNESS] Datos recibidos: $data');
+      
+      final history = await _fitnessService.getStepsHistory(days: 7);
+      print('📊 [FITNESS] Historial recibido: ${history.length} días');
+      
+      if (mounted) {
+        setState(() {
+          _todaySteps = data['steps'] ?? 0;
+          _todayCalories = data['calories'] ?? 0;
+          _todayDistance = data['distance'] ?? '0.0';
+          _todayActiveMinutes = data['activeMinutes'] ?? 0;
+          
+          print('📊 [FITNESS] Pasos: $_todaySteps, Calorías: $_todayCalories, Distancia: $_todayDistance km, Minutos: $_todayActiveMinutes');
+          
+          // Crear datos para gráfico de pasos
+          _stepsSpots = history.asMap().entries.map((entry) {
+            return FlSpot(entry.key.toDouble(), (entry.value['steps'] as int).toDouble());
+          }).toList();
+          
+          print('📊 [FITNESS] Gráfico creado con ${_stepsSpots.length} puntos');
+        });
+      }
+    } catch (e, stackTrace) {
+      print('❌ [FITNESS] Error en _loadFitnessData: $e');
+      print('❌ [FITNESS] StackTrace: $stackTrace');
+    }
+  }
+
+  void _enableDemoMode() {
+    print('🎭 [FITNESS] Activando modo demo...');
+    setState(() {
+      _fitnessAuthorized = true;
+      _todaySteps = 8547;
+      _todayCalories = 342;
+      _todayDistance = '6.8';
+      _todayActiveMinutes = 45;
+      
+      // Datos de ejemplo para el gráfico (últimos 7 días)
+      _stepsSpots = [
+        const FlSpot(0, 5234),
+        const FlSpot(1, 7891),
+        const FlSpot(2, 6543),
+        const FlSpot(3, 9012),
+        const FlSpot(4, 8234),
+        const FlSpot(5, 7456),
+        const FlSpot(6, 8547),
+      ];
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🎭 Modo Demo activado - Mostrando datos simulados'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   Future<void> _loadProfile() async {
     final result = await _authService.getProfile();
+    final emoji = await _nutritionService.getUserEmoji();
     if (result['success'] == true && mounted) {
       setState(() {
         _userName = result['data']['name'] ?? 'Tú';
+        _userEmoji = emoji ?? '🦊';
       });
       // Sync initial ranking
-      _nutritionService.syncUserRanking(_userName, _streak);
+      _nutritionService.syncUserRanking(_userName, _streak, emoji: _userEmoji);
     }
   }
 
@@ -59,7 +167,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           _streak = newStreak;
         });
         // Sync streak to global ranking
-        _nutritionService.syncUserRanking(_userName, newStreak);
+        _nutritionService.syncUserRanking(_userName, newStreak, emoji: _userEmoji);
       }
     });
   }
@@ -80,15 +188,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
         // If no data or too few, inject fake competitive data for gamification
         if (rankList.length < 3) {
           rankList = [
-            {'name': '🔥 FitWarrior', 'streak': 42},
-            {'name': '🥗 NutriChampion', 'streak': 38},
-            {'name': '🏋️ BeastMode', 'streak': 25},
-            {'name': '🍎 GreenLife', 'streak': 15},
-            {'name': '🥑 HealthyHero', 'streak': 12},
+            {'name': 'FitWarrior', 'streak': 42, 'emoji': '🔥'},
+            {'name': 'NutriChampion', 'streak': 38, 'emoji': '🥗'},
+            {'name': 'BeastMode', 'streak': 25, 'emoji': '🏋️'},
+            {'name': 'GreenLife', 'streak': 15, 'emoji': '🍎'},
+            {'name': 'HealthyHero', 'streak': 12, 'emoji': '🥑'},
           ];
           // Add self if not there
           if (!rankList.any((e) => e['name'] == _userName)) {
-            rankList.add({'name': _userName, 'streak': _streak});
+            rankList.add({'name': _userName, 'streak': _streak, 'emoji': _userEmoji});
           }
           rankList.sort((a, b) => (b['streak'] ?? 0).compareTo(a['streak'] ?? 0));
         }
@@ -174,11 +282,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
               const SizedBox(height: 32),
               _buildAnimatedItem(1, _buildStreakCard()),
               const SizedBox(height: 32),
-              _buildAnimatedItem(2, _buildWeightSection()),
+              _buildAnimatedItem(2, _buildFitnessSection()),
               const SizedBox(height: 32),
-              _buildAnimatedItem(3, _buildRankingSection()),
+              _buildAnimatedItem(3, _buildWeightSection()),
               const SizedBox(height: 32),
-              _buildAnimatedItem(4, _buildMilestones()),
+              _buildAnimatedItem(4, _buildRankingSection()),
+              const SizedBox(height: 32),
+              _buildAnimatedItem(5, _buildMilestones()),
               const SizedBox(height: 32),
             ],
           ),
@@ -292,6 +402,250 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ),
     );
   }
+
+  Widget _buildFitnessSection() {
+    // Si no está autorizado, mostrar mensaje de autorización
+    if (!_fitnessAuthorized) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.blue.shade100],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.blue.shade200),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.watch_rounded, size: 64, color: Colors.blue.shade700),
+            const SizedBox(height: 16),
+            Text(
+              'Conecta tu reloj inteligente',
+              style: GoogleFonts.manrope(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Autoriza el acceso a Apple Health (iPhone) o Google Fit (Android) para ver tus pasos, calorías y actividad física.\n\nNota: iPad no tiene Apple Health. Usa esta app en iPhone para ver tus datos de salud.',
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                color: AppTheme.secondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _initializeFitness,
+              icon: const Icon(Icons.health_and_safety),
+              label: Text('Autorizar acceso', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // UI normal cuando está autorizado
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ACTIVIDAD FÍSICA',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.secondary,
+                    letterSpacing: 2,
+                  ),
+                ),
+                Text(
+                  'Desde tu reloj',
+                  style: GoogleFonts.manrope(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            IconButton(
+              onPressed: _loadFitnessData,
+              icon: const Icon(Icons.refresh, color: AppTheme.primary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        
+        // Tarjetas de métricas
+        Row(
+          children: [
+            Expanded(
+              child: _buildFitnessCard(
+                '🚶',
+                _todaySteps.toString(),
+                'Pasos',
+                Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildFitnessCard(
+                '🔥',
+                _todayCalories.toString(),
+                'Calorías',
+                Colors.orange,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildFitnessCard(
+                '📍',
+                '$_todayDistance km',
+                'Distancia',
+                Colors.green,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildFitnessCard(
+                '⏱️',
+                '$_todayActiveMinutes min',
+                'Activo',
+                Colors.purple,
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Gráfico de pasos de la semana
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Pasos de la semana',
+                style: GoogleFonts.manrope(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 120,
+                child: _stepsSpots.isEmpty
+                    ? const Center(child: Text('Sin datos suficientes'))
+                    : LineChart(
+                        LineChartData(
+                          gridData: const FlGridData(show: false),
+                          titlesData: const FlTitlesData(show: false),
+                          borderData: FlBorderData(show: false),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: _stepsSpots,
+                              isCurved: true,
+                              color: Colors.blue,
+                              barWidth: 4,
+                              isStrokeCapRound: true,
+                              dotData: const FlDotData(show: true),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.withValues(alpha: 0.2),
+                                    Colors.transparent
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFitnessCard(String emoji, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            emoji,
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.manrope(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.secondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildWeightSection() {
     return Column(
@@ -553,10 +907,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 14,
                           backgroundColor: AppTheme.background,
-                          child: Icon(Icons.person, size: 16, color: AppTheme.secondary),
+                          child: Text(
+                            user['emoji'] ?? '🦊',
+                            style: const TextStyle(fontSize: 16),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -604,6 +961,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
         _buildMilestoneItem('Guerrero Consistente', 'Has mantenido tu racha por 3 o más días.', Icons.workspace_premium, Colors.amber, _streak >= 3),
         _buildMilestoneItem('Control de Peso', 'Has registrado tu primer peso en el sistema.', Icons.monitor_weight, Colors.green, _weightSpots.isNotEmpty),
         _buildMilestoneItem('Maestro del Ranking', '¡Has entrado en el Top 5 global!', Icons.auto_awesome, Colors.purple, _ranking.indexWhere((e) => e['name'] == _userName) < 5 && _ranking.isNotEmpty),
+        if (_fitnessAuthorized) ...[
+          _buildMilestoneItem('Caminante Activo', 'Has alcanzado 10,000 pasos en un día.', Icons.directions_walk, Colors.blue, _todaySteps >= 10000),
+          _buildMilestoneItem('Quemador de Calorías', 'Has quemado más de 500 calorías hoy.', Icons.local_fire_department, Colors.deepOrange, _todayCalories >= 500),
+        ],
       ],
     );
   }

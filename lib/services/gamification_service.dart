@@ -104,6 +104,36 @@ class GamificationService {
              'emoji': '🧠🥑',
              'color': Colors.green
            },
+           {
+             'persona': 'El Panda Atleta', 
+             'message': '🏃‍♂️ ¡Meta de ejercicio cumplida! Tu cuerpo te lo agradece.', 
+             'emoji': '🏅🐼',
+             'color': Colors.blue
+           },
+           {
+             'persona': 'El Panda Motivador', 
+             'message': '🎯 ¡Objetivo completado! Esto es solo el comienzo.', 
+             'emoji': '🚀✨',
+             'color': Colors.purple
+           },
+           {
+             'persona': 'El Panda Campeón', 
+             'message': '🏆 ¡LO LOGRASTE! La disciplina vence al talento.', 
+             'emoji': '👑🏆',
+             'color': Colors.amber
+           },
+           {
+             'persona': 'El Panda Corredor', 
+             'message': '🏃 ¡Kilómetros completados! Cada paso cuenta.', 
+             'emoji': '🏃‍♀️💨',
+             'color': Colors.cyan
+           },
+           {
+             'persona': 'El Panda Transformador', 
+             'message': '⚖️ ¡Meta de peso alcanzada! Tu dedicación da frutos.', 
+             'emoji': '🎉⚖️',
+             'color': Colors.greenAccent
+           },
          ];
          break;
        case PandaTrigger.streakKeep:

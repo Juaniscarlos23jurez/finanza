@@ -913,6 +913,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final titleController = TextEditingController();
     final amountController = TextEditingController();
     bool isSaving = false;
+    String selectedType = 'weight'; // weight, exercise_minutes, distance_km
 
     showModalBottomSheet(
       context: context,
@@ -957,11 +958,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+              // Goal Type Selector
+              Text(
+                'Tipo de Objetivo',
+                style: GoogleFonts.manrope(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildGoalTypeChip(
+                      '⚖️ Peso',
+                      'weight',
+                      selectedType == 'weight',
+                      () => setBottomSheetState(() {
+                        selectedType = 'weight';
+                        titleController.text = 'Meta de Peso';
+                      }),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildGoalTypeChip(
+                      '⏱️ Ejercicio',
+                      'exercise_minutes',
+                      selectedType == 'exercise_minutes',
+                      () => setBottomSheetState(() {
+                        selectedType = 'exercise_minutes';
+                        titleController.text = 'Minutos de Ejercicio';
+                      }),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildGoalTypeChip(
+                      '🏃 Distancia',
+                      'distance_km',
+                      selectedType == 'distance_km',
+                      () => setBottomSheetState(() {
+                        selectedType = 'distance_km';
+                        titleController.text = 'Kilómetros Corridos';
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
               TextField(
                 controller: titleController,
                 decoration: InputDecoration(
-                  labelText: '¿Qué quieres lograr?',
-                  hintText: 'ej. Perder 5kg o Meta Diaria Kcal',
+                  labelText: 'Nombre del Objetivo',
+                  hintText: _getGoalHint(selectedType),
+                  prefixIcon: Icon(_getGoalIcon(selectedType)),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   filled: true,
                   fillColor: AppTheme.background,
@@ -972,8 +1024,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: amountController,
                 decoration: InputDecoration(
-                  labelText: 'Valor objetivo',
-                  hintText: 'Monto numérico',
+                  labelText: 'Valor Meta',
+                  hintText: _getGoalValueHint(selectedType),
+                  suffixText: _getGoalUnit(selectedType),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   filled: true,
                   fillColor: AppTheme.background,
@@ -1003,6 +1056,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         'title': titleController.text,
                         'target_amount': amount,
                         'current_amount': 0,
+                        'goal_type': selectedType,
+                        'unit': _getGoalUnit(selectedType),
                         'deadline': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0],
                       });
                       if (!context.mounted) return;
@@ -1026,6 +1081,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildGoalTypeChip(String label, String type, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary : AppTheme.background,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppTheme.primary : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.white : AppTheme.secondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getGoalHint(String type) {
+    switch (type) {
+      case 'weight':
+        return 'ej. Perder 5kg';
+      case 'exercise_minutes':
+        return 'ej. 30 min diarios';
+      case 'distance_km':
+        return 'ej. Correr 5km';
+      default:
+        return '';
+    }
+  }
+
+  IconData _getGoalIcon(String type) {
+    switch (type) {
+      case 'weight':
+        return Icons.monitor_weight_outlined;
+      case 'exercise_minutes':
+        return Icons.timer_outlined;
+      case 'distance_km':
+        return Icons.directions_run;
+      default:
+        return Icons.flag;
+    }
+  }
+
+  String _getGoalValueHint(String type) {
+    switch (type) {
+      case 'weight':
+        return 'ej. 70';
+      case 'exercise_minutes':
+        return 'ej. 30';
+      case 'distance_km':
+        return 'ej. 5';
+      default:
+        return '';
+    }
+  }
+
+  String _getGoalUnit(String type) {
+    switch (type) {
+      case 'weight':
+        return 'kg';
+      case 'exercise_minutes':
+        return 'min';
+      case 'distance_km':
+        return 'km';
+      default:
+        return '';
+    }
   }
 
 
@@ -1066,6 +1202,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final double progress = (current / target).clamp(0.0, 1.0);
     final String title = goal['title'] ?? 'Meta';
     final String? goalId = goal['id']?.toString();
+    final String goalType = goal['goal_type'] ?? '';
+    final String unit = goal['unit'] ?? '';
     final int percentage = (progress * 100).round();
     
     // Color based on progress
@@ -1074,6 +1212,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         : percentage < 70 
             ? Colors.amber 
             : Colors.green;
+
+    // Get icon based on goal type
+    IconData goalIcon = _getGoalIcon(goalType);
 
     return GestureDetector(
       onTap: goalId != null ? () => _showContributeToGoalDialog(goal) : null,
@@ -1111,7 +1252,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: progressColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.flag_rounded, color: progressColor, size: 20),
+                  child: Icon(goalIcon, color: progressColor, size: 20),
                 ),
                 Text(
                   '$percentage%',
@@ -1136,7 +1277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              '${current.toStringAsFixed(0)} de ${target.toStringAsFixed(0)}',
+              '${current.toStringAsFixed(1)} de ${target.toStringAsFixed(1)} $unit',
               style: GoogleFonts.manrope(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -1212,18 +1353,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showContributeToGoalDialog(Map<String, dynamic> goal) {
+  void _showContributeToGoalDialog(Map<String, dynamic> goal) async {
     final amountController = TextEditingController();
     bool isSaving = false;
     bool isWithdrawMode = false;
     
     final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
-    final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
-    final double remaining = (target - current).clamp(0, target);
+    double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
     final String title = goal['title'] ?? 'Meta';
     final String? goalId = goal['id']?.toString();
+    final String goalType = goal['goal_type'] ?? '';
+    final String unit = goal['unit'] ?? '';
+
+    // If it's a weight goal, fetch current weight from Firebase
+    if (goalType == 'weight') {
+      try {
+        final weightSnapshot = await _nutritionService.getWeightHistory().first;
+        if (weightSnapshot.snapshot.exists) {
+          final Map<dynamic, dynamic> weightData = weightSnapshot.snapshot.value as Map<dynamic, dynamic>;
+          if (weightData.isNotEmpty) {
+            // Get the most recent weight entry
+            final sortedKeys = weightData.keys.toList()..sort((a, b) => b.toString().compareTo(a.toString()));
+            final latestWeight = weightData[sortedKeys.first];
+            current = double.tryParse(latestWeight['weight']?.toString() ?? '0') ?? current;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching weight: $e');
+      }
+    }
+
+    final double remaining = (target - current).clamp(0, target);
 
     if (goalId == null) return;
+    if (!mounted) return;
 
     showModalBottomSheet(
       context: context,
@@ -1297,15 +1460,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _buildModalStat('Actual', current.toStringAsFixed(1), AppTheme.primary),
+                      child: _buildModalStat('Actual', '${current.toStringAsFixed(1)} $unit', AppTheme.primary),
                     ),
                     Container(height: 40, width: 1, color: Colors.grey.withValues(alpha: 0.2)),
                     Expanded(
-                      child: _buildModalStat('Meta', target.toStringAsFixed(1), AppTheme.secondary),
+                      child: _buildModalStat('Meta', '${target.toStringAsFixed(1)} $unit', AppTheme.secondary),
                     ),
                     Container(height: 40, width: 1, color: Colors.grey.withValues(alpha: 0.2)),
                     Expanded(
-                      child: _buildModalStat('Resta', remaining.toStringAsFixed(1), Colors.orangeAccent),
+                      child: _buildModalStat('Resta', '${remaining.toStringAsFixed(1)} $unit', Colors.orangeAccent),
                     ),
                   ],
                 ),
@@ -1365,6 +1528,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     setBottomSheetState(() => isSaving = true);
                     
                     try {
+                      // Calculate new current value
+                      final double newCurrent = isWithdrawMode ? current - amount : current + amount;
+                      final bool wasIncomplete = current < target;
+                      final bool isNowComplete = newCurrent >= target;
+                      
                       await _nutritionService.updateGoalProgress(
                         goalId, 
                         amount, 
@@ -1372,12 +1540,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Progreso actualizado con éxito'),
-                          backgroundColor: isWithdrawMode ? Colors.orange : Colors.green,
-                        ),
-                      );
+                      
+                      // Check if goal was just completed
+                      if (wasIncomplete && isNowComplete && !isWithdrawMode) {
+                        // Show Panda Modal for goal completion!
+                        GamificationService().checkAndShowModal(context, PandaTrigger.goalMet);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Progreso actualizado con éxito'),
+                            backgroundColor: isWithdrawMode ? Colors.orange : Colors.green,
+                          ),
+                        );
+                      }
                     } catch (e) {
                       if (!context.mounted) return;
                       setBottomSheetState(() => isSaving = false);

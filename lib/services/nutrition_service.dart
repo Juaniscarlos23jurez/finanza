@@ -38,6 +38,25 @@ class NutritionService {
     return null;
   }
 
+  Future<void> saveUserEmoji(String emoji) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    await _database.ref('users/$userId/profile/emoji').set(emoji);
+  }
+
+  Future<String?> getUserEmoji() async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return null;
+
+    final snapshot = await _database.ref('users/$userId/profile/emoji').get();
+    if (snapshot.exists) {
+      return snapshot.value.toString();
+    }
+    return null;
+  }
+
+
   Future<void> resetAIMemory() async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
@@ -183,13 +202,14 @@ class NutritionService {
     yield* _database.ref('public_rankings').orderByChild('streak').limitToLast(10).onValue;
   }
 
-  Future<void> syncUserRanking(String name, int streak) async {
+  Future<void> syncUserRanking(String name, int streak, {String? emoji}) async {
     final userId = await _authService.getUserId();
     if (userId == null) return;
 
     await _database.ref('public_rankings/$userId').set({
       'name': name,
       'streak': streak,
+      'emoji': emoji ?? '🦊', // Default emoji
       'last_update': ServerValue.timestamp,
     });
   }
