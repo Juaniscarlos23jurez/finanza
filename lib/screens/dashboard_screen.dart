@@ -53,6 +53,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<FlSpot> _balanceHistory = [];
   String _userName = '';
 
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -1572,7 +1574,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         Text(
-                          isWithdrawMode ? l10n.subtract_label : l10n.add_label,
+                          isWithdrawMode ? l10n.subtractLabel : l10n.addLabel,
                           style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
                         ),
                       ],
@@ -1621,7 +1623,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildModeButton(
-                      l10n.add_label, 
+                      l10n.addLabel, 
                       Icons.add_circle_outline, 
                       !isWithdrawMode, 
                       () => setBottomSheetState(() => isWithdrawMode = false)
@@ -1630,7 +1632,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildModeButton(
-                      l10n.subtract_label, 
+                      l10n.subtractLabel, 
                       Icons.remove_circle_outline, 
                       isWithdrawMode, 
                       () => setBottomSheetState(() => isWithdrawMode = true)
@@ -1703,7 +1705,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   child: isSaving 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)) 
-                    : Text(l10n.confirm_btn, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : Text(l10n.confirmBtn, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -1762,8 +1764,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.delete_goal_title, style: GoogleFonts.manrope(fontWeight: FontWeight.w900)),
-        content: Text(l10n.delete_goal_desc.replaceAll('{title}', title)),
+        title: Text(l10n.deleteGoalTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.w900)),
+        content: Text(l10n.deleteGoalDesc.replaceAll('{title}', title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1859,7 +1861,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      l10n.balance_ideal_msg.replaceAll('{state}', (_categoryStats['Proteínas'] ?? 0) > 30 ? l10n.gainMuscle : l10n.maintainEnergy),
+                      l10n.balanceIdealMsg.replaceAll('{state}', (_categoryStats['Proteínas'] ?? 0) > 30 ? l10n.gainMuscle : l10n.maintainEnergy),
                       style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
                     ),
                   ),

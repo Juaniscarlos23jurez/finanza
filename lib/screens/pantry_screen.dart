@@ -24,6 +24,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   int _totalItems = 0;
   int _checkedItems = 0;
 
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -325,7 +327,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isInventory ? l10n.addToInventory : l10n.add_to_shopping,
+                            isInventory ? l10n.addToInventory : l10n.addToShopping,
                             style: GoogleFonts.manrope(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -364,7 +366,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   TextField(
                     controller: quantityController,
                     decoration: InputDecoration(
-                      labelText: l10n.quantity_optional,
+                      labelText: l10n.quantityOptional,
                       hintText: 'Ej: 500g, 2 units...',
                       prefixIcon: const Icon(Icons.scale),
                       border: OutlineInputBorder(
@@ -474,7 +476,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                       ),
                     ),
                     child: Text(
-                      isInventory ? l10n.addToInventory : l10n.add_to_shopping,
+                      isInventory ? l10n.addToInventory : l10n.addToShopping,
                       style: GoogleFonts.manrope(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

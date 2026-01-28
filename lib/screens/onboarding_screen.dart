@@ -29,7 +29,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   File? _progressImage;
   String _visualGoalText = '';
   bool _isAnalyzing = false;
-  String _aiVisionDescription = '';
   final TextEditingController _motivationController = TextEditingController();
   final NutritionService _nutritionService = NutritionService();
   final AiService _aiService = AiService();
@@ -141,9 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           prompt: _visualGoalText,
         );
         
-        setState(() {
-          _aiVisionDescription = vision;
-        });
+
       }
       
       _nextPage();

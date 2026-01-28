@@ -23,6 +23,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   // Track which macro goals have been celebrated today to avoid duplicates
   final Set<String> _celebratedMacros = {};
 
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -719,16 +721,16 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
               if (isLive) {
                 final bool newStatus = !isCompleted;
                 await _nutritionService.toggleMealCompletion(id, newStatus);
-                if (newStatus && mounted) {
+                if (!context.mounted) return;
+                if (newStatus) {
                    GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
                    _checkMacroGoals(meal);
                 }
               } else {
                 await _nutritionService.initializeTodayMeals(allExisitingMeals, index);
-                if (mounted) {
-                   GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
-                   _checkMacroGoals(meal);
-                }
+                if (!context.mounted) return;
+                GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+                _checkMacroGoals(meal);
               }
             },
             child: AnimatedContainer(
