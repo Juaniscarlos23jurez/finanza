@@ -1,0 +1,6 @@
+"NSMicrophoneUsageDescription" = "This app needs microphone access to convert your voice to text.";
+"NSHealthShareUsageDescription" = "This app needs access to your health data to show your physical activity and help you reach your nutrition goals.";
+"NSHealthUpdateUsageDescription" = "This app can update your health data to record your progress.";
+"NSPhotoLibraryUsageDescription" = "We need gallery access for you to upload progress photos.";
+"NSCameraUsageDescription" = "We need camera access for you to take progress photos.";
+"NSSpeechRecognitionUsageDescription" = "This app uses speech recognition to log your data by speaking.";

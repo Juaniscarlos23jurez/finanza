@@ -128,5 +128,24 @@ class AiService {
         timestamp: DateTime.now(),
       );
     }
+    Future<String> generateGoalVision(String textGoal, Uint8List imageBytes) async {
+    try {
+      final content = [
+        Content.multi([
+          TextPart('El usuario tiene este objetivo: "$textGoal". '
+              'Basado en su foto actual, describe de manera muy detallada y MOTIVADORA '
+              'cómo se vería su cuerpo después de alcanzar este objetivo con éxito. '
+              'Enfócate en la definición muscular, postura, brillo en la piel y energía. '
+              'Tu respuesta debe ser un párrafo corto pero extremadamente inspirador.'),
+          DataPart('image/jpeg', imageBytes),
+        ])
+      ];
+
+      final response = await _model.generateContent(content);
+      return response.text ?? '¡Te verás increíble alcanzando tu meta!';
+    } catch (e) {
+      debugPrint('Error generating goal vision: $e');
+      return 'Un futuro lleno de salud y fuerza te espera.';
+    }
   }
 }

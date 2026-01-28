@@ -1,0 +1,6 @@
+"NSMicrophoneUsageDescription" = "Este aplicativo precisa de acesso ao microfone para converter sua voz em texto.";
+"NSHealthShareUsageDescription" = "Este aplicativo precisa de acesso aos seus dados de saúde para mostrar sua atividade física e ajudá-lo a atingir suas metas nutricionais.";
+"NSHealthUpdateUsageDescription" = "Este aplicativo pode atualizar seus dados de saúde para registrar seu progresso.";
+"NSPhotoLibraryUsageDescription" = "Precisamos de acesso à sua galeria para que você possa enviar fotos do seu progresso.";
+"NSCameraUsageDescription" = "Precisamos de acesso à câmera para que você possa tirar fotos do seu progresso.";
+"NSSpeechRecognitionUsageDescription" = "Este aplicativo usa reconhecimento de voz para registrar seus dados por meio da fala.";

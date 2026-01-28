@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
 import '../services/nutrition_service.dart';
 import '../services/gamification_service.dart';
+import '../l10n/app_localizations.dart';
 
 class NutritionPlanScreen extends StatefulWidget {
   const NutritionPlanScreen({super.key});
@@ -75,11 +76,11 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                       }
 
                       if (planData == null && dailyMeals.isEmpty) {
-                        return _buildEmptyState();
+                        return _buildEmptyState(context);
                       }
 
                       // Main Content
-                      return _buildContent(planData, dailyMeals);
+                      return _buildContent(context, planData, dailyMeals);
                     },
                   );
                 },
@@ -91,7 +92,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -108,12 +110,12 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No tienes un plan activo',
+              l10n.noActivePlan,
               style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary),
             ),
             const SizedBox(height: 12),
             Text(
-              'Ve al Chat y pídele a la IA que cree un plan nutricional para ti.',
+              l10n.goToChatPlan,
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
             ),
@@ -127,6 +129,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     return StreamBuilder<DatabaseEvent>(
       stream: _statsStream,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         int lives = 5;
         if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
           final data = Map<String, dynamic>.from(snapshot.data!.snapshot.value as Map);
@@ -144,7 +147,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                    Row(
                     children: [
                       Text(
-                        'ANTI-TRACKER',
+                        l10n.antiTracker,
                         style: GoogleFonts.manrope(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -178,7 +181,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                     ],
                    ),
                   Text(
-                    'Plan de Hoy',
+                    l10n.todayPlan,
                     style: GoogleFonts.manrope(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -200,7 +203,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                      const Icon(Icons.check_circle_outline, size: 14, color: Colors.green),
                      const SizedBox(width: 4),
                      Text(
-                       'Toca para comer', 
+                       l10n.tapToEat, 
                        style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)
                      )
                    ],
@@ -295,7 +298,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     }
   }
 
-  Widget _buildContent(Map<String, dynamic>? plan, List<Map<String, dynamic>> dailyMeals) {
+  Widget _buildContent(BuildContext context, Map<String, dynamic>? plan, List<Map<String, dynamic>> dailyMeals) {
+    final l10n = AppLocalizations.of(context)!;
     // If we have dailyMeals, calculate stats from them, otherwise from Plan
     int targetCalories = 2000;
     Map macros = {'protein': 0, 'carbs': 0, 'fats': 0};
@@ -316,12 +320,12 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryCard(targetCalories, macros, dailyMeals), // Pass dailyMeals to calculate eaten cals
+          _buildSummaryCard(context, targetCalories, macros, dailyMeals), // Pass dailyMeals to calculate eaten cals
           const SizedBox(height: 24),
-          _buildMacroProgressChart(macros, dailyMeals),
+          _buildMacroProgressChart(context, macros, dailyMeals),
           const SizedBox(height: 32),
           Text(
-            'Menú Inteligente',
+            l10n.smartMenu,
             style: GoogleFonts.manrope(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -330,7 +334,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           ),
           const SizedBox(height: 16),
           ...mealsToShow.asMap().entries.map((entry) {
-            return _buildInteractiveMealItem(entry.value, entry.key, usingDailyMeals, mealsToShow);
+            return _buildInteractiveMealItem(context, entry.value, entry.key, usingDailyMeals, mealsToShow);
           }),
           
           if (!usingDailyMeals && mealsToShow.isNotEmpty)
@@ -338,7 +342,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                padding: const EdgeInsets.only(top: 20),
                child: Center(
                  child: Text(
-                   'Toca un platillo para empezar el día',
+                   l10n.tapDishStart,
                    style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontStyle: FontStyle.italic),
                  ),
                ),
@@ -348,7 +352,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildSummaryCard(int targetCalories, Map macros, List<Map<String, dynamic>> dailyMeals) {
+  Widget _buildSummaryCard(BuildContext context, int targetCalories, Map macros, List<Map<String, dynamic>> dailyMeals) {
+    final l10n = AppLocalizations.of(context)!;
     // Calculate consumed calories and macros
     int consumed = 0;
     double consumedProtein = 0;
@@ -386,7 +391,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'PROGRESO DIARIO',
+                l10n.dailyProgress,
                 style: GoogleFonts.manrope(
                   fontSize: 12,
                   color: Colors.white70,
@@ -438,19 +443,19 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildMacroStat(
-                'Proteína', 
+                l10n.protein, 
                 '${consumedProtein.toInt()}/${macros['protein']}g', 
                 Colors.red.shade200,
                 consumedProtein >= (macros['protein'] ?? 0)
               ),
               _buildMacroStat(
-                'Carbos', 
+                l10n.carbs, 
                 '${consumedCarbs.toInt()}/${macros['carbs']}g', 
                 Colors.orange.shade200,
                 consumedCarbs >= (macros['carbs'] ?? 0)
               ),
               _buildMacroStat(
-                'Grasas', 
+                l10n.fats, 
                 '${consumedFats.toInt()}/${macros['fats']}g', 
                 Colors.amber.shade200,
                 consumedFats >= (macros['fats'] ?? 0)
@@ -491,7 +496,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildMacroProgressChart(Map macros, List<Map<String, dynamic>> dailyMeals) {
+  Widget _buildMacroProgressChart(BuildContext context, Map macros, List<Map<String, dynamic>> dailyMeals) {
+    final l10n = AppLocalizations.of(context)!;
     // Calculate consumed macros
     double consumedProtein = 0;
     double consumedCarbs = 0;
@@ -529,7 +535,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Progreso de Macros',
+                l10n.macroProgress,
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -543,7 +549,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'HOY',
+                  l10n.todayLabel,
                   style: GoogleFonts.manrope(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
@@ -556,7 +562,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           ),
           const SizedBox(height: 24),
           _buildMacroProgressBar(
-            'Proteína',
+            l10n.protein,
             consumedProtein,
             targetProtein,
             Colors.red,
@@ -564,7 +570,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           ),
           const SizedBox(height: 20),
           _buildMacroProgressBar(
-            'Carbohidratos',
+            l10n.carbs,
             consumedCarbs,
             targetCarbs,
             Colors.orange,
@@ -572,7 +578,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           ),
           const SizedBox(height: 20),
           _buildMacroProgressBar(
-            'Grasas',
+            l10n.fats,
             consumedFats,
             targetFats,
             Colors.amber,
@@ -682,7 +688,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildInteractiveMealItem(Map meal, int index, bool isLive, List allExisitingMeals) {
+  Widget _buildInteractiveMealItem(BuildContext context, Map meal, int index, bool isLive, List allExisitingMeals) {
     final bool isCompleted = meal['completed'] ?? false;
     final String title = meal['name'] ?? 'Comida';
     final String details = meal['details'] ?? '';
@@ -826,7 +832,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                meal['name'] ?? 'Receta',
+                meal['name'] ?? l10n.recipe,
                 style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
               ),
               const SizedBox(height: 8),
@@ -843,7 +849,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
               ),
               const SizedBox(height: 32),
               if (meal['recipe'] != null) ...[
-                Text('Ingredientes', style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                Text(l10n.ingredients, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                 const SizedBox(height: 12),
                 ...?meal['recipe']['ingredients']?.map<Widget>((ing) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -856,7 +862,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                   ),
                 )),
                 const SizedBox(height: 32),
-                Text('Instrucciones', style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                Text(l10n.instructions, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                 const SizedBox(height: 12),
                 ...?meal['recipe']['steps']?.asMap().entries.map((entry) => Padding(
                   padding: const EdgeInsets.only(bottom: 16),

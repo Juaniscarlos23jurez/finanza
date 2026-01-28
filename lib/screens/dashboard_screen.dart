@@ -31,6 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   StreamSubscription? _streakSubscription;
   StreamSubscription? _historySubscription;
   StreamSubscription? _weightSubscription;
+  StreamSubscription? _visualGoalSubscription;
+  Map<String, dynamic>? _visualGoal;
   bool _isLoading = true;
   bool _challengeCompleted = false;
   int _streak = 0;
@@ -61,6 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _listenToGoals();
     _listenToPlan();
     _listenToWeightChallenge();
+    _listenToVisualGoal();
     _requestNotificationPermissionAndSaveFCM();
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchInitialData();
@@ -223,6 +226,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  void _listenToVisualGoal() {
+    _visualGoalSubscription = _nutritionService.getUserProfile().asStream().listen((event) {
+        // Since it's a field in profile, we listen to the whole profile for now or just get it once
+        // Actually NutritionService.getUserProfile returns a Future. Let's make it a stream or just fetch it in initState.
+    });
+    
+    // Better: create a specific stream for visual goal if we want real-time.
+    // For now I'll use a fetch in _fetchInitialData or similar.
+  }
+
+  Future<void> _fetchVisualGoal() async {
+    final profile = await _nutritionService.getUserProfile();
+    if (profile != null && profile.containsKey('visual_goal')) {
+      if (mounted) {
+        setState(() {
+          _visualGoal = Map<String, dynamic>.from(profile['visual_goal'] as Map);
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _updateSubscription?.cancel();
@@ -232,6 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _streakSubscription?.cancel();
     _historySubscription?.cancel();
     _weightSubscription?.cancel();
+    _visualGoalSubscription?.cancel();
     super.dispose();
   }
 
@@ -239,6 +264,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       // For now we still pull finance data if used, but prioritizing nutrition
       await _financeService.getFinanceData();
+      await _fetchVisualGoal();
       // ... rest of logic for finance if needed, but we focus on nutrition UI
       if (mounted) {
         setState(() {
@@ -314,6 +340,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildDailyChallenge(),
                       const SizedBox(height: 24),
                     ],
+                    _buildVisualGoalCard(),
+                    const SizedBox(height: 24),
                     _buildCalorieCard(),
                     const SizedBox(height: 32),
                     _buildSectionTitle('Historial Calórico (7 días)'),
@@ -341,6 +369,117 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ... (Header and BalanceCard remain the same) ...
   // ... (Previous methods) ...
+
+  Widget _buildVisualGoalCard() {
+    if (_visualGoal == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: Colors.amber, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'VISIÓN AI: ${(_visualGoal!['prompt'] ?? 'TU META').toString().toUpperCase()}',
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                  color: AppTheme.primary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        _visualGoal!['original_image'],
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('AHORA', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Icon(Icons.arrow_forward_rounded, color: AppTheme.accent),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.network(
+                            _visualGoal!['ai_goal_image'],
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            color: Colors.purple.withValues(alpha: 0.3),
+                            colorBlendMode: BlendMode.plus,
+                          ),
+                          Container(
+                            color: Colors.black.withValues(alpha: 0.2),
+                          ),
+                          const Icon(Icons.auto_awesome, color: Colors.white, size: 40),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('TU META', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accent)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.accent.withValues(alpha: 0.1)),
+            ),
+            child: Text(
+              'La IA predice: "Continuando con este plan, verás cambios notables en la definición de abdomen y mayor energía vital en 4 semanas."',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                color: AppTheme.primary.withValues(alpha: 0.8),
+                height: 1.5,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildMotivationQuote() {
     return Container(

@@ -9,11 +9,21 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('es', null);
-  Intl.defaultLocale = 'es';
+  
+  final prefs = await SharedPreferences.getInstance();
+  final String? savedLocale = prefs.getString('user_locale');
+  if (savedLocale != null) {
+    LocaleSettings.instance.setLocale(Locale(savedLocale));
+    await initializeDateFormatting(savedLocale, null);
+    Intl.defaultLocale = savedLocale;
+  } else {
+    await initializeDateFormatting('es', null);
+    Intl.defaultLocale = 'es';
+  }
   debugPrint('--- APP STARTING ---');
   try {
     await dotenv.load(fileName: ".env");
@@ -45,27 +55,53 @@ void main() async {
   runApp(MyApp(initialScreen: initialScreen));
 }
 
+class LocaleSettings {
+  LocaleSettings._();
+  static final LocaleSettings instance = LocaleSettings._();
+  
+  final ValueNotifier<Locale> localeNotifier = ValueNotifier(const Locale('es'));
+
+  Future<void> setLocale(Locale locale) async {
+    localeNotifier.value = locale;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_locale', locale.languageCode);
+    Intl.defaultLocale = locale.languageCode;
+    await initializeDateFormatting(locale.languageCode, null);
+  }
+}
+
 class MyApp extends StatelessWidget {
   final Widget initialScreen;
   const MyApp({super.key, required this.initialScreen});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'NutriGPT AI',
-      theme: AppTheme.theme,
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('es', ''), // Spanish
-        Locale('en', ''), // English
-      ],
-      locale: const Locale('es', ''),
-      home: initialScreen,
+    return ValueListenableBuilder<Locale>(
+      valueListenable: LocaleSettings.instance.localeNotifier,
+      builder: (context, locale, _) {
+        return MaterialApp(
+          title: 'NutriGPT AI',
+          theme: AppTheme.theme,
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('es', ''),
+            Locale('en', ''),
+            Locale('de', ''),
+            Locale('fr', ''),
+            Locale('ja', ''),
+            Locale('it', ''),
+            Locale('pt', ''),
+          ],
+          locale: locale,
+          home: initialScreen,
+        );
+      },
     );
   }
 }

@@ -6,6 +6,8 @@ import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/nutrition_service.dart';
+import '../main.dart';
+import '../l10n/app_localizations.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -80,51 +82,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: _isLoading 
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 48),
-                  _buildProfileHeader(),
-                  const SizedBox(height: 32),
-                  _buildNutritionalCalendar(),
-                  const SizedBox(height: 48),
-                  _buildMenuSection('CUENTA', [
-                    _buildMenuItem(Icons.person_outline_rounded, 'Información Personal', onTap: () => _showPersonalInfoModal(context)),
-                    _buildMenuItem(Icons.auto_awesome_outlined, 'Personalizar mi Nutrición', onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-                      );
-                    }),
-                    _buildMenuItem(Icons.history_rounded, 'Borrar Memoria de IA', onTap: () => _showResetAIModal(context)),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildMenuSection('TRANSPARENCIA RADICAL', [
-                    _buildMenuItem(Icons.security_outlined, 'Control de Datos', onTap: () => _showPrivacyInfo(context)),
-                    _buildMenuItem(Icons.download_outlined, 'Exportar mis Datos (JSON)'),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildMenuSection('OTRO', [
-                    _buildMenuItem(Icons.feedback_outlined, 'Feedback', onTap: () => _showFeedbackModal(context)),
-                    _buildMenuItem(
-                      Icons.info_outline_rounded, 
-                      'Términos y Condiciones',
-                      onTap: () async {
-                        final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                    ),
-                  ]),
-                  const SizedBox(height: 48),
-                  _buildLogoutButton(context),
-                  const SizedBox(height: 12),
-                  _buildDeleteAccountButton(context),
-                  const SizedBox(height: 48),
-                ],
-              ),
+          : Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context)!;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 48),
+                      _buildProfileHeader(),
+                      const SizedBox(height: 32),
+                      _buildNutritionalCalendar(),
+                      const SizedBox(height: 48),
+                      _buildMenuSection(l10n.account, [
+                        _buildMenuItem(Icons.person_outline_rounded, l10n.personalInfo, onTap: () => _showPersonalInfoModal(context)),
+                        _buildMenuItem(Icons.language_rounded, l10n.language, onTap: () => _showLanguageSelector(context)),
+                        _buildMenuItem(Icons.auto_awesome_outlined, l10n.customizeNutrition, onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                          );
+                        }),
+                        _buildMenuItem(Icons.history_rounded, l10n.resetAi, onTap: () => _showResetAIModal(context)),
+                      ]),
+                      const SizedBox(height: 32),
+                      _buildMenuSection(l10n.transparency, [
+                        _buildMenuItem(Icons.security_outlined, l10n.dataControl, onTap: () => _showPrivacyInfo(context)),
+                        _buildMenuItem(Icons.download_outlined, l10n.exportData),
+                      ]),
+                      const SizedBox(height: 32),
+                      _buildMenuSection(l10n.other, [
+                        _buildMenuItem(Icons.feedback_outlined, l10n.feedback, onTap: () => _showFeedbackModal(context)),
+                        _buildMenuItem(
+                          Icons.info_outline_rounded, 
+                          l10n.terms,
+                          onTap: () async {
+                            final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                        ),
+                      ]),
+                      const SizedBox(height: 48),
+                      _buildLogoutButton(context),
+                      const SizedBox(height: 12),
+                      _buildDeleteAccountButton(context, l10n.deleteAccount),
+                      const SizedBox(height: 48),
+                    ],
+                  ),
+                );
+              }
             ),
       ),
     );
@@ -241,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
       ),
       child: TableCalendar(
-        locale: 'es',
+        locale: Localizations.localeOf(context).languageCode,
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: _focusedDay,
@@ -390,6 +398,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text(title, style: GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.primary)),
             ),
             const Icon(Icons.chevron_right_rounded, color: AppTheme.secondary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final languages = [
+      {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
+      {'code': 'en', 'name': 'English', 'flag': '🇺🇸'},
+      {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
+      {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
+      {'code': 'ja', 'name': '日本語', 'flag': '🇯🇵'},
+      {'code': 'it', 'name': 'Italiano', 'flag': '🇮🇹'},
+      {'code': 'pt', 'name': 'Português', 'flag': '🇧🇷'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.selectLanguage, style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+            const SizedBox(height: 24),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: languages.length,
+                itemBuilder: (context, index) {
+                  final lang = languages[index];
+                  final isSelected = LocaleSettings.instance.localeNotifier.value.languageCode == lang['code'];
+                  
+                  return ListTile(
+                    leading: Text(lang['flag']!, style: const TextStyle(fontSize: 24)),
+                    title: Text(lang['name']!, style: GoogleFonts.manrope(fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600)),
+                    trailing: isSelected ? const Icon(Icons.check_circle, color: AppTheme.primary) : null,
+                    onTap: () {
+                      LocaleSettings.instance.setLocale(Locale(lang['code']!));
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -570,6 +632,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLogoutButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       child: TextButton(
@@ -578,15 +641,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (!context.mounted) return;
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
         },
-        child: Text('Cerrar Sesión', style: GoogleFonts.manrope(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+        child: Text(l10n.logout, style: GoogleFonts.manrope(color: Colors.redAccent, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget _buildDeleteAccountButton(BuildContext context) {
+  Widget _buildDeleteAccountButton(BuildContext context, String title) {
     return TextButton(
       onPressed: () => _buildLogoutButton(context), 
-      child: Text('Eliminar cuenta', style: TextStyle(color: Colors.grey, fontSize: 12)),
+      child: Text(title, style: TextStyle(color: Colors.grey, fontSize: 12)),
     );
   }
 }

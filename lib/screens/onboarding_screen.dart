@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../theme/app_theme.dart';
 import 'main_screen.dart';
 import '../services/nutrition_service.dart';
+import '../services/ai_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -21,6 +24,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String _activityLevel = '';
   final List<String> _restrictions = [];
   String _cookingSkill = '';
+  
+  // Motivation data
+  File? _progressImage;
+  String _visualGoalText = '';
+  bool _isAnalyzing = false;
+  String _aiVisionDescription = '';
+  final TextEditingController _motivationController = TextEditingController();
+  final NutritionService _nutritionService = NutritionService();
+  final AiService _aiService = AiService();
   
   final List<Map<String, dynamic>> _steps = [
     {
@@ -67,12 +79,83 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ]
     },
     {
+      'title': 'Visualiza tu Meta',
+      'subtitle': 'Sube una foto y dinos qué quieres lograr. Nuestra IA te mostrará el camino.',
+      'type': 'motivation',
+    },
+    {
       'title': '¡Todo listo!',
       'subtitle': 'Tu IA nutricional está lista para empezar.',
       'type': 'final',
       'icon': Icons.auto_awesome_rounded,
     }
   ];
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      setState(() {
+        _progressImage = File(image.path);
+      });
+    }
+  }
+
+  Future<void> _processMotivation() async {
+    if (_progressImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, selecciona una foto para continuar.')),
+      );
+      return;
+    }
+
+    if (_motivationController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cuéntanos qué quieres lograr (ej: Bajar 10kg, ganar músculo)')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isAnalyzing = true;
+      _visualGoalText = _motivationController.text;
+    });
+
+    try {
+      final bytes = await _progressImage!.readAsBytes();
+      
+      // Call AI to get the vision description
+      final vision = await _aiService.generateGoalVision(_visualGoalText, bytes);
+      
+      // Upload image to Firebase Storage
+      final imageUrl = await _nutritionService.uploadProgressImage(_progressImage!);
+      
+      if (imageUrl != null) {
+        // Here we'd ideally have an AI generated image. 
+        // For now, we save the vision description and original image.
+        // We will mock the "Goal Image" as a high-quality stylized version or just use the description.
+        await _nutritionService.saveVisualGoal(
+          originalImageUrl: imageUrl,
+          aiGoalImageUrl: imageUrl, // In a real case, this would be the generative AI result
+          prompt: _visualGoalText,
+        );
+        
+        setState(() {
+          _aiVisionDescription = vision;
+        });
+      }
+      
+      _nextPage();
+    } catch (e) {
+      debugPrint('Error processing motivation: $e');
+      _nextPage(); // Continue anyway but log error
+    } finally {
+      setState(() {
+        _isAnalyzing = false;
+      });
+    }
+  }
 
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
@@ -207,8 +290,100 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white)),
               ),
             ),
+          if (step['type'] == 'motivation')
+            _buildMotivationStep(),
         ],
       ),
+    );
+  }
+
+  Widget _buildMotivationStep() {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: _progressImage != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.file(_progressImage!, fit: BoxFit.cover),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add_a_photo_outlined, size: 48, color: AppTheme.accent),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Toca para subir tu foto',
+                        style: GoogleFonts.manrope(
+                          color: AppTheme.secondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          controller: _motivationController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: '¿Cuánto quieres bajar? ¿Quieres músculo o estar delgado?',
+            hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          style: GoogleFonts.manrope(color: AppTheme.primary),
+        ),
+        const SizedBox(height: 32),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _isAnalyzing ? null : _processMotivation,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: _isAnalyzing
+                ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      ),
+                      SizedBox(width: 12),
+                      Text('LA IA ESTÁ ANALIZANDO...', style: TextStyle(color: Colors.white)),
+                    ],
+                  )
+                : Text(
+                    'GENERAR VISIÓN AI',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 

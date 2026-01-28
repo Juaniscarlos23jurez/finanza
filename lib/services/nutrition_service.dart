@@ -1,9 +1,12 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 import 'auth_service.dart';
 
 class NutritionService {
   final FirebaseDatabase _database = FirebaseDatabase.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   final AuthService _authService = AuthService();
   
   static String sanitizeKey(String key) {
@@ -36,6 +39,34 @@ class NutritionService {
       return Map<String, dynamic>.from(snapshot.value as Map);
     }
     return null;
+  }
+
+  Future<String?> uploadProgressImage(File imageFile) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return null;
+
+    final String fileName = 'progress_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final Reference ref = _storage.ref().child('users/$userId/progress_photos/$fileName');
+    
+    final UploadTask uploadTask = ref.putFile(imageFile);
+    final TaskSnapshot snapshot = await uploadTask;
+    return await snapshot.ref.getDownloadURL();
+  }
+
+  Future<void> saveVisualGoal({
+    required String originalImageUrl,
+    required String aiGoalImageUrl,
+    required String prompt,
+  }) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    await _database.ref('users/$userId/profile/visual_goal').set({
+      'original_image': originalImageUrl,
+      'ai_goal_image': aiGoalImageUrl,
+      'prompt': prompt,
+      'created_at': ServerValue.timestamp,
+    });
   }
 
   Future<void> saveUserEmoji(String emoji) async {
