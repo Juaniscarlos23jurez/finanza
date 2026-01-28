@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:nutrigpt/services/nutrition_service.dart';
 import '../theme/app_theme.dart';
 import '../services/finance_service.dart';
@@ -344,9 +345,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.accent.withOpacity(0.1),
+        color: AppTheme.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.accent.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -358,7 +359,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: GoogleFonts.manrope(
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
-                color: AppTheme.primary.withOpacity(0.8),
+                color: AppTheme.primary.withValues(alpha: 0.8),
                 height: 1.4,
               ),
             ),
@@ -376,11 +377,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
         child: Column(
           children: [
-            Icon(Icons.calendar_today_outlined, color: AppTheme.secondary.withOpacity(0.3), size: 48),
+            Icon(Icons.calendar_today_outlined, color: AppTheme.secondary.withValues(alpha: 0.3), size: 48),
             const SizedBox(height: 16),
             Text('Sin plan para hoy', style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Pídele un plan a la IA en el chat', style: GoogleFonts.manrope(color: AppTheme.secondary.withOpacity(0.6), fontSize: 12)),
+            Text('Pídele un plan a la IA en el chat', style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.6), fontSize: 12)),
           ],
         ),
       );
@@ -403,13 +404,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isCompleted ? AppTheme.accent.withOpacity(0.05) : Colors.white,
+        color: isCompleted ? AppTheme.accent.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: isCompleted ? Border.all(color: AppTheme.accent.withOpacity(0.2)) : null,
+        border: isCompleted ? Border.all(color: AppTheme.accent.withValues(alpha: 0.2)) : null,
         boxShadow: [
           if (!isCompleted)
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             )
@@ -450,7 +451,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 shape: BoxShape.circle,
                 color: isCompleted ? AppTheme.accent : Colors.transparent,
                 border: Border.all(
-                  color: isCompleted ? AppTheme.accent : AppTheme.secondary.withOpacity(0.3),
+                  color: isCompleted ? AppTheme.accent : AppTheme.secondary.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -500,7 +501,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
           )
         ],
@@ -528,7 +529,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             drawVerticalLine: false,
             horizontalInterval: 1000,
             getDrawingHorizontalLine: (value) => FlLine(
-              color: Colors.grey.withOpacity(0.05),
+              color: Colors.grey.withValues(alpha: 0.05),
               strokeWidth: 1,
             ),
           ),
@@ -548,7 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Text(
                         DateFormat('E').format(date).substring(0, 1),
                         style: GoogleFonts.manrope(
-                          color: AppTheme.secondary.withOpacity(0.6), 
+                          color: AppTheme.secondary.withValues(alpha: 0.6), 
                           fontSize: 10, 
                           fontWeight: FontWeight.bold
                         ),
@@ -580,7 +581,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               belowBarData: BarAreaData(
                 show: true,
                 gradient: LinearGradient(
-                  colors: [AppTheme.primary.withOpacity(0.2), AppTheme.primary.withOpacity(0.0)],
+                  colors: [AppTheme.primary.withValues(alpha: 0.2), AppTheme.primary.withValues(alpha: 0.0)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -593,45 +594,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return StreamBuilder<DatabaseEvent>(
+      stream: _nutritionService.getGamificationStats(),
+      builder: (context, snapshot) {
+        int lives = 5;
+        if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+          final data = snapshot.data!.snapshot.value as Map;
+          lives = data['lives'] ?? 5;
+        } else {
+           // Try to init if null
+           _nutritionService.initializeGamificationStats();
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              _getGreeting(),
-              style: GoogleFonts.manrope(
-                fontSize: 14,
-                color: AppTheme.secondary,
-                fontWeight: FontWeight.w600,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getGreeting(),
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    color: AppTheme.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  _userName.isNotEmpty ? 'Hola, $_userName' : 'Panel de Control',
+                  style: GoogleFonts.manrope(
+                    fontSize: 24,
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              _userName.isNotEmpty ? 'Hola, $_userName' : 'Panel de Control',
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                color: AppTheme.primary,
-                fontWeight: FontWeight.w900,
+            GestureDetector(
+              onTap: () {
+                 // Easter egg or info about lives
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   const SnackBar(content: Text('❤️ Vidas: Usa una vida para un "Cheat Meal" sin perder racha.')),
+                 );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                    )
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.favorite, color: Colors.redAccent, size: 20),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$lives',
+                      style: GoogleFonts.manrope(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
-        ),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-              )
-            ],
-          ),
-          child: const Icon(Icons.notifications_none_rounded, color: AppTheme.primary),
-        ),
-      ],
+        );
+      }
     );
   }
 
@@ -647,7 +683,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.3),
+            color: Colors.purple.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -658,7 +694,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.star_rounded, color: Colors.amber, size: 28),
@@ -727,7 +763,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.2),
+            color: AppTheme.primary.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -743,7 +779,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 '$_streak DÍAS DE RACHA',
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w800,
                   letterSpacing: 2,
                 ),
@@ -766,7 +802,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white.withOpacity(0.1),
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               minHeight: 8,
             ),
@@ -800,7 +836,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label,
           style: GoogleFonts.manrope(
             fontSize: 10,
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -838,7 +874,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.1),
+                    color: AppTheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.add, size: 20, color: AppTheme.primary),
@@ -876,7 +912,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1025,17 +1061,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              progressColor.withOpacity(0.1),
+              progressColor.withValues(alpha: 0.1),
               Colors.white,
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: progressColor.withOpacity(0.1), width: 1.5),
+          border: Border.all(color: progressColor.withValues(alpha: 0.1), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: progressColor.withOpacity(0.05),
+              color: progressColor.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -1050,7 +1086,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: progressColor.withOpacity(0.15),
+                    color: progressColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.flag_rounded, color: progressColor, size: 20),
@@ -1109,7 +1145,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primary.withOpacity(0.2),
+                            color: AppTheme.primary.withValues(alpha: 0.2),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           )
@@ -1137,7 +1173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.2)),
+                      border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
                     ),
                     child: Icon(
                       Icons.delete_outline_rounded,
@@ -1187,7 +1223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1218,7 +1254,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.1),
+                      color: AppTheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -1241,11 +1277,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       child: _buildModalStat('Actual', current.toStringAsFixed(1), AppTheme.primary),
                     ),
-                    Container(height: 40, width: 1, color: Colors.grey.withOpacity(0.2)),
+                    Container(height: 40, width: 1, color: Colors.grey.withValues(alpha: 0.2)),
                     Expanded(
                       child: _buildModalStat('Meta', target.toStringAsFixed(1), AppTheme.secondary),
                     ),
-                    Container(height: 40, width: 1, color: Colors.grey.withOpacity(0.2)),
+                    Container(height: 40, width: 1, color: Colors.grey.withValues(alpha: 0.2)),
                     Expanded(
                       child: _buildModalStat('Resta', remaining.toStringAsFixed(1), Colors.orangeAccent),
                     ),
@@ -1356,7 +1392,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: active ? AppTheme.primary : AppTheme.background,
           borderRadius: BorderRadius.circular(16),
-          border: active ? null : Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: active ? null : Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1430,7 +1466,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -1524,14 +1560,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 height: 10,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color.withOpacity(0.6), color],
+                    colors: [color.withValues(alpha: 0.6), color],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     )

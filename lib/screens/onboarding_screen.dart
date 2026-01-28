@@ -124,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.all(24.0),
               child: LinearProgressIndicator(
                 value: (_currentPage + 1) / _steps.length,
-                backgroundColor: AppTheme.primary.withOpacity(0.1),
+                backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
                 valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent),
                 borderRadius: BorderRadius.circular(10),
                 minHeight: 6,
@@ -252,7 +252,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   )

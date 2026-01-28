@@ -13,6 +13,17 @@ class NutritionPlanScreen extends StatefulWidget {
 
 class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   final NutritionService _nutritionService = NutritionService();
+  
+  // Need to listen to two streams: Plan (for targets) and Daily Meals (for execution)
+  late Stream<DatabaseEvent> _planStream;
+  late Stream<DatabaseEvent> _dailyMealsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _planStream = _nutritionService.getPlan();
+    _dailyMealsStream = _nutritionService.getDailyMeals();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,23 +35,46 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             _buildHeader(),
             Expanded(
               child: StreamBuilder<DatabaseEvent>(
-                stream: _nutritionService.getPlan(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
-                  }
+                stream: _planStream,
+                builder: (context, planSnapshot) {
+                  return StreamBuilder<DatabaseEvent>(
+                    stream: _dailyMealsStream,
+                    builder: (context, mealsSnapshot) {
+                      if (planSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+                      }
 
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
+                      // Parse Plan Data
+                      Map<String, dynamic>? planData;
+                      if (planSnapshot.hasData && planSnapshot.data!.snapshot.value != null) {
+                        planData = Map<String, dynamic>.from(planSnapshot.data!.snapshot.value as Map);
+                      }
 
-                  final data = snapshot.data?.snapshot.value;
-                  if (data == null) {
-                    return _buildEmptyState();
-                  }
+                      // Parse Daily Meals Data
+                      List<Map<String, dynamic>> dailyMeals = [];
+                      if (mealsSnapshot.hasData && mealsSnapshot.data!.snapshot.value != null) {
+                         final Map<dynamic, dynamic> data = mealsSnapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                         // Sort by ID to maintain order
+                         final sortedKeys = data.keys.toList()..sort((a, b) {
+                           // Assuming keys are meal_0, meal_1...
+                           int idA = int.tryParse(a.toString().split('_').last) ?? 0;
+                           int idB = int.tryParse(b.toString().split('_').last) ?? 0;
+                           return idA.compareTo(idB); 
+                         });
+                         
+                         for (var key in sortedKeys) {
+                           dailyMeals.add(Map<String, dynamic>.from(data[key] as Map));
+                         }
+                      }
 
-                  final plan = Map<String, dynamic>.from(data as Map);
-                  return _buildPlanContent(plan);
+                      if (planData == null && dailyMeals.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      // Main Content
+                      return _buildContent(planData, dailyMeals);
+                    },
+                  );
                 },
               ),
             ),
@@ -60,7 +94,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.description_outlined, size: 64, color: AppTheme.primary),
@@ -85,45 +119,80 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'MI PLAN',
-            style: GoogleFonts.manrope(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.secondary,
-              letterSpacing: 2.0,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ANTI-TRACKER',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.secondary,
+                  letterSpacing: 2.0,
+                ),
+              ),
+              Text(
+                'Plan de Hoy',
+                style: GoogleFonts.manrope(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ],
           ),
-          Text(
-            'Nutricional',
-            style: GoogleFonts.manrope(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppTheme.primary,
-            ),
-          ),
+          // Visual Hint
+          Container(
+             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+             decoration: BoxDecoration(
+               color: Colors.green.withValues(alpha: 0.1),
+               borderRadius: BorderRadius.circular(20),
+               border: Border.all(color: Colors.green.withValues(alpha: 0.2))
+             ),
+             child: Row(
+               children: [
+                 const Icon(Icons.check_circle_outline, size: 14, color: Colors.green),
+                 const SizedBox(width: 4),
+                 Text(
+                   'Toca para comer', 
+                   style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)
+                 )
+               ],
+             ),
+          )
         ],
       ),
     );
   }
 
-  Widget _buildPlanContent(Map<String, dynamic> plan) {
-    final int calories = plan['daily_calories'] ?? 0;
-    final Map macros = plan['macros'] ?? {};
-    final List meals = plan['meals'] ?? [];
+  Widget _buildContent(Map<String, dynamic>? plan, List<Map<String, dynamic>> dailyMeals) {
+    // If we have dailyMeals, calculate stats from them, otherwise from Plan
+    int targetCalories = 2000;
+    Map macros = {'protein': 0, 'carbs': 0, 'fats': 0};
+    
+    if (plan != null) {
+      targetCalories = plan['daily_calories'] ?? 2000;
+      macros = plan['macros'] ?? macros;
+    }
+
+    // Determine which list of meals to show
+    // If dailyMeals exists, show it (IT IS THE TRUTH)
+    // If not, show Plan meals (TEMPLATE)
+    final bool usingDailyMeals = dailyMeals.isNotEmpty;
+    final List mealsToShow = usingDailyMeals ? dailyMeals : (plan?['meals'] ?? []);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryCard(calories, macros),
+          _buildSummaryCard(targetCalories, macros, dailyMeals), // Pass dailyMeals to calculate eaten cals
           const SizedBox(height: 32),
           Text(
-            'Programación Diaria',
+            'Menú Inteligente',
             style: GoogleFonts.manrope(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -131,13 +200,34 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ...meals.map((meal) => _buildMealItem(meal)),
+          ...mealsToShow.asMap().entries.map((entry) {
+            return _buildInteractiveMealItem(entry.value, entry.key, usingDailyMeals, mealsToShow);
+          }),
+          
+          if (!usingDailyMeals && mealsToShow.isNotEmpty)
+             Padding(
+               padding: const EdgeInsets.only(top: 20),
+               child: Center(
+                 child: Text(
+                   'Toca un platillo para empezar el día',
+                   style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontStyle: FontStyle.italic),
+                 ),
+               ),
+             )
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(int calories, Map macros) {
+  Widget _buildSummaryCard(int targetCalories, Map macros, List<Map<String, dynamic>> dailyMeals) {
+    // Calculate consumed
+    int consumed = 0;
+    for (var meal in dailyMeals) {
+      if (meal['completed'] == true) {
+        consumed += int.tryParse(meal['calories']?.toString() ?? '0') ?? 0;
+      }
+    }
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -146,7 +236,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.3),
+            color: AppTheme.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -154,23 +244,56 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
       ),
       child: Column(
         children: [
-          Text(
-            'OBJETIVO DIARIO',
-            style: GoogleFonts.manrope(
-              fontSize: 12,
-              color: Colors.white70,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.5,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'PROGRESO DIARIO',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12)
+                ),
+                child: Text(
+                  '${((consumed/targetCalories)*100).clamp(0, 100).toInt()}%',
+                   style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)
+                ),
+              )
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '$calories kcal',
-            style: GoogleFonts.manrope(
-              fontSize: 36,
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+               Text(
+                '$consumed',
+                style: GoogleFonts.manrope(
+                  fontSize: 48,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  height: 1.0
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8, left: 4),
+                child: Text(
+                  '/ $targetCalories kcal',
+                  style: GoogleFonts.manrope(
+                    fontSize: 16,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           Row(
@@ -202,62 +325,105 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildMealItem(Map meal) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+  Widget _buildInteractiveMealItem(Map meal, int index, bool isLive, List allExisitingMeals) {
+    final bool isCompleted = meal['completed'] ?? false;
+    final String title = meal['name'] ?? 'Comida';
+    final String time = meal['time'] ?? 'Flexible';
+    final String details = meal['details'] ?? '';
+    final String id = meal['id'] ?? 'temp_$index';
+
+    return GestureDetector(
+      onTap: () async {
+        if (isLive) {
+          // Toggle existing
+          await _nutritionService.toggleMealCompletion(id, !isCompleted);
+        } else {
+          // Initialize and toggle this one
+          await _nutritionService.initializeTodayMeals(allExisitingMeals, index);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isCompleted ? Colors.green.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: isCompleted ? Border.all(color: Colors.green.withValues(alpha: 0.3), width: 1.5) : Border.all(color: Colors.transparent),
+          boxShadow: [
+            if (!isCompleted)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Checkbox Area
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: isCompleted ? Colors.green : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isCompleted ? Colors.green : AppTheme.secondary.withValues(alpha: 0.3),
+                  width: 2
+                )
+              ),
+              child: isCompleted 
+                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                : null,
             ),
-            child: const Icon(Icons.restaurant_rounded, color: AppTheme.primary, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.w800, 
+                            fontSize: 16,
+                            decoration: isCompleted ? TextDecoration.lineThrough : null,
+                            color: isCompleted ? AppTheme.secondary.withValues(alpha: 0.6) : AppTheme.primary
+                          ),
+                        ),
+                      ),
+                      Text(
+                        time,
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          color: isCompleted ? Colors.green.withValues(alpha: 0.6) : AppTheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  if (details.isNotEmpty)
                     Text(
-                      meal['name'] ?? 'Comida',
-                      style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 16),
-                    ),
-                    Text(
-                      meal['time'] ?? '',
+                      details,
+                      maxLines: isCompleted ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.manrope(
-                        fontSize: 12,
-                        color: AppTheme.primary,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 13, 
+                        color: AppTheme.secondary.withValues(alpha: isCompleted ? 0.4 : 1.0), 
+                        height: 1.4
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  meal['details'] ?? '',
-                  style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary, height: 1.4),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(color: AppTheme.secondary.withOpacity(0.3))),
+                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
-                  Expanded(child: Divider(color: AppTheme.secondary.withOpacity(0.3))),
+                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
                 ],
               ),
               const SizedBox(height: 24),

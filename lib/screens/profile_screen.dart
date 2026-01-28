@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/nutrition_service.dart';
@@ -99,29 +100,101 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileHeader() {
     final name = _userData?['name'] ?? 'Usuario';
-    final email = _userData?['email'] ?? 'email@ejemplo.com';
     final photoUrl = _userData?['photo_url'];
 
-    return Column(
-      children: [
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)],
-          ),
-          child: ClipOval(
-            child: photoUrl != null
-                ? Image.network(photoUrl, fit: BoxFit.cover)
-                : const Center(child: Icon(Icons.person_rounded, size: 60, color: AppTheme.primary)),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(name, style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary)),
-        Text(email, style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, fontWeight: FontWeight.w600)),
-      ],
+    return StreamBuilder<DatabaseEvent>(
+      stream: _nutritionService.getGamificationStats(),
+      builder: (context, snapshot) {
+        int level = 1;
+        int xp = 0;
+        
+        if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+          final data = snapshot.data!.snapshot.value as Map;
+          level = data['level'] ?? 1;
+          xp = data['xp'] ?? 0;
+        }
+
+        // Calculate progress to next level
+        // Level N starts at (N-1)*500 XP. Next level at N*500.
+        // Current Level Progress = (XP - (Level-1)*500) / 500
+        int xpForCurrentLevel = (level - 1) * 500;
+        int xpToNextLevel = 500;
+        double progress = ((xp - xpForCurrentLevel) / xpToNextLevel).clamp(0.0, 1.0);
+
+        String rankTitle = 'Novato';
+        if (level > 2) rankTitle = 'Aprendiz';
+        if (level > 5) rankTitle = 'Guerrero';
+        if (level > 10) rankTitle = 'Maestro';
+        if (level > 20) rankTitle = 'Leyenda';
+
+        return Column(
+          children: [
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
+                    border: Border.all(color: AppTheme.primary, width: 3),
+                  ),
+                  child: ClipOval(
+                    child: photoUrl != null
+                        ? Image.network(photoUrl, fit: BoxFit.cover)
+                        : const Center(child: Icon(Icons.person_rounded, size: 60, color: AppTheme.primary)),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: AppTheme.accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '$level',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white, 
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(name, style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+            Text(rankTitle, style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.accent, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+            const SizedBox(height: 8),
+            // XP Bar
+            Container(
+              width: 200,
+              height: 8,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${xp - xpForCurrentLevel} / 500 XP',
+              style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.bold),
+            ),
+          ],
+        );
+      }
     );
   }
 
@@ -130,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
       ),
       child: TableCalendar(
         locale: 'es',
@@ -167,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Color? _getDayColor(DateTime day) {
     final now = DateTime.now();
     if (day.isAfter(now.subtract(const Duration(days: 6))) && day.isBefore(now.add(const Duration(days: 1)))) {
-       return Colors.green.withOpacity(0.2);
+       return Colors.green.withValues(alpha: 0.2);
     }
     return null;
   }
@@ -184,7 +257,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
           ),
           child: Column(children: items),
         ),

@@ -157,7 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             data.forEach((key, value) {
                               if (value is Map) {
                                 try {
-                                  messages.add(_chatService.fromRealtimeDB(value as Map<dynamic, dynamic>));
+                                  messages.add(_chatService.fromRealtimeDB(value));
                                 } catch (e) {
                                   debugPrint('Error parsing message from Map: $e');
                                 }
@@ -167,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             for (var item in data) {
                               if (item != null && item is Map) {
                                 try {
-                                  messages.add(_chatService.fromRealtimeDB(item as Map<dynamic, dynamic>));
+                                  messages.add(_chatService.fromRealtimeDB(item));
                                 } catch (e) {
                                   debugPrint('Error parsing message from List: $e');
                                 }
@@ -242,9 +242,9 @@ class _ChatScreenState extends State<ChatScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.05),
+              color: AppTheme.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
@@ -274,7 +274,7 @@ class _ChatScreenState extends State<ChatScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -338,14 +338,14 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: _isListening ? AppTheme.primary.withOpacity(0.05) : Colors.white,
+                color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
                 borderRadius: BorderRadius.circular(28),
                 border: _isListening 
                     ? Border.all(color: AppTheme.primary, width: 2)
                     : null,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 20,
                     offset: const Offset(0, 5),
                   ),
@@ -519,7 +519,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 boxShadow: widget.message.isAi
                     ? [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         )
@@ -585,7 +585,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text('Error al mostrar tarjeta: $type', style: const TextStyle(color: Colors.red)),
@@ -604,10 +604,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -681,7 +681,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                         decoration: BoxDecoration(
-                          color: (isExpense ? Colors.red : Colors.green).withOpacity(0.1),
+                          color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -749,10 +749,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -769,7 +769,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.1),
+                      color: AppTheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.receipt_long_rounded, size: 18, color: AppTheme.primary),
@@ -784,7 +784,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (totalIncome >= totalExpense ? Colors.green : Colors.red).withOpacity(0.1),
+                  color: (totalIncome >= totalExpense ? Colors.green : Colors.red).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -817,7 +817,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: (isExpense ? Colors.red : Colors.green).withOpacity(0.1),
+                      color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -871,7 +871,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     Text('+\$${totalIncome.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.green)),
                   ],
                 ),
-                Container(width: 1, height: 30, color: Colors.grey.withOpacity(0.2)),
+                Container(width: 1, height: 30, color: Colors.grey.withValues(alpha: 0.2)),
                 Column(
                   children: [
                     Text('Gastos', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
@@ -952,10 +952,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.05),
+            color: Colors.blueAccent.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -968,7 +968,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.flag_rounded, color: Colors.blueAccent),
               ),
               const SizedBox(width: 12),
@@ -1016,7 +1016,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.3),
+            color: AppTheme.primary.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1026,7 +1026,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
             child: const Icon(Icons.bar_chart_rounded, color: Colors.white),
           ),
           const SizedBox(width: 16),
@@ -1098,10 +1098,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.05)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -1124,7 +1124,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: (isExpense ? Colors.redAccent : Colors.green).withOpacity(0.1),
+                  color: (isExpense ? Colors.redAccent : Colors.green).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1209,7 +1209,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         color: AppTheme.primary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -1254,7 +1254,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 25,
             offset: const Offset(0, 12),
           ),
@@ -1269,7 +1269,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppTheme.accent, AppTheme.accent.withOpacity(0.7)],
+                colors: [AppTheme.accent, AppTheme.accent.withValues(alpha: 0.7)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -1285,7 +1285,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text('REGISTRO NUTRICIONAL', 
-                        style: GoogleFonts.manrope(color: Colors.white.withOpacity(0.8), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                        style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.8), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
                       Text(name, 
                         style: GoogleFonts.manrope(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                         maxLines: 2,
@@ -1297,7 +1297,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   const SizedBox(width: 12),
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
                     child: Text(score.toStringAsFixed(1), style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.w900)),
                   ),
                 ],
@@ -1417,7 +1417,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1425,7 +1425,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Icon(icon, size: 14, color: color),
           const SizedBox(height: 4),
           Text(value, style: GoogleFonts.manrope(color: color, fontSize: 14, fontWeight: FontWeight.w800)),
-          Text(label, style: GoogleFonts.manrope(color: color.withOpacity(0.7), fontSize: 8, fontWeight: FontWeight.bold)),
+          Text(label, style: GoogleFonts.manrope(color: color.withValues(alpha: 0.7), fontSize: 8, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -1484,7 +1484,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 25,
             offset: const Offset(0, 12),
           ),
@@ -1506,14 +1506,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('COMIDAS DEL DÍA', 
-                      style: GoogleFonts.manrope(color: Colors.white.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                      style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
                     Text('${meals.length} Registros', 
                       style: GoogleFonts.manrope(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                   child: Text('$totalCalories kcal', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
                 ),
               ],
@@ -1634,7 +1634,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         color: AppTheme.primary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -1676,10 +1676,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.05),
+            color: AppTheme.primary.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1692,7 +1692,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.flag_rounded, color: AppTheme.primary),
               ),
               const SizedBox(width: 12),
@@ -1767,10 +1767,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -1806,7 +1806,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: (healthy ? Colors.green : Colors.orange).withOpacity(0.1),
+                        color: (healthy ? Colors.green : Colors.orange).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -1851,14 +1851,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppTheme.primary, AppTheme.primary.withOpacity(0.8)],
+          colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.3),
+            color: AppTheme.primary.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1888,7 +1888,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1896,7 +1896,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(Icons.restaurant, color: Colors.white, size: 16),
@@ -1936,7 +1936,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -1956,7 +1956,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('PLAN PERSONALIZADO', 
-                        style: GoogleFonts.manrope(color: Colors.white.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                        style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                       const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
                     ],
                   ),
@@ -1967,7 +1967,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                        Text('$calories kcal / día', style: GoogleFonts.manrope(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                        Container(
                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                         decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                         decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
                          child: Text('Objetivo Alcanzado', style: GoogleFonts.manrope(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                        ),
                     ],
@@ -2051,7 +2051,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     return Column(
       children: [
         Text(value, style: GoogleFonts.manrope(color: color, fontSize: 16, fontWeight: FontWeight.w900)),
-        Text(label, style: GoogleFonts.manrope(color: Colors.white.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.bold)),
+        Text(label, style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -2115,7 +2115,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 25,
             offset: const Offset(0, 12),
           ),
@@ -2128,7 +2128,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppTheme.primary, AppTheme.primary.withOpacity(0.8)],
+                colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -2139,7 +2139,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.shopping_cart, color: Colors.white, size: 24),
@@ -2152,7 +2152,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       Text(
                         'LISTA GENERADA',
                         style: GoogleFonts.manrope(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1.2,
@@ -2175,7 +2175,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -2226,7 +2226,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: categoryColor.withOpacity(0.1),
+                            color: categoryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(categoryIcon, size: 18, color: categoryColor),
@@ -2250,14 +2250,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                                     quantity,
                                     style: GoogleFonts.manrope(
                                       fontSize: 11,
-                                      color: AppTheme.secondary.withOpacity(0.7),
+                                      color: AppTheme.secondary.withValues(alpha: 0.7),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: categoryColor.withOpacity(0.1),
+                                      color: categoryColor.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(

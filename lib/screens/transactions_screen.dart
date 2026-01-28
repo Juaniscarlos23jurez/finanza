@@ -123,7 +123,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     }
 
     if (!hasData) return null;
-    return income >= expense ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3);
+    return income >= expense ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3);
   }
 
   String _getDateLabel(DateTime date) {
@@ -209,7 +209,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
       ),
       child: TableCalendar(
         locale: 'es',
@@ -256,7 +256,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           formatButtonVisible: true,
           titleCentered: true,
           formatButtonDecoration: BoxDecoration(
-            color: AppTheme.primary.withOpacity(0.1),
+            color: AppTheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           formatButtonTextStyle: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
@@ -334,7 +334,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                   side: BorderSide(
-                    color: isSelected ? Colors.transparent : Colors.grey.withOpacity(0.1),
+                    color: isSelected ? Colors.transparent : Colors.grey.withValues(alpha: 0.1),
                   ),
                 ),
                 showCheckmark: false,
@@ -358,7 +358,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                ),
                style: TextButton.styleFrom(
                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                 backgroundColor: Colors.redAccent.withOpacity(0.1),
+                 backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                ),
              ),
@@ -472,7 +472,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                               if (value == 0) return const SizedBox.shrink();
                               return Text(
                                 '\$${(value / 1000).toStringAsFixed(1)}k',
-                                style: GoogleFonts.manrope(color: AppTheme.secondary.withOpacity(0.5), fontSize: 10),
+                                style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontSize: 10),
                               );
                             },
                           ),
@@ -484,7 +484,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         show: true,
                         drawVerticalLine: false,
                         getDrawingHorizontalLine: (value) => FlLine(
-                          color: Colors.grey.withOpacity(0.05),
+                          color: Colors.grey.withValues(alpha: 0.05),
                           strokeWidth: 1,
                         ),
                       ),
@@ -556,7 +556,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             BarChartRodData(
               toY: dailyTotal,
               gradient: LinearGradient(
-                colors: [AppTheme.primary, AppTheme.primary.withOpacity(0.7)],
+                colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.7)],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
@@ -565,7 +565,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
                 toY: 10, // Small base for zero data
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.grey.withValues(alpha: 0.05),
               ),
             ),
           ],
@@ -725,7 +725,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
           )
         ],
@@ -735,7 +735,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -759,18 +759,18 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     if (timeStr.isNotEmpty) ...[
                       Text(
                         '  •  ',
-                        style: GoogleFonts.manrope(color: AppTheme.secondary.withOpacity(0.5), fontSize: 12),
+                        style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontSize: 12),
                       ),
                       Icon(
                         Icons.access_time_rounded,
                         size: 12,
-                        color: AppTheme.secondary.withOpacity(0.6),
+                        color: AppTheme.secondary.withValues(alpha: 0.6),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         timeStr,
                         style: GoogleFonts.manrope(
-                          color: AppTheme.secondary.withOpacity(0.7),
+                          color: AppTheme.secondary.withValues(alpha: 0.7),
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
@@ -801,7 +801,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
-                      child: Icon(Icons.edit_rounded, size: 16, color: AppTheme.secondary.withOpacity(0.5)),
+                      child: Icon(Icons.edit_rounded, size: 16, color: AppTheme.secondary.withValues(alpha: 0.5)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -810,7 +810,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
-                      child: Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent.withOpacity(0.5)),
+                      child: Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent.withValues(alpha: 0.5)),
                     ),
                   ),
                 ],
@@ -905,7 +905,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.redAccent.withOpacity(0.1),
+                color: Colors.redAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),

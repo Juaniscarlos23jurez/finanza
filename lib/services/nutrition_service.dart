@@ -68,6 +68,29 @@ class NutritionService {
     await _database.ref('users/$userId/daily_meals').set(mealsMap);
   }
 
+  Future<void> initializeTodayMeals(List<dynamic> planMeals, [int? completedIndex]) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    final Map<String, dynamic> mealsMap = {};
+    for (var i = 0; i < planMeals.length; i++) {
+      final meal = planMeals[i];
+      final id = 'meal_$i';
+      mealsMap[id] = {
+        ...meal,
+        'completed': i == completedIndex, // Mark specific meal as completed if requested
+        'id': id,
+        'timestamp': ServerValue.timestamp,
+      };
+    }
+    await _database.ref('users/$userId/daily_meals').set(mealsMap);
+    
+    // If we completed a meal during initialization, check streak update
+    if (completedIndex != null) {
+      // Logic for streak update could go here, but maybe better to keep it simple for now
+    }
+  }
+
   Future<void> toggleMealCompletion(String mealId, bool completed) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
@@ -289,5 +312,85 @@ class NutritionService {
     if (userId == null) yield* const Stream.empty();
 
     yield* _database.ref('users/$userId/shopping_list').onValue;
+  }
+
+  // ============ GAMIFICATION (LIVES & LEVELS) ============
+
+  Stream<DatabaseEvent> getGamificationStats() async* {
+    final userId = await _authService.getUserId();
+    if (userId == null) yield* const Stream.empty();
+    yield* _database.ref('users/$userId/stats').onValue;
+  }
+
+  Future<void> initializeGamificationStats() async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    final ref = _database.ref('users/$userId/stats');
+    final snapshot = await ref.get();
+    
+    if (!snapshot.exists) {
+      await ref.set({
+        'lives': 5,
+        'xp': 0,
+        'level': 1,
+        'last_regen': ServerValue.timestamp,
+      });
+    }
+  }
+
+  Future<void> addXp(int amount) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    final ref = _database.ref('users/$userId/stats');
+    final snapshot = await ref.get();
+    
+    if (snapshot.exists) {
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      int currentXp = (data['xp'] ?? 0) + amount;
+      int currentLevel = data['level'] ?? 1;
+      
+      // Simple Level Formula: Level = floor(sqrt(XP / 100)) + 1
+      // Level 1: 0-99 XP
+      // Level 2: 100-399 XP
+      // Level 3: 400-899 XP
+      int newLevel = (currentXp / 500).floor() + 1; // Simplified linear for demo: 500xp per level
+      
+      await ref.update({
+        'xp': currentXp,
+        'level': newLevel > currentLevel ? newLevel : currentLevel,
+      });
+    } else {
+      await initializeGamificationStats();
+      await addXp(amount);
+    }
+  }
+
+  Future<bool> consumeLife() async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return false;
+
+    final ref = _database.ref('users/$userId/stats');
+    final snapshot = await ref.get();
+
+    if (snapshot.exists) {
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      int currentLives = data['lives'] ?? 5;
+      
+      if (currentLives > 0) {
+        await ref.update({'lives': currentLives - 1});
+        return true;
+      }
+    } else {
+      await initializeGamificationStats();
+    }
+    return false;
+  }
+
+  Future<void> restoreLives() async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+    await _database.ref('users/$userId/stats/lives').set(5);
   }
 }

@@ -277,7 +277,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: (isInventory ? Colors.green : AppTheme.primary).withOpacity(0.1),
+                        color: (isInventory ? Colors.green : AppTheme.primary).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -362,7 +362,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: isSelected ? color : color.withOpacity(0.1),
+                            color: isSelected ? color : color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isSelected ? color : Colors.transparent,
@@ -599,7 +599,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -617,7 +617,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -686,7 +686,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
           border: inInventory ? Border.all(color: Colors.green.shade300, width: 2) : null,
           boxShadow: bought ? [] : [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )
@@ -727,7 +727,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                 decoration: BoxDecoration(
                   color: bought ? AppTheme.accent : Colors.transparent,
                   border: Border.all(
-                    color: bought ? AppTheme.accent : AppTheme.secondary.withOpacity(0.3),
+                    color: bought ? AppTheme.accent : AppTheme.secondary.withValues(alpha: 0.3),
                     width: 2,
                   ),
                   borderRadius: BorderRadius.circular(6),
@@ -756,7 +756,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                       item['quantity'],
                       style: GoogleFonts.manrope(
                         fontSize: 11,
-                        color: AppTheme.secondary.withOpacity(0.7),
+                        color: AppTheme.secondary.withValues(alpha: 0.7),
                       ),
                     ),
                 ],
@@ -790,7 +790,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
               onPressed: () => _openAffiliateLink(item['affiliate_url']),
               icon: Icon(Icons.shopping_cart_checkout_rounded, color: categoryColor, size: 20),
               style: IconButton.styleFrom(
-                backgroundColor: categoryColor.withOpacity(0.1),
+                backgroundColor: categoryColor.withValues(alpha: 0.1),
                 padding: const EdgeInsets.all(8),
               ),
             ),
@@ -803,8 +803,8 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
               ),
               style: IconButton.styleFrom(
                 backgroundColor: inInventory 
-                    ? Colors.green.withOpacity(0.1)
-                    : AppTheme.primary.withOpacity(0.1),
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : AppTheme.primary.withValues(alpha: 0.1),
                 padding: const EdgeInsets.all(8),
               ),
             ),
@@ -820,7 +820,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 80, color: AppTheme.secondary.withOpacity(0.2)),
+            Icon(Icons.inventory_2_outlined, size: 80, color: AppTheme.secondary.withValues(alpha: 0.2)),
             const SizedBox(height: 24),
             Text(
               'Inventario vacío',
@@ -830,7 +830,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
             Text(
               'Agrega ingredientes que ya tienes en casa',
               textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary.withOpacity(0.6)),
+              style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary.withValues(alpha: 0.6)),
             ),
           ],
         ),
@@ -860,7 +860,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -893,7 +893,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   daysAgo == 0 ? 'Agregado hoy' : 'Hace $daysAgo día${daysAgo > 1 ? 's' : ''}',
                   style: GoogleFonts.manrope(
                     fontSize: 11,
-                    color: AppTheme.secondary.withOpacity(0.7),
+                    color: AppTheme.secondary.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -903,7 +903,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
             onPressed: () => _removeFromInventory(name),
             icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.red.withOpacity(0.1),
+              backgroundColor: Colors.red.withValues(alpha: 0.1),
               padding: const EdgeInsets.all(8),
             ),
           ),
@@ -917,7 +917,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_basket_outlined, size: 80, color: AppTheme.secondary.withOpacity(0.2)),
+          Icon(Icons.shopping_basket_outlined, size: 80, color: AppTheme.secondary.withValues(alpha: 0.2)),
           const SizedBox(height: 24),
           Text(
             'Tu lista está vacía',
@@ -929,7 +929,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
             child: Text(
               'Activa un plan en el chat para generar tu lista de compras automáticamente',
               textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary.withOpacity(0.6), height: 1.5),
+              style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary.withValues(alpha: 0.6), height: 1.5),
             ),
           ),
         ],
