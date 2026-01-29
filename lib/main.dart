@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:nutrigpt/screens/login_screen.dart';
 import 'package:nutrigpt/screens/main_screen.dart';
@@ -43,7 +44,21 @@ void main() async {
   final String? token = prefs.getString('auth_token');
   final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
   
+  // Ensure Firebase is authenticated if we have a token (social users are already handled, 
+  // but email users or app restarts need this for Realtime Database access).
+  if (token != null && FirebaseAuth.instance.currentUser == null) {
+    try {
+      debugPrint('Startup: Authenticating anonymously with Firebase for Database access...');
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (e) {
+      debugPrint('Startup: Error in anonymous auth: $e');
+    }
+  }
+
   debugPrint('Startup Check - Token: ${token != null}, Onboarding: $onboardingCompleted');
+  if (FirebaseAuth.instance.currentUser != null) {
+    debugPrint('Startup Check - Firebase UID: ${FirebaseAuth.instance.currentUser?.uid}');
+  }
 
   Widget initialScreen;
   if (token != null) {

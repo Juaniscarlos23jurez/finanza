@@ -719,22 +719,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                               ),
                             ),
-                            // Metric Tags
-                            Positioned(
-                              top: 20,
-                              right: 10,
-                              child: _buildMetricTag('-12%', Icons.trending_down, Colors.redAccent, 'GRASA'),
-                            ),
-                            Positioned(
-                              top: 60,
-                              right: 10,
-                              child: _buildMetricTag('+3kg', Icons.fitness_center, Colors.greenAccent, 'MÚSCULO'),
-                            ),
-                            Positioned(
-                              bottom: 20,
-                              left: 10,
-                              child: _buildMetricTag('VIP', Icons.auto_awesome, Colors.amber, 'ESTADO'),
-                            ),
                           ],
                         ),
                       ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:dio/dio.dart' as dio_api;
 import '../models/message_model.dart';
 import 'nutrition_service.dart';
 
@@ -134,31 +135,89 @@ class AiService {
     }
   }
 
-  Future<String> generateGoalVision(String textGoal, Uint8List imageBytes) async {
-    debugPrint('AI_SERVICE: Generating Goal Vision for objective: "$textGoal"');
-    try {
-      final content = [
-        Content.multi([
-          TextPart('El usuario tiene este objetivo: "$textGoal". '
-              'Basado en su foto actual, describe de manera muy detallada y MOTIVADORA '
-              'cómo se vería su cuerpo después de alcanzar este objetivo con éxito. '
-              'Enfócate en la definición muscular, postura, brillo en la piel y energía. '
-              'Tu respuesta debe ser un párrafo corto pero extremadamente inspirador.'),
-          DataPart('image/jpeg', imageBytes),
-        ])
-      ];
+  Future<Map<String, dynamic>?> _generateRestMultimodal(String prompt, Uint8List imageBytes, {bool includeImageOutput = false}) async {
+    final String apiKey = _apiKey;
+    final String baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$apiKey';
 
-      final response = await _model.generateContent(content);
-      final result = response.text ?? '¡Te verás increíble alcanzando tu meta!';
-      return result;
+    final dio = dio_api.Dio();
+    final String base64Image = base64Encode(imageBytes);
+
+    final Map<String, dynamic> requestBody = {
+      "contents": [
+        {
+          "parts": [
+            {"text": prompt},
+            {
+              "inline_data": {
+                "mime_type": "image/jpeg",
+                "data": base64Image
+              }
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "temperature": 0.7,
+        "topK": 40,
+        "topP": 0.95,
+        "maxOutputTokens": 8192,
+      }
+    };
+
+    if (includeImageOutput) {
+      requestBody["generationConfig"]["response_modalities"] = ["TEXT", "IMAGE"];
+    }
+
+    try {
+      debugPrint('AI_SERVICE: Sending REST request to Gemini...');
+      final response = await dio.post(
+        baseUrl,
+        data: requestBody,
+        options: dio_api.Options(headers: {'Content-Type': 'application/json'}),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      debugPrint('AI_SERVICE: REST Error - Status: ${response.statusCode}, Data: ${response.data}');
+      return null;
     } catch (e) {
-      debugPrint('AI_SERVICE: ERROR generating goal vision: $e');
-      return 'Un futuro lleno de salud y fuerza te espera.';
+      debugPrint('AI_SERVICE: REST CRITICAL ERROR: $e');
+      return null;
     }
   }
 
+  Future<String> generateGoalVision(String textGoal, Uint8List imageBytes) async {
+    debugPrint('AI_SERVICE: Generating Goal Vision (REST) for objective: "$textGoal"');
+    
+    final prompt = 'El usuario tiene este objetivo: "$textGoal". '
+        'Basado en su foto actual, describe de manera muy detallada y MOTIVADORA '
+        'cómo se vería su cuerpo después de alcanzar este objetivo con éxito. '
+        'Enfócate en la definición muscular, postura, brillo en la piel y energía. '
+        'Tu respuesta debe ser un párrafo corto pero extremadamente inspirador.';
+
+    final data = await _generateRestMultimodal(prompt, imageBytes);
+    
+    if (data != null && data['candidates'] != null) {
+      final candidates = data['candidates'] as List;
+      if (candidates.isNotEmpty) {
+        final content = candidates[0]['content'];
+        if (content != null && content['parts'] != null) {
+          final parts = content['parts'] as List;
+          for (var part in parts) {
+            if (part['text'] != null) {
+              return part['text'];
+            }
+          }
+        }
+      }
+    }
+    
+    return '¡Te verás increíble alcanzando tu meta!';
+  }
+
   Future<Uint8List?> generateGoalImageBytes(String textGoal, Uint8List imageBytes) async {
-    debugPrint('AI_SERVICE: Requesting True Image-to-Image Generation...');
+    debugPrint('AI_SERVICE: Requesting True Image-to-Image Generation (REST)...');
     
     final enhancedPrompt = '''
       Genera una foto fotorrealista de la persona en la imagen adjunta en su mejor versión física.
@@ -168,42 +227,28 @@ class AiService {
       Instrucción del usuario: $textGoal
     ''';
 
-    try {
-      final content = [
-        Content.multi([
-          TextPart(enhancedPrompt),
-          DataPart('image/jpeg', imageBytes),
-        ])
-      ];
-
-      final response = await _model.generateContent(content);
-
-      debugPrint('AI_SERVICE: Response candidates count: ${response.candidates.length}');
-      final candidate = response.candidates.first;
-      debugPrint('AI_SERVICE: Response content parts: ${candidate.content.parts.length}');
-
-      for (var part in candidate.content.parts) {
-        debugPrint('AI_SERVICE: Part type: ${part.runtimeType}');
-        if (part is TextPart) {
-          debugPrint('AI_SERVICE: Text part found: ${part.text.substring(0, part.text.length > 50 ? 50 : part.text.length)}...');
+    final data = await _generateRestMultimodal(enhancedPrompt, imageBytes, includeImageOutput: true);
+    
+    if (data != null && data['candidates'] != null) {
+      final candidates = data['candidates'] as List;
+      if (candidates.isNotEmpty) {
+        final content = candidates[0]['content'];
+        if (content != null && content['parts'] != null) {
+          final parts = content['parts'] as List;
+          for (var part in parts) {
+            if (part['inline_data'] != null) {
+              final inlineData = part['inline_data'];
+              if (inlineData['data'] != null) {
+                debugPrint('AI_SERVICE: Image bytes found in REST response!');
+                return base64Decode(inlineData['data']);
+              }
+            }
+          }
         }
       }
-
-      // Extract the generated image from parts
-      final imagePart = candidate.content.parts
-          .whereType<DataPart>()
-          .firstOrNull;
-
-      if (imagePart != null) {
-        debugPrint('AI_SERVICE: Image generated successfully (${imagePart.bytes.length} bytes)');
-        return imagePart.bytes;
-      } else {
-        debugPrint('AI_SERVICE: AI responded with text only: ${response.text}');
-        return null;
-      }
-    } catch (e) {
-      debugPrint('AI_SERVICE: ERROR generating goal image bytes: $e');
-      return null;
     }
+    
+    debugPrint('AI_SERVICE: No image found in REST response.');
+    return null;
   }
 }
