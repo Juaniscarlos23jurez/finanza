@@ -355,7 +355,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             duration: const Duration(seconds: 2),
             tween: Tween(begin: 0, end: _streak.toDouble()),
             builder: (context, value, child) => Text(
-              '${value.toInt()} ${l10n.days_label}',
+              '${value.toInt()} ${l10n.daysLabel}',
               style: GoogleFonts.manrope(
                 color: Colors.white,
                 fontSize: 56,
@@ -365,7 +365,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.ranking_top.replaceAll('{n}', ((_ranking.indexWhere((e) => e['name'] == _userName) + 1).clamp(1, 100)).toString()),
+            l10n.rankingTop.replaceAll('{n}', ((_ranking.indexWhere((e) => e['name'] == _userName) + 1).clamp(1, 100)).toString()),
             style: GoogleFonts.manrope(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,
@@ -397,7 +397,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Icon(Icons.watch_rounded, size: 64, color: Colors.blue.shade700),
             const SizedBox(height: 16),
             Text(
-              l10n.connect_watch,
+              l10n.connectWatch,
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
@@ -407,7 +407,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.fitness_auth_desc,
+              l10n.fitnessAuthDesc,
               style: GoogleFonts.manrope(
                 fontSize: 14,
                 color: AppTheme.secondary,
@@ -418,7 +418,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ElevatedButton.icon(
               onPressed: _initializeFitness,
               icon: const Icon(Icons.health_and_safety),
-              label: Text(l10n.auth_access, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+              label: Text(l10n.authAccess, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -442,7 +442,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.physical_activity,
+                  l10n.physicalActivity,
                   style: GoogleFonts.manrope(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -451,7 +451,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
                 Text(
-                  l10n.from_watch,
+                  l10n.fromWatch,
                   style: GoogleFonts.manrope(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -532,7 +532,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.steps_week,
+                l10n.stepsWeek,
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -631,7 +631,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              l10n.body_weight,
+              l10n.bodyWeight,
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -642,7 +642,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               onPressed: _canRegisterToday ? _showLogWeightDialog : () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(l10n.weight_logged_today),
+                    content: Text(l10n.weightLoggedToday),
                     backgroundColor: Colors.orange,
                   ),
                 );
@@ -658,7 +658,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              l10n.weight_next_log,
+              l10n.weightNextLog,
               style: GoogleFonts.manrope(
                 fontSize: 12,
                 color: AppTheme.secondary,
@@ -787,11 +787,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.log_weight,
+              l10n.logWeight,
               style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
             ),
             const SizedBox(height: 8),
-            Text(l10n.enter_weight_hint, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            Text(l10n.enterWeightHint, style: GoogleFonts.manrope(color: AppTheme.secondary)),
             const SizedBox(height: 24),
             TextField(
               controller: weightController,
@@ -821,7 +821,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     if (!context.mounted) return;
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.weight_success)),
+                      SnackBar(content: Text(l10n.weightSuccess)),
                     );
                   }
                 },
@@ -840,7 +840,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.warrior_ranking,
+          l10n.warriorRanking,
           style: GoogleFonts.manrope(
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -937,12 +937,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildMilestoneItem(l10n.milestone_streak_title, l10n.milestone_streak_desc, Icons.workspace_premium, Colors.amber, _streak >= 3),
-        _buildMilestoneItem(l10n.milestone_weight_title, l10n.milestone_weight_desc, Icons.monitor_weight, Colors.green, _weightSpots.isNotEmpty),
-        _buildMilestoneItem(l10n.milestone_ranking_title, l10n.milestone_ranking_desc, Icons.auto_awesome, Colors.purple, _ranking.indexWhere((e) => e['name'] == _userName) < 5 && _ranking.isNotEmpty),
+        _buildMilestoneItem(l10n.milestoneStreakTitle, l10n.milestoneStreakDesc, Icons.workspace_premium, Colors.amber, _streak >= 3),
+        _buildMilestoneItem(l10n.milestoneWeightTitle, l10n.milestoneWeightDesc, Icons.monitor_weight, Colors.green, _weightSpots.isNotEmpty),
+        _buildMilestoneItem(l10n.milestoneRankingTitle, l10n.milestoneRankingDesc, Icons.auto_awesome, Colors.purple, _ranking.indexWhere((e) => e['name'] == _userName) < 5 && _ranking.isNotEmpty),
         if (_fitnessAuthorized) ...[
-          _buildMilestoneItem(l10n.milestone_steps_title, l10n.milestone_steps_desc, Icons.directions_walk, Colors.blue, _todaySteps >= 10000),
-          _buildMilestoneItem(l10n.milestone_calories_title, l10n.milestone_calories_desc, Icons.local_fire_department, Colors.deepOrange, _todayCalories >= 500),
+          _buildMilestoneItem(l10n.milestoneStepsTitle, l10n.milestoneStepsDesc, Icons.directions_walk, Colors.blue, _todaySteps >= 10000),
+          _buildMilestoneItem(l10n.milestoneCaloriesTitle, l10n.milestoneCaloriesDesc, Icons.local_fire_department, Colors.deepOrange, _todayCalories >= 500),
         ],
       ],
     );

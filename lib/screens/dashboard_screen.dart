@@ -772,6 +772,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
+            if (_visualGoal != null && _visualGoal!['original_image'] != null)
+              Container(
+                margin: const EdgeInsets.only(right: 16),
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(_visualGoal!['original_image']),
+                ),
+              ),
+
             GestureDetector(
               onTap: () => _handleCheatMeal(lives),
               child: Container(

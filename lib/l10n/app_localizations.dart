@@ -164,6 +164,88 @@ class AppLocalizations {
       'subtract_label': 'Restar',
       'amount_to_log': 'Monto a registrar',
       'confirm_btn': 'Confirmar',
+      'error_label': 'Error',
+      'show_label': 'VER',
+      'voice_error': 'Error de voz: {error}',
+      'voice_unavailable': 'Reconocimiento de voz no disponible',
+      'ai_thinking': 'La IA está pensando...',
+      'welcome_hi': '¡Hola! Soy tu asistente nutricional.',
+      'welcome_desc': 'Puedo ayudarte con planes personalizados, seguimiento de comidas y consejos nutricionales.',
+      'try_asking': 'Prueba preguntando:',
+      'example_plan_q': '📋 "Crea un plan de comidas para hoy"',
+      'example_plan_d': 'Genera un plan completo con horarios y calorías',
+      'example_log_q': '🍽️ "Registra mi desayuno: huevos y pan integral"',
+      'example_log_d': 'Calcula macros y calorías automáticamente',
+      'example_summary_q': '📊 "Muestra mi resumen nutricional de hoy"',
+      'example_summary_d': 'Visualiza tu progreso diario',
+      'example_goal_q': '🎯 "Ayúdame a perder 5kg en 2 meses"',
+      'example_goal_d': 'Crea metas personalizadas',
+      'mic_tip': 'Tip: Usa el micrófono para hablar naturalmente',
+      'nutricion_ai': 'NUTRICIÓN AI',
+      'listening': 'Escuchando...',
+      'ask_hint': 'Pregunta sobre tu nutrición...',
+      'ai_assistant': 'ASISTENTE IA',
+      'user_you': 'TÚ',
+      'card_error': 'Error al mostrar tarjeta: {type}',
+      'history_title': 'HISTORIAL',
+      'new_chat': 'Nuevo Chat',
+      'save_success': 'Comida registrada correctamente',
+      'save_error_msg': 'Error al guardar: {error}',
+      'saved_label': 'Guardado',
+      'confirm_save': 'Confirmar y Guardar',
+      'saving_indicator': 'La IA está pensando...',
+      'meal_registered': 'Comida registrada correctamente',
+      'error_saving': 'Error al guardar: {error}',
+      'ai_assistant_label': 'ASISTENTE IA',
+      'user_label': 'TÚ',
+      'movements_summary': 'Resumen de Movimientos',
+      'concept': 'Concepto',
+      'amount': 'Monto',
+      'resulted': 'Resultó',
+      'impact': 'Impacto',
+      'down_trend': 'Baja 📉',
+      'up_trend': 'Sube 📈',
+      'no_recent_data': 'Sin datos recientes',
+      'resulting_balance': 'Balance Resultante',
+      'transactions_count': '{count} Transacciones',
+      'income': 'Ingresos',
+      'expenses': 'Gastos',
+      'everything_saved': 'Todo Guardado',
+      'save_all_transactions': 'Guardar {count} Transacciones',
+      'goal_suggestion': 'Sugerencia de Meta',
+      'goal_label': 'Meta',
+      'target_objective': 'Objetivo: {amount}',
+      'create_goal': 'Crear Meta',
+      'goal_created': 'Meta Creada',
+      'analysis_available': 'Análisis Disponible',
+      'see_charts': 'Ver gráficas detalladas',
+      'charts_pantry_hint': 'Ve a la pestaña "Movimientos" para ver los gráficos.',
+      'ticket_generated': 'Ticket Generado',
+      'current_balance_label': 'BALANCE ACTUAL',
+      'nutritional_record': 'REGISTRO NUTRICIONAL',
+      'total_calories': 'CALORÍAS TOTALES',
+      'register_btn': 'REGISTRAR',
+      'daily_meals_title': 'COMIDAS DEL DÍA',
+      'records_label': 'Registros',
+      'register_all': 'REGISTRAR TODO',
+      'today_summary': 'RESUMEN DE HOY',
+      'water_liters_label': '{amount}L de agua',
+      'suggested_nutrition_goal': 'Meta Nutricional Sugerida',
+      'meal_history': 'Historial de Comidas',
+      'no_meals_recorded': 'Sin comidas registradas',
+      'suggested_meal_plan': 'Plan de Comidas Sugerido',
+      'personalized_plan': 'PLAN PERSONALIZADO',
+      'goal_reached': 'Objetivo Alcanzado',
+      'activate_plan': 'ACTIVAR ESTE PLAN',
+      'plan_saved': 'PLAN GUARDADO',
+      'shopping_list_generated': 'LISTA GENERADA',
+      'items_count': '{count} items',
+      'added_to_pantry': 'AGREGADO A LA DESPENSA',
+      'add_all_to_pantry': 'AGREGAR TODO A LA DESPENSA',
+      'history_label': 'HISTORIAL',
+      'new_chat_btn': 'Nuevo Chat',
+      'total_label': 'Total',
+
     },
     'en': {
       'profile': 'Profile',
@@ -320,6 +402,88 @@ class AppLocalizations {
       'subtract_label': 'Subtract',
       'amount_to_log': 'Amount to log',
       'confirm_btn': 'Confirm',
+      'error_label': 'Error',
+      'show_label': 'VIEW',
+      'voice_error': 'Voice error: {error}',
+      'voice_unavailable': 'Voice recognition unavailable',
+      'ai_thinking': 'AI is thinking...',
+      'welcome_hi': 'Hi! I am your nutritional assistant.',
+      'welcome_desc': 'I can help you with personalized plans, meal tracking, and nutritional tips.',
+      'try_asking': 'Try asking:',
+      'example_plan_q': '📋 "Create a meal plan for today"',
+      'example_plan_d': 'Generates a complete plan with times and calories',
+      'example_log_q': '🍽️ "Log my breakfast: eggs and whole wheat bread"',
+      'example_log_d': 'Automatically calculates macros and calories',
+      'example_summary_q': '📊 "Show my nutritional summary for today"',
+      'example_summary_d': 'Visualize your daily progress',
+      'example_goal_q': '🎯 "Help me lose 5kg in 2 months"',
+      'example_goal_d': 'Create personalized goals',
+      'mic_tip': 'Tip: Use the microphone to speak naturally',
+      'nutricion_ai': 'NUTRITION AI',
+      'listening': 'Listening...',
+      'ask_hint': 'Ask about your nutrition...',
+      'ai_assistant': 'AI ASSISTANT',
+      'user_you': 'YOU',
+      'card_error': 'Error showing card: {type}',
+      'history_title': 'HISTORY',
+      'new_chat': 'New Chat',
+      'save_success': 'Meal logged successfully',
+      'save_error_msg': 'Error saving: {error}',
+      'saved_label': 'Saved',
+      'confirm_save': 'Confirm and Save',
+      'saving_indicator': 'AI is thinking...',
+      'meal_registered': 'Meal registered successfully',
+      'error_saving': 'Error saving: {error}',
+      'ai_assistant_label': 'AI ASSISTANT',
+      'user_label': 'YOU',
+      'movements_summary': 'Movements Summary',
+      'concept': 'Concept',
+      'amount': 'Amount',
+      'resulted': 'Resulted',
+      'impact': 'Impact',
+      'down_trend': 'Down 📉',
+      'up_trend': 'Up 📈',
+      'no_recent_data': 'No recent data',
+      'resulting_balance': 'Resulting Balance',
+      'transactions_count': '{count} Transactions',
+      'income': 'Income',
+      'expenses': 'Expenses',
+      'everything_saved': 'Everything Saved',
+      'save_all_transactions': 'Save {count} Transactions',
+      'goal_suggestion': 'Goal Suggestion',
+      'goal_label': 'Goal',
+      'target_objective': 'Target: {amount}',
+      'create_goal': 'Create Goal',
+      'goal_created': 'Goal Created',
+      'analysis_available': 'Analysis Available',
+      'see_charts': 'See detailed charts',
+      'charts_pantry_hint': 'Go to the "Movements" tab to see the charts.',
+      'ticket_generated': 'Ticket Generated',
+      'current_balance_label': 'CURRENT BALANCE',
+      'nutritional_record': 'NUTRITIONAL RECORD',
+      'total_calories': 'TOTAL CALORIES',
+      'register_btn': 'REGISTER',
+      'daily_meals_title': 'DAILY MEALS',
+      'records_label': 'Records',
+      'register_all': 'REGISTER ALL',
+      'today_summary': 'TODAY\'S SUMMARY',
+      'water_liters_label': '{amount}L of water',
+      'suggested_nutrition_goal': 'Suggested Nutritional Goal',
+      'meal_history': 'Meal History',
+      'no_meals_recorded': 'No meals recorded',
+      'suggested_meal_plan': 'Suggested Meal Plan',
+      'personalized_plan': 'PERSONALIZED PLAN',
+      'goal_reached': 'Goal Reached',
+      'activate_plan': 'ACTIVATE PLAN',
+      'plan_saved': 'PLAN SAVED',
+      'shopping_list_generated': 'GENERATED LIST',
+      'items_count': '{count} items',
+      'added_to_pantry': 'ADDED TO PANTRY',
+      'add_all_to_pantry': 'ADD ALL TO PANTRY',
+      'history_label': 'HISTORY',
+      'new_chat_btn': 'New Chat',
+      'total_label': 'Total',
+
     },
     'de': {
       'profile': 'Profil',
@@ -1179,39 +1343,40 @@ class AppLocalizations {
   String get progressTitle => get('progress_title');
   String get progressSubtitle => get('progress_subtitle');
   String get currentStreak => get('current_streak');
-  String get days_label => get('days_label');
-  String get ranking_top => get('ranking_top');
-  String get connect_watch => get('connect_watch');
-  String get fitness_auth_desc => get('fitness_auth_desc');
-  String get auth_access => get('auth_access');
-  String get physical_activity => get('physical_activity');
-  String get from_watch => get('from_watch');
+  String get daysLabel => get('days_label');
+  String get rankingTop => get('ranking_top');
+  String get connectWatch => get('connect_watch');
+  String get fitnessAuthDesc => get('fitness_auth_desc');
+  String get authAccess => get('auth_access');
+  String get physicalActivity => get('physical_activity');
+  String get fromWatch => get('from_watch');
   String get steps => get('steps');
   String get calories => get('calories');
   String get distance => get('distance');
   String get active => get('active');
-  String get steps_week => get('steps_week');
-  String get body_weight => get('body_weight');
-  String get weight_logged_today => get('weight_logged_today');
-  String get weight_next_log => get('weight_next_log');
+  String get stepsWeek => get('steps_week');
+  String get bodyWeight => get('body_weight');
+  String get weightLoggedToday => get('weight_logged_today');
+  String get weightNextLog => get('weight_next_log');
   String get current => get('current');
   String get trend => get('trend');
-  String get log_weight => get('log_weight');
-  String get enter_weight_hint => get('enter_weight_hint');
-  String get weight_success => get('weight_success');
+  String get logWeight => get('log_weight');
+  String get enterWeightHint => get('enter_weight_hint');
+  String get weightSuccess => get('weight_success');
   String get save => get('save');
-  String get warrior_ranking => get('warrior_ranking');
+  String get warriorRanking => get('warrior_ranking');
   String get milestones => get('milestones');
-  String get milestone_streak_title => get('milestone_streak_title');
-  String get milestone_streak_desc => get('milestone_streak_desc');
-  String get milestone_weight_title => get('milestone_weight_title');
-  String get milestone_weight_desc => get('milestone_weight_desc');
-  String get milestone_ranking_title => get('milestone_ranking_title');
-  String get milestone_ranking_desc => get('milestone_ranking_desc');
-  String get milestone_steps_title => get('milestone_steps_title');
-  String get milestone_steps_desc => get('milestone_steps_desc');
-  String get milestone_calories_title => get('milestone_calories_title');
-  String get milestone_calories_desc => get('milestone_calories_desc');
+  String get milestoneStreakTitle => get('milestone_streak_title');
+  String get milestoneStreakDesc => get('milestone_streak_desc');
+  String get milestoneWeightTitle => get('milestone_weight_title');
+  String get milestoneWeightDesc => get('milestone_weight_desc');
+  String get milestoneRankingTitle => get('milestone_ranking_title');
+  String get milestoneRankingDesc => get('milestone_ranking_desc');
+  String get milestoneStepsTitle => get('milestone_steps_title');
+  String get milestoneStepsDesc => get('milestone_steps_desc');
+  String get milestoneCaloriesTitle => get('milestone_calories_title');
+  String get milestoneCaloriesDesc => get('milestone_calories_desc');
+  String get totalLabel => get('total_label');
   String get locked => get('locked');
 
   // Dashboard / General
@@ -1265,6 +1430,88 @@ class AppLocalizations {
   String get subtractLabel => get('subtract_label');
   String get amountToLog => get('amount_to_log');
   String get confirmBtn => get('confirm_btn');
+  String get errorLabel => get('error_label');
+  String get showLabel => get('show_label');
+  String get voiceUnavailable => get('voice_unavailable');
+  String get aiThinking => get('ai_thinking');
+  String get welcomeHi => get('welcome_hi');
+  String get welcomeDesc => get('welcome_desc');
+  String get tryAsking => get('try_asking');
+  String get examplePlanQ => get('example_plan_q');
+  String get examplePlanD => get('example_plan_d');
+  String get exampleLogQ => get('example_log_q');
+  String get exampleLogD => get('example_log_d');
+  String get exampleSummaryQ => get('example_summary_q');
+  String get exampleSummaryD => get('example_summary_d');
+  String get exampleGoalQ => get('example_goal_q');
+  String get exampleGoalD => get('example_goal_d');
+  String get micTip => get('mic_tip');
+  String get nutricionAi => get('nutricion_ai');
+  String get listeningLabel => get('listening');
+  String get askHint => get('ask_hint');
+  String get aiAssistant => get('ai_assistant');
+  String get userYou => get('user_you');
+  String get historyTitle => get('history_title');
+  String get newChat => get('new_chat');
+  String get saveSuccess => get('save_success');
+  String get savedLabel => get('saved_label');
+  String get confirmSave => get('confirm_save');
+  String get savingIndicator => get('saving_indicator');
+  String get mealRegistered => get('meal_registered');
+  String get aiAssistantLabel => get('ai_assistant_label');
+  String get userLabel => get('user_label');
+  String get movementsSummary => get('movements_summary');
+  String get concept => get('concept');
+  String get amountLabel => get('amount');
+  String get resulted => get('resulted');
+  String get impact => get('impact');
+  String get downTrend => get('down_trend');
+  String get upTrend => get('up_trend');
+  String get noRecentData => get('no_recent_data');
+  String get resultingBalance => get('resulting_balance');
+  String get income => get('income');
+  String get expenses => get('expenses');
+  String get everythingSaved => get('everything_saved');
+  String get goalSuggestion => get('goal_suggestion');
+  String get goalLabel => get('goal_label');
+  String get createGoal => get('create_goal');
+  String get goalCreated => get('goal_created');
+  String get analysisAvailable => get('analysis_available');
+  String get seeCharts => get('see_charts');
+  String get chartsPantryHint => get('charts_pantry_hint');
+  String get ticketGenerated => get('ticket_generated');
+  String get currentBalanceLabel => get('current_balance_label');
+  String get nutritionalRecord => get('nutritional_record');
+  String get totalCaloriesLabel => get('total_calories');
+  String get registerBtn => get('register_btn');
+  String get dailyMealsTitle => get('daily_meals_title');
+  String get recordsLabel => get('records_label');
+  String get registerAll => get('register_all');
+  String get todaySummary => get('today_summary');
+  String get suggestedNutritionGoal => get('suggested_nutrition_goal');
+  String get mealHistory => get('meal_history');
+  String get noMealsRecorded => get('no_meals_recorded');
+  String get suggestedMealPlan => get('suggested_meal_plan');
+  String get personalizedPlan => get('personalized_plan');
+  String get goalReached => get('goal_reached');
+  String get activatePlan => get('activate_plan');
+  String get planSaved => get('plan_saved');
+  String get shoppingListGenerated => get('shopping_list_generated');
+  String get addedToPantry => get('added_to_pantry');
+  String get addAllToPantry => get('add_all_to_pantry');
+  String get historyLabel => get('history_label');
+  String get newChatBtn => get('new_chat_btn');
+
+  String errorSaving(String error) => get('error_saving').replaceAll('{error}', error);
+  String transactionsCount(int count) => get('transactions_count').replaceAll('{count}', count.toString());
+  String saveAllTransactions(int count) => get('save_all_transactions').replaceAll('{count}', count.toString());
+  String targetObjective(String amount) => get('target_objective').replaceAll('{amount}', amount);
+  String waterLitersLabel(String amount) => get('water_liters_label').replaceAll('{amount}', amount);
+  String itemsCount(int count) => get('items_count').replaceAll('{count}', count.toString());
+
+  String voiceError(String error) => get('voice_error').replaceAll('{error}', error);
+  String cardError(String type) => get('card_error').replaceAll('{type}', type);
+  String saveErrorMsg(String error) => get('save_error_msg').replaceAll('{error}', error);
 
 
   String daysAgo(int n) {

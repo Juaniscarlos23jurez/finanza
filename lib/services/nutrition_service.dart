@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'auth_service.dart';
 
 class NutritionService {
@@ -49,6 +50,18 @@ class NutritionService {
     final Reference ref = _storage.ref().child('users/$userId/progress_photos/$fileName');
     
     final UploadTask uploadTask = ref.putFile(imageFile);
+    final TaskSnapshot snapshot = await uploadTask;
+    return await snapshot.ref.getDownloadURL();
+  }
+
+  Future<String?> uploadImageBytes(Uint8List bytes, String fileNamePrefix) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return null;
+
+    final String fileName = '${fileNamePrefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final Reference ref = _storage.ref().child('users/$userId/progress_photos/$fileName');
+    
+    final UploadTask uploadTask = ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
     final TaskSnapshot snapshot = await uploadTask;
     return await snapshot.ref.getDownloadURL();
   }

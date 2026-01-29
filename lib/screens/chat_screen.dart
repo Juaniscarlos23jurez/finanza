@@ -7,6 +7,8 @@ import '../theme/app_theme.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
 import '../services/nutrition_service.dart';
+import '../l10n/app_localizations.dart';
+
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -28,6 +30,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isListening = false;
   bool _speechAvailable = false;
 
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (mounted) {
           setState(() => _isListening = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error de voz: ${error.errorMsg}')),
+            SnackBar(content: Text(l10n.voiceError(error.errorMsg))),
           );
         }
       },
@@ -59,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _toggleListening() async {
     if (!_speechAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reconocimiento de voz no disponible')),
+        SnackBar(content: Text(l10n.voiceUnavailable)),
       );
       return;
     }
@@ -79,7 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
             _handleSend();
           }
         },
-        localeId: 'es_MX', // Español México
+        localeId: Localizations.localeOf(context).toLanguageTag(),
         listenOptions: stt.SpeechListenOptions(
           listenMode: stt.ListenMode.confirmation,
           cancelOnError: true,
@@ -110,7 +114,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       debugPrint('ChatScreen: Error sending message: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.errorLabel}: $e')));
       }
     } finally {
       if (mounted) setState(() => _isTyping = false);
@@ -140,7 +144,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         stream: _chatService.getMessages(_currentConversationId!),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
-                            return Center(child: Text('Error: ${snapshot.error}'));
+                            return Center(child: Text('${l10n.errorLabel}: ${snapshot.error}'));
                           }
 
                           if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
@@ -193,9 +197,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             itemCount: messages.length + (_isTyping ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (index == messages.length) {
-                                return const Padding(
-                                  padding: EdgeInsets.only(bottom: 24),
-                                  child: Text('La IA está pensando...', style: TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 24),
+                                  child: Text(l10n.savingIndicator, style: const TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
                                 );
                               }
                               return ChatMessageWidget(message: messages[index]);
@@ -220,24 +224,24 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           const SizedBox(height: 40),
           Text(
-            '¡Hola! Soy tu asistente nutricional.',
+            l10n.welcomeHi,
             style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
           ),
           const SizedBox(height: 12),
           Text(
-            'Puedo ayudarte con planes personalizados, seguimiento de comidas y consejos nutricionales.',
+            l10n.welcomeDesc,
             style: GoogleFonts.manrope(fontSize: 15, color: AppTheme.secondary, height: 1.5),
           ),
           const SizedBox(height: 32),
           Text(
-            'Prueba preguntando:',
+            l10n.tryAsking,
             style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primary),
           ),
           const SizedBox(height: 16),
-          _buildExampleQuestion('📋 "Crea un plan de comidas para hoy"', 'Genera un plan completo con horarios y calorías'),
-          _buildExampleQuestion('🍽️ "Registra mi desayuno: huevos y pan integral"', 'Calcula macros y calorías automáticamente'),
-          _buildExampleQuestion('📊 "Muestra mi resumen nutricional de hoy"', 'Visualiza tu progreso diario'),
-          _buildExampleQuestion('🎯 "Ayúdame a perder 5kg en 2 meses"', 'Crea metas personalizadas'),
+          _buildExampleQuestion(l10n.examplePlanQ, l10n.examplePlanD),
+          _buildExampleQuestion(l10n.exampleLogQ, l10n.exampleLogD),
+          _buildExampleQuestion(l10n.exampleSummaryQ, l10n.exampleSummaryD),
+          _buildExampleQuestion(l10n.exampleGoalQ, l10n.exampleGoalD),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
@@ -252,7 +256,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Tip: Usa el micrófono para hablar naturalmente',
+                    l10n.micTip,
                     style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -311,7 +315,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Text(
-            'NUTRICIÓN AI',
+            l10n.nutricionAi,
             style: GoogleFonts.manrope(
               fontSize: 14,
               fontWeight: FontWeight.w900,
@@ -360,8 +364,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       onSubmitted: (_) => _handleSend(),
                       decoration: InputDecoration(
                         hintText: _isListening 
-                            ? "Escuchando..." 
-                            : "Pregunta sobre tu nutrición...",
+                            ? l10n.listeningLabel 
+                            : l10n.askHint,
                         hintStyle: GoogleFonts.manrope(
                           color: _isListening ? AppTheme.primary : AppTheme.secondary,
                           fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
@@ -421,6 +425,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   bool _isSaved = false;
   final NutritionService _nutritionService = NutritionService();
 
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   // Recursively convert Map<dynamic, dynamic> to Map<String, dynamic>
   Map<String, dynamic> _deepConvertMap(Map<dynamic, dynamic> map) {
     return map.map<String, dynamic>((key, value) {
@@ -455,14 +461,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comida registrada correctamente')),
+          SnackBar(content: Text(l10n.mealRegistered)),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+          SnackBar(content: Text(l10n.errorSaving(e.toString()))),
         );
       }
     }
@@ -481,7 +487,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                  const Icon(FontAwesomeIcons.robot, size: 12, color: AppTheme.secondary),
                  const SizedBox(width: 8),
                  Text(
-                   'ASISTENTE IA',
+                   l10n.aiAssistantLabel,
                    style: GoogleFonts.manrope(
                      fontSize: 10,
                      fontWeight: FontWeight.w800,
@@ -493,7 +499,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
              )
           else
             Text(
-              'TÚ',
+              l10n.userLabel,
               style: GoogleFonts.manrope(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
@@ -588,7 +594,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text('Error al mostrar tarjeta: $type', style: const TextStyle(color: Colors.red)),
+        child: Text(l10n.cardError(type), style: const TextStyle(color: Colors.red)),
       );
     }
 
@@ -621,7 +627,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               const Icon(Icons.table_chart_rounded, size: 18, color: AppTheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Resumen de Movimientos',
+                l10n.movementsSummary,
                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ],
@@ -636,10 +642,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             ),
             child: Row(
               children: [
-                Expanded(flex: 2, child: Text('Concepto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary))),
-                Expanded(child: Text('Monto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
-                Expanded(child: Text('Resultó', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
-                Expanded(child: Text('Impacto', style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+                Expanded(flex: 2, child: Text(l10n.concept, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary))),
+                Expanded(child: Text(l10n.amountLabel, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+                Expanded(child: Text(l10n.resulted, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+                Expanded(child: Text(l10n.impact, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
               ],
             ),
           ),
@@ -685,7 +691,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          isExpense ? 'Baja 📉' : 'Sube 📈',
+                          isExpense ? l10n.downTrend : l10n.upTrend,
                           style: GoogleFonts.manrope(
                             fontSize: 9, 
                             fontWeight: FontWeight.bold,
@@ -700,14 +706,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             );
           }),
           if (items.isEmpty)
-             Center(child: Text('Sin datos recientes', style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
+             Center(child: Text(l10n.noRecentData, style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
           else ...[
             const Divider(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Balance Resultante',
+                  l10n.resultingBalance,
                   style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.secondary),
                 ),
                 Text(
@@ -776,7 +782,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    '${transactions.length} Transacciones',
+                    l10n.transactionsCount(transactions.length),
                     style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
@@ -867,14 +873,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               children: [
                 Column(
                   children: [
-                    Text('Ingresos', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                    Text(l10n.income, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
                     Text('+\$${totalIncome.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.green)),
                   ],
                 ),
                 Container(width: 1, height: 30, color: Colors.grey.withValues(alpha: 0.2)),
                 Column(
                   children: [
-                    Text('Gastos', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                    Text(l10n.expenses, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
                     Text('-\$${totalExpense.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.red)),
                   ],
                 ),
@@ -901,7 +907,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                         Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          _isSaved ? 'Todo Guardado' : 'Guardar ${transactions.length} Transacciones',
+                          _isSaved ? l10n.everythingSaved : l10n.saveAllTransactions(transactions.length),
                           style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],
@@ -974,16 +980,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Sugerencia de Meta',
+                  l10n.goalSuggestion,
                   style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(data['title'] ?? 'Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          Text(data['title'] ?? l10n.goalLabel, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
           const SizedBox(height: 4),
-          Text('Objetivo: \$${data['target_amount']}', style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(l10n.targetObjective(data['target_amount']?.toString() ?? '0'), style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           Text(data['reason'] ?? '', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
           const SizedBox(height: 20),
@@ -999,7 +1005,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               ),
               child: _isSaving 
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(_isSaved ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                : Text(_isSaved ? l10n.goalCreated : l10n.createGoal, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ),
         ],
@@ -1034,10 +1040,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Análisis Disponible', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(l10n.analysisAvailable, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(
-                  data['message'] ?? 'Ver gráficas detalladas',
+                  data['message'] ?? l10n.seeCharts,
                   style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ],
@@ -1045,7 +1051,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           ),
           IconButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ve a la pestaña "Movimientos" para ver los gráficos.')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.chartsPantryHint)));
             },
             style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppTheme.primary),
             icon: const Icon(Icons.arrow_forward_rounded),
@@ -1113,7 +1119,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Ticket Generado', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text(l10n.ticketGenerated, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
               Icon(isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, 
                    color: isExpense ? Colors.redAccent : Colors.green, size: 20),
             ],
@@ -1148,7 +1154,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(l10n.totalLabel, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
               Text(
                 '${isExpense ? "-" : "+"}\$${amount.toStringAsFixed(2)}',
                 style: GoogleFonts.manrope(
@@ -1182,7 +1188,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       Icon(_isSaved ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        _isSaved ? 'Guardado' : 'Confirmar y Guardar',
+                        _isSaved ? l10n.savedLabel : l10n.confirmSave,
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -1214,15 +1220,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       ),
       child: Column(
         children: [
-          Text('BALANCE ACTUAL', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          Text(l10n.currentBalanceLabel, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('\$${total.toStringAsFixed(2)}', style: GoogleFonts.manrope(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMiniStat('Ingresos', '+\$${income.toStringAsFixed(0)}', Colors.greenAccent),
-              _buildMiniStat('Gastos', '-\$${expenses.toStringAsFixed(0)}', Colors.redAccent),
+              _buildMiniStat(l10n.income, '+\$${income.toStringAsFixed(0)}', Colors.greenAccent),
+              _buildMiniStat(l10n.expenses, '-\$${expenses.toStringAsFixed(0)}', Colors.redAccent),
             ],
           ),
         ],
@@ -1284,7 +1290,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('REGISTRO NUTRICIONAL', 
+                      Text(l10n.nutritionalRecord, 
                         style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.8), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
                       Text(name, 
                         style: GoogleFonts.manrope(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
@@ -1316,11 +1322,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 // Macros visualization
                 Row(
                   children: [
-                    Expanded(child: _buildMacroPill('Proteína', '${protein}g', Colors.red.shade400, Icons.fitness_center)),
+                    Expanded(child: _buildMacroPill(l10n.protein, '${protein}g', Colors.red.shade400, Icons.fitness_center)),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildMacroPill('Carbos', '${carbs}g', Colors.orange.shade400, Icons.grain)),
+                    Expanded(child: _buildMacroPill(l10n.carbs, '${carbs}g', Colors.orange.shade400, Icons.grain)),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildMacroPill('Grasas', '${fats}g', Colors.amber.shade600, Icons.opacity)),
+                    Expanded(child: _buildMacroPill(l10n.fats, '${fats}g', Colors.amber.shade600, Icons.opacity)),
                   ],
                 ),
                 
@@ -1334,7 +1340,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       children: [
                         const Icon(Icons.shopping_basket_outlined, size: 18, color: AppTheme.primary),
                         const SizedBox(width: 8),
-                        Text('INGREDIENTES', style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0, color: AppTheme.primary)),
+                        Text(l10n.ingredients.toUpperCase(), style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0, color: AppTheme.primary)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1356,7 +1362,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       children: [
                         const Icon(Icons.restaurant_menu_rounded, size: 18, color: AppTheme.primary),
                         const SizedBox(width: 8),
-                        Text('PASOS DE PREPARACIÓN', style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0, color: AppTheme.primary)),
+                        Text(l10n.instructions.toUpperCase(), style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0, color: AppTheme.primary)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1387,7 +1393,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                      Column(
                        crossAxisAlignment: CrossAxisAlignment.start,
                        children: [
-                         Text('CALORÍAS TOTALES', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 9, fontWeight: FontWeight.w900)),
+                         Text(l10n.totalCaloriesLabel, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 9, fontWeight: FontWeight.w900)),
                          Text('$calories kcal', style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary)),
                        ],
                      ),
@@ -1401,7 +1407,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                        ),
                        child: _isSaving
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(_isSaved ? 'GUARDADO' : 'REGISTRAR', style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.white)),
+                        : Text(_isSaved ? l10n.savedLabel : l10n.registerBtn, style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.white)),
                      ),
                   ],
                 ),
@@ -1505,9 +1511,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('COMIDAS DEL DÍA', 
+                    Text(l10n.dailyMealsTitle, 
                       style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-                    Text('${meals.length} Registros', 
+                    Text(l10n.itemsCount(meals.length), 
                       style: GoogleFonts.manrope(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -1554,9 +1560,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildSmallMacro('Prot', '${totalProtein}g', Colors.red.shade400),
-                    _buildSmallMacro('Carb', '${totalCarbs}g', Colors.orange.shade400),
-                    _buildSmallMacro('Grasa', '${totalFats}g', Colors.amber.shade600),
+                    _buildSmallMacro(l10n.protein.substring(0, 4), '${totalProtein}g', Colors.red.shade400),
+                    _buildSmallMacro(l10n.carbs.substring(0, 4), '${totalCarbs}g', Colors.orange.shade400),
+                    _buildSmallMacro(l10n.fats.substring(0, 4), '${totalFats}g', Colors.amber.shade600),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -1570,7 +1576,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
-                    child: Text(_isSaved ? 'TODO GUARDADO' : 'REGISTRAR TODO', 
+                    child: Text(_isSaved ? l10n.everythingSaved : l10n.registerAll, 
                       style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white)),
                   ),
                 ),
@@ -1639,16 +1645,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       ),
       child: Column(
         children: [
-          Text('RESUMEN DE HOY', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          Text(l10n.todaySummary, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('$totalCalories kcal', style: GoogleFonts.manrope(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMiniStat('Proteína', '${protein}g', Colors.red.shade200),
-              _buildMiniStat('Carbos', '${carbs}g', Colors.orange.shade200),
-              _buildMiniStat('Grasas', '${fats}g', Colors.amber.shade200),
+              _buildMiniStat(l10n.protein, '${protein}g', Colors.red.shade200),
+              _buildMiniStat(l10n.carbs, '${carbs}g', Colors.orange.shade200),
+              _buildMiniStat(l10n.fats, '${fats}g', Colors.amber.shade200),
             ],
           ),
           if (water > 0) ...[
@@ -1660,7 +1666,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               children: [
                 const Icon(Icons.water_drop, color: Colors.lightBlueAccent, size: 16),
                 const SizedBox(width: 8),
-                Text('${water.toStringAsFixed(1)}L de agua', style: GoogleFonts.manrope(color: Colors.white, fontSize: 14)),
+                Text(l10n.waterLitersLabel(water.toStringAsFixed(1)), style: GoogleFonts.manrope(color: Colors.white, fontSize: 14)),
               ],
             ),
           ],
@@ -1698,16 +1704,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Meta Nutricional Sugerida',
+                  l10n.suggestedNutritionGoal,
                   style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(data['title'] ?? 'Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          Text(data['title'] ?? l10n.goalLabel, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
           const SizedBox(height: 4),
-          Text('Objetivo: ${data['target_value']}', style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('${l10n.targetLabel}: ${data['target_value']}', style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           Text(data['reason'] ?? '', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
           const SizedBox(height: 20),
@@ -1723,7 +1729,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               ),
               child: _isSaving 
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(_isSaved ? 'Meta Creada' : 'Crear Meta', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                : Text(_isSaved ? l10n.goalCreated : l10n.createGoal, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ),
         ],
@@ -1784,14 +1790,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               const Icon(Icons.history, size: 18, color: AppTheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Historial de Comidas',
+                l10n.mealHistory,
                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ],
           ),
           const SizedBox(height: 16),
           if (items.isEmpty)
-            Center(child: Text('Sin comidas registradas', style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
+            Center(child: Text(l10n.noMealsRecorded, style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
           else
             ...items.take(10).map((item) {
               final String name = item['name'] ?? 'Comida';
@@ -1872,7 +1878,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               Text(
-                'Plan de Comidas Sugerido',
+                l10n.suggestedMealPlan,
                 style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ],
@@ -1955,7 +1961,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('PLAN PERSONALIZADO', 
+                      Text(l10n.personalizedPlan, 
                         style: GoogleFonts.manrope(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                       const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
                     ],
@@ -1964,11 +1970,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                       Text('$calories kcal / día', style: GoogleFonts.manrope(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                       Text('$calories kcal / ${l10n.daysLabel.substring(0, 1).toLowerCase()}', style: GoogleFonts.manrope(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                        Container(
                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
-                         child: Text('Objetivo Alcanzado', style: GoogleFonts.manrope(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                         child: Text(l10n.goalReached, style: GoogleFonts.manrope(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                        ),
                     ],
                   ),
@@ -1976,9 +1982,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildMacroDisplay('Prot', '${macros['protein'] ?? 0}g', Colors.red.shade200),
-                      _buildMacroDisplay('Carb', '${macros['carbs'] ?? 0}g', Colors.orange.shade200),
-                      _buildMacroDisplay('Grasa', '${macros['fats'] ?? 0}g', Colors.amber.shade200),
+                      _buildMacroDisplay(l10n.protein.substring(0, 4), '${macros['protein'] ?? 0}g', Colors.red.shade200),
+                      _buildMacroDisplay(l10n.carbs.substring(0, 4), '${macros['carbs'] ?? 0}g', Colors.orange.shade200),
+                      _buildMacroDisplay(l10n.fats.substring(0, 4), '${macros['fats'] ?? 0}g', Colors.amber.shade200),
                     ],
                   ),
                 ],
@@ -2036,7 +2042,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: Text(_isSaved ? 'PLAN GUARDADO' : 'ACTIVAR ESTE PLAN', 
+                  child: Text(_isSaved ? l10n.planSaved : l10n.activatePlan, 
                     style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white)),
                 ),
               ),
@@ -2150,7 +2156,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'LISTA GENERADA',
+                        l10n.shoppingListGenerated,
                         style: GoogleFonts.manrope(
                           color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 10,
@@ -2179,7 +2185,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${items.length} items',
+                    l10n.itemsCount(items.length),
                     style: GoogleFonts.manrope(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -2305,7 +2311,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                _isSaved ? 'AGREGADO A LA DESPENSA' : 'AGREGAR TODO A LA DESPENSA',
+                                _isSaved ? l10n.addedToPantry : l10n.addAllToPantry,
                                 style: GoogleFonts.manrope(
                                   fontWeight: FontWeight.w900,
                                   fontSize: 13,
@@ -2340,10 +2346,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${items.length} items agregados a la Despensa'),
+            content: Text(l10n.addedToPantry),
             backgroundColor: Colors.green,
             action: SnackBarAction(
-              label: 'VER',
+              label: l10n.showLabel,
               textColor: Colors.white,
               onPressed: () {
                 // Navigate to pantry screen (index 2 in main_screen)
@@ -2357,7 +2363,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+          SnackBar(content: Text(l10n.errorSaving(e.toString()))),
         );
       }
     }
@@ -2371,7 +2377,7 @@ class HistoryDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ChatService chatService = ChatService();
-    // Assuming context is sufficient for Theme and MediaQuery, and we can instantiate ChatService safely.
+    final l10n = AppLocalizations.of(context)!;
 
     return Drawer(
       backgroundColor: AppTheme.background,
@@ -2384,7 +2390,7 @@ class HistoryDrawer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'HISTORIAL',
+                l10n.historyLabel,
                 style: GoogleFonts.manrope(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
@@ -2398,7 +2404,7 @@ class HistoryDrawer extends StatelessWidget {
                   stream: chatService.getUserConversations(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return Text('Error cargando historial', style: GoogleFonts.manrope(color: Colors.red));
+                      return Text(l10n.errorLabel, style: GoogleFonts.manrope(color: Colors.red));
                     }
                     if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
                        return const Center(child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2));
@@ -2406,7 +2412,7 @@ class HistoryDrawer extends StatelessWidget {
                     
                     final data = snapshot.data!.snapshot.value;
                     if (data == null || (data is Map && data.isEmpty)) {
-                      return Text('No hay conversaciones guardadas.', style: GoogleFonts.manrope(color: AppTheme.secondary));
+                      return Text(l10n.noRecentData, style: GoogleFonts.manrope(color: AppTheme.secondary));
                     }
 
                     // Convert map to list and sort
@@ -2438,7 +2444,7 @@ class HistoryDrawer extends StatelessWidget {
                              Navigator.pop(context); // Close drawer
                              onChatSelected(key);
                           },
-                          child: _buildHistoryItem(value['title']?.toString() ?? 'Conversación sin título', dateLabel),
+                          child: _buildHistoryItem(value['title']?.toString() ?? l10n.noRecentData, dateLabel),
                         );
                       },
                     );
@@ -2447,7 +2453,7 @@ class HistoryDrawer extends StatelessWidget {
               ),
               CustomDrawerButton(
                 icon: Icons.add_rounded,
-                text: 'Nuevo Chat',
+                text: l10n.newChatBtn,
                 onPressed: () {
                    Navigator.pop(context);
                    onChatSelected(null);

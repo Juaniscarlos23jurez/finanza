@@ -14,7 +14,7 @@ class AiService {
   ChatSession? _chat;
 
   AiService() : _model = GenerativeModel(
-    model: 'gemini-2.5-flash-lite',
+    model: 'gemini-2.5-flash-image', 
     apiKey: _apiKey,
     systemInstruction: Content.system(
       'Eres el asistente nutricional de "Nutrición AI", un experto en dietética y salud con un tono motivacional, profesional y empático. '
@@ -41,7 +41,12 @@ class AiService {
       topK: 40,
       topP: 0.95,
       maxOutputTokens: 8192,
+      // responseModalities: [ResponseModality.text, ResponseModality.image],
     ),
+    safetySettings: [
+      // SafetySetting(HarmCategory.harassment, HarmBlockThreshold.mediumAndAbove),
+      // SafetySetting(HarmCategory.dangerousContent, HarmBlockThreshold.mediumAndAbove),
+    ],
   );
 
   void startNewChat() {
@@ -131,6 +136,7 @@ class AiService {
   }
 
   Future<String> generateGoalVision(String textGoal, Uint8List imageBytes) async {
+    debugPrint('AI_SERVICE: Generating Goal Vision for objective: "$textGoal"');
     try {
       final content = [
         Content.multi([
@@ -144,10 +150,50 @@ class AiService {
       ];
 
       final response = await _model.generateContent(content);
-      return response.text ?? '¡Te verás increíble alcanzando tu meta!';
+      final result = response.text ?? '¡Te verás increíble alcanzando tu meta!';
+      return result;
     } catch (e) {
-      debugPrint('Error generating goal vision: $e');
+      debugPrint('AI_SERVICE: ERROR generating goal vision: $e');
       return 'Un futuro lleno de salud y fuerza te espera.';
+    }
+  }
+
+  Future<Uint8List?> generateGoalImageBytes(String textGoal, Uint8List imageBytes) async {
+    debugPrint('AI_SERVICE: Requesting True Image-to-Image Generation...');
+    
+    final enhancedPrompt = '''
+      Genera una foto fotorrealista de la persona en la imagen adjunta en su mejor versión física.
+      El sujeto debe tener un físico atlético y en forma, con definición muscular saludable.
+      MANTÉN la identidad facial exacta y los rasgos faciales de la persona original.
+      Iluminación de estudio profesional, alta resolución.
+      Instrucción del usuario: $textGoal
+    ''';
+
+    try {
+      final content = [
+        Content.multi([
+          TextPart(enhancedPrompt),
+          DataPart('image/jpeg', imageBytes),
+        ])
+      ];
+
+      final response = await _model.generateContent(content);
+
+      // Extract the generated image from parts (DataPart might be used for output too)
+      final imagePart = response.candidates.first.content.parts
+          .whereType<DataPart>()
+          .firstOrNull;
+
+      if (imagePart != null) {
+        debugPrint('AI_SERVICE: Image generated successfully (${imagePart.bytes.length} bytes)');
+        return imagePart.bytes;
+      } else {
+        debugPrint('AI_SERVICE: AI responded with text only: ${response.text}');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('AI_SERVICE: ERROR generating goal image bytes: $e');
+      return null;
     }
   }
 }
