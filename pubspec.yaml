@@ -43,7 +43,7 @@ dependencies:
   # Networking & APIs
   dio: ^5.3.3
   url_launcher: ^6.2.4
-  google_generative_ai: ^0.4.7
+  google_generative_ai: any
   genui: ^0.6.1
   genui_a2ui: ^0.6.1
 
@@ -67,6 +67,8 @@ dependencies:
   health: ^13.3.0
   image_picker: ^1.2.1
   firebase_storage: ^12.4.10
+  pasteboard: ^0.4.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

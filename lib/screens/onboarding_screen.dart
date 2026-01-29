@@ -3,7 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:pasteboard/pasteboard.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import 'main_screen.dart';
 import '../services/nutrition_service.dart';
@@ -141,6 +144,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  Future<void> _pasteImage() async {
+    try {
+      final bytes = await Pasteboard.image;
+      if (bytes != null) {
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/pasted_image_${DateTime.now().millisecondsSinceEpoch}.png');
+        await file.writeAsBytes(bytes);
+        
+        setState(() {
+          _progressImage = file;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Imagen pegada con éxito')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No hay ninguna imagen en el portapapeles')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error pasting image: $e');
+    }
+  }
+
   Future<void> _processMotivation() async {
     if (_progressImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -194,6 +226,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _generatedGoalImageBytes = imageBytes;
           _aiVisionDescription = vision;
         });
+        
+        if (imageBytes == null) {
+          debugPrint('Onboarding: FALLBACK - No se recibió imagen de la IA, usando la original.');
+        } else {
+          debugPrint('Onboarding: EXITO - Se recibió imagen de transformación de la IA.');
+        }
       } else {
         debugPrint('Onboarding: Image URL is null, moving to next page');
         _nextPage();
@@ -270,9 +308,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
+      body: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyV, control: true): _pasteImage,
+          const SingleActivator(LogicalKeyboardKey.keyV, meta: true): _pasteImage,
+        },
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SafeArea(
           child: Column(
             children: [
               Padding(
@@ -314,9 +357,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ],
+          ),
         ),
       ),
-      ),
+    ),
     );
   }
 
@@ -814,6 +858,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   ),
           ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _pasteImage,
+                icon: const Icon(Icons.content_paste, size: 18),
+                label: const Text('PEGAR IMAGEN'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: AppTheme.accent),
+                  foregroundColor: AppTheme.accent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 24),
         TextField(

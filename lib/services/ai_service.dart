@@ -41,7 +41,6 @@ class AiService {
       topK: 40,
       topP: 0.95,
       maxOutputTokens: 8192,
-      // responseModalities: [ResponseModality.text, ResponseModality.image],
     ),
     safetySettings: [
       // SafetySetting(HarmCategory.harassment, HarmBlockThreshold.mediumAndAbove),
@@ -179,8 +178,19 @@ class AiService {
 
       final response = await _model.generateContent(content);
 
-      // Extract the generated image from parts (DataPart might be used for output too)
-      final imagePart = response.candidates.first.content.parts
+      debugPrint('AI_SERVICE: Response candidates count: ${response.candidates.length}');
+      final candidate = response.candidates.first;
+      debugPrint('AI_SERVICE: Response content parts: ${candidate.content.parts.length}');
+
+      for (var part in candidate.content.parts) {
+        debugPrint('AI_SERVICE: Part type: ${part.runtimeType}');
+        if (part is TextPart) {
+          debugPrint('AI_SERVICE: Text part found: ${part.text.substring(0, part.text.length > 50 ? 50 : part.text.length)}...');
+        }
+      }
+
+      // Extract the generated image from parts
+      final imagePart = candidate.content.parts
           .whereType<DataPart>()
           .firstOrNull;
 
