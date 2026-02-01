@@ -548,6 +548,12 @@ abstract class AppLocalizations {
   /// **'Guardar'**
   String get save;
 
+  /// No description provided for @categoryLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get categoryLabel;
+
   /// No description provided for @delete.
   ///
   /// In es, this message translates to:

@@ -236,6 +236,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get save => 'Guardar';
 
   @override
+  String get categoryLabel => 'Categoría';
+
+  @override
   String get delete => 'Eliminar';
 
   @override

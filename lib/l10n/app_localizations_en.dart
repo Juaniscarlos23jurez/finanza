@@ -237,6 +237,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
+  String get categoryLabel => 'Category';
+
+  @override
   String get delete => 'Delete';
 
   @override

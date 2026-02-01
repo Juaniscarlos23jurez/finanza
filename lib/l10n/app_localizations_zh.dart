@@ -234,6 +234,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get save => '保存';
 
   @override
+  String get categoryLabel => 'Categoría';
+
+  @override
   String get delete => '删除';
 
   @override

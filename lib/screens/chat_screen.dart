@@ -569,10 +569,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   Future<void> _showEditTransactionDialog(NormalizedTransaction currentData) async {
     final l10n = AppLocalizations.of(context)!;
-    final _descController = TextEditingController(text: currentData.description);
-    final _amountController = TextEditingController(text: currentData.amount.toString());
-    final _categoryController = TextEditingController(text: currentData.category);
-    bool _isExpense = currentData.isExpense;
+    final descController = TextEditingController(text: currentData.description);
+    final amountController = TextEditingController(text: currentData.amount.toString());
+    final categoryController = TextEditingController(text: currentData.category);
+    bool isExpense = currentData.isExpense;
 
     await showDialog(
       context: context,
@@ -604,29 +604,29 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setStateDialog(() => _isExpense = true),
+                              onTap: () => setStateDialog(() => isExpense = true),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: _isExpense ? Colors.redAccent.withValues(alpha: 0.1) : Colors.transparent,
+                                  color: isExpense ? Colors.redAccent.withValues(alpha: 0.1) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: _isExpense ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5)) : null,
+                                  border: isExpense ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5)) : null,
                                 ),
-                                child: Text(l10n.expenses, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: _isExpense ? Colors.redAccent : AppTheme.secondary)),
+                                child: Text(l10n.expenses, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: isExpense ? Colors.redAccent : AppTheme.secondary)),
                               ),
                             ),
                           ),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setStateDialog(() => _isExpense = false),
+                              onTap: () => setStateDialog(() => isExpense = false),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: !_isExpense ? Colors.green.withValues(alpha: 0.1) : Colors.transparent,
+                                  color: !isExpense ? Colors.green.withValues(alpha: 0.1) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: !_isExpense ? Border.all(color: Colors.green.withValues(alpha: 0.5)) : null,
+                                  border: !isExpense ? Border.all(color: Colors.green.withValues(alpha: 0.5)) : null,
                                 ),
-                                child: Text(l10n.incomes, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: !_isExpense ? Colors.green : AppTheme.secondary)),
+                                child: Text(l10n.incomes, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: !isExpense ? Colors.green : AppTheme.secondary)),
                               ),
                             ),
                           ),
@@ -635,7 +635,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      controller: _descController,
+                      controller: descController,
                       decoration: InputDecoration(
                         labelText: l10n.description,
                         labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
@@ -645,7 +645,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: _amountController,
+                      controller: amountController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         labelText: l10n.amountLabel,
@@ -656,7 +656,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: _categoryController,
+                      controller: categoryController,
                       decoration: InputDecoration(
                         labelText: l10n.categoryLabel,
                         labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
@@ -676,10 +676,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   onPressed: () {
                     final newMap = Map<String, dynamic>.from(_localData ?? {});
                     // Update with canonical keys for Adapter
-                    newMap['description'] = _descController.text;
-                    newMap['amount'] = double.tryParse(_amountController.text) ?? 0.0;
-                    newMap['category'] = _categoryController.text;
-                    newMap['is_expense'] = _isExpense;
+                    newMap['description'] = descController.text;
+                    newMap['amount'] = double.tryParse(amountController.text) ?? 0.0;
+                    newMap['category'] = categoryController.text;
+                    newMap['is_expense'] = isExpense;
                     
                     _updateLocalData(newMap);
                     Navigator.pop(context);

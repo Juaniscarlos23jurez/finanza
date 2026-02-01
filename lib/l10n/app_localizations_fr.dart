@@ -238,6 +238,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get save => 'Enregistrer';
 
   @override
+  String get categoryLabel => 'Categoría';
+
+  @override
   String get delete => 'Supprimer';
 
   @override
