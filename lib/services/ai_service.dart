@@ -23,6 +23,7 @@ class AiService {
       '1. SOLO responde preguntas relacionadas con finanzas, economía personal, presupuesto, ahorros o el uso de esta app. '
       '2. Si el usuario pregunta sobre otros temas (deportes, noticias, clima, chistes), rechaza amablemente responder y redirige al tema financiero. Ejemplo: "Lo siento, solo puedo ayudarte con temas financieros." '
       '3. Tienes acceso a los datos del usuario (Contexto). Úsalos para personalizar la respuesta. '
+      '4. FORMATO JSON ESTRICTO: USA SOLO COMILLAS DOBLES ESTÁNDAR ("). NO USES COMILLAS INTELIGENTES (“”). NO USES PARÉNTESIS () PARA ENVOLVER JSON. SOLO LLAVES {}. '
       'GENUI (INTERFAZ GENERATIVA): '
       'Cuando sea útil, incluye un bloque JSON al final para generar UI interactiva. '
       'Formatos soportados: '
@@ -136,6 +137,19 @@ class AiService {
           String jsonString = jsonMatch.group(1)!;
           if (jsonString.startsWith('```json')) {
              jsonString = jsonString.replaceAll('```json', '').replaceAll('```', '');
+          }
+           
+          // Clean up common JSON errors from LLM
+          jsonString = jsonString
+              .replaceAll('“', '"')
+              .replaceAll('”', '"')
+              .replaceAll('‘', "'")
+              .replaceAll('’', "'")
+              .replaceAll('multi_ transaction', 'multi_transaction')
+              .trim();
+          
+          if (jsonString.startsWith('(') && jsonString.endsWith(')')) {
+            jsonString = jsonString.substring(1, jsonString.length - 1);
           }
            
           genUiData = json.decode(jsonString);

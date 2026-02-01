@@ -15,6 +15,7 @@ import '../services/finance_service.dart';
 import '../services/chat_service.dart';
 import '../services/ad_service.dart';
 import '../l10n/app_localizations.dart';
+import '../services/ai_response_adapter.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -531,6 +532,8 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 
+
+
 class ChatMessageWidget extends StatefulWidget {
   final Message message;
   final String? conversationId;
@@ -547,7 +550,156 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   // bool _isSaved = false; // We will use widget.message.isHandled instead
   final FinanceService _financeService = FinanceService();
   final ChatService _chatService = ChatService();
+  
+  Map<String, dynamic>? _localData;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.message.data != null) {
+      _localData = Map.from(widget.message.data!);
+    }
+  }
+  
+  void _updateLocalData(Map<String, dynamic> newData) {
+    setState(() {
+      _localData = newData;
+    });
+  }
+
+  Future<void> _showEditTransactionDialog(NormalizedTransaction currentData) async {
+    final l10n = AppLocalizations.of(context)!;
+    final _descController = TextEditingController(text: currentData.description);
+    final _amountController = TextEditingController(text: currentData.amount.toString());
+    final _categoryController = TextEditingController(text: currentData.category);
+    bool _isExpense = currentData.isExpense;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Row(
+                children: [
+                  const Icon(Icons.edit_rounded, color: AppTheme.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(l10n.editTransaction, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Type Switch
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.background,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setStateDialog(() => _isExpense = true),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _isExpense ? Colors.redAccent.withValues(alpha: 0.1) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: _isExpense ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5)) : null,
+                                ),
+                                child: Text(l10n.expenses, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: _isExpense ? Colors.redAccent : AppTheme.secondary)),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setStateDialog(() => _isExpense = false),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: !_isExpense ? Colors.green.withValues(alpha: 0.1) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: !_isExpense ? Border.all(color: Colors.green.withValues(alpha: 0.5)) : null,
+                                ),
+                                child: Text(l10n.incomes, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: !_isExpense ? Colors.green : AppTheme.secondary)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _descController,
+                      decoration: InputDecoration(
+                        labelText: l10n.description,
+                        labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
+                        prefixIcon: const Icon(Icons.description_outlined, color: AppTheme.secondary, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: l10n.amountLabel,
+                        labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
+                        prefixIcon: const Icon(Icons.attach_money, color: AppTheme.secondary, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _categoryController,
+                      decoration: InputDecoration(
+                        labelText: l10n.category,
+                        labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
+                        prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.secondary, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final newMap = Map<String, dynamic>.from(_localData ?? {});
+                    // Update with canonical keys for Adapter
+                    newMap['description'] = _descController.text;
+                    newMap['amount'] = double.tryParse(_amountController.text) ?? 0.0;
+                    newMap['category'] = _categoryController.text;
+                    newMap['is_expense'] = _isExpense;
+                    
+                    _updateLocalData(newMap);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(l10n.save, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
+
+  // --- Actions ---
   Future<void> _markAsHandled() async {
     if (widget.conversationId != null && widget.message.key != null) {
       await _chatService.updateMessage(
@@ -563,15 +715,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     setState(() => _isSaving = true);
     
     try {
-      final bool isExpense = data['is_expense'] ?? true;
-      
-      await _financeService.createRecord({
-        'amount': double.tryParse(data['amount'].toString()) ?? 0.0,
-        'category': data['category'] ?? l10n.general,
-        'type': isExpense ? 'expense' : 'income',
-        'date': data['date'] ?? DateTime.now().toIso8601String().split('T')[0],
-        'description': data['description'] ?? l10n.transactionAi,
-      });
+    // Use Adapter to normalize data
+    final transaction = AiResponseAdapter.adaptTransaction(data);
+    
+    try {
+      await _financeService.createRecord(transaction.toMap());
 
       await _markAsHandled();
 
@@ -677,7 +825,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Widget _buildGenUIPlaceholder() {
     if (widget.message.data == null) return const SizedBox.shrink();
 
-    final data = widget.message.data!;
+    if (_localData == null) return const SizedBox.shrink();
+
+    final data = _localData!;
     final String type = data['type'] ?? 'unknown';
 
     switch (type) {
@@ -1136,9 +1286,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             ),
           ),
           const SizedBox(height: 8),
-          ...items.take(5).map((item) {
-            final bool isExpense = item['is_expense'] ?? true;
-            final double amount = double.tryParse(item['amount'].toString()) ?? 0.0;
+          ...AiResponseAdapter.adaptMultiTransaction(items).take(5).map((item) {
+            final bool isExpense = item.isExpense;
+            final double amount = item.amount;
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               child: Row(
@@ -1148,8 +1298,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item['description'] ?? 'Item', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text(item['date'] ?? '', style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                        Text(item.description, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(item.date, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
                       ],
                     ),
                   ),
@@ -1224,15 +1374,18 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
     if (transactions.isEmpty) return const SizedBox.shrink();
 
+    // Use adapter
+    final normalizedTransactions = AiResponseAdapter.adaptMultiTransaction(transactions);
+
     // Calculate totals
     double totalIncome = 0;
     double totalExpense = 0;
-    for (var t in transactions) {
-      final amount = double.tryParse(t['amount'].toString()) ?? 0;
-      if (t['is_expense'] == true) {
-        totalExpense += amount;
+
+    for (var t in normalizedTransactions) {
+      if (t.isExpense) {
+        totalExpense += t.amount;
       } else {
-        totalIncome += amount;
+        totalIncome += t.amount;
       }
     }
 
@@ -1297,11 +1450,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           const Divider(height: 1),
           const SizedBox(height: 12),
           // List of transactions
-          ...transactions.map((t) {
-            final bool isExpense = t['is_expense'] ?? true;
-            final double amount = double.tryParse(t['amount'].toString()) ?? 0;
-            final String desc = t['description'] ?? l10n.transaction;
-            final String category = t['category'] ?? l10n.general;
+          ...AiResponseAdapter.adaptMultiTransaction(transactions).map((t) {
+            final bool isExpense = t.isExpense;
+            final double amount = t.amount;
+            final String desc = t.description;
+            final String category = t.category;
 
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1411,15 +1564,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     setState(() => _isSaving = true);
 
     try {
-      for (var t in transactions) {
-        final bool isExpense = t['is_expense'] ?? true;
-        await _financeService.createRecord({
-          'amount': double.tryParse(t['amount'].toString()) ?? 0.0,
-          'category': t['category'] ?? l10n.general,
-          'type': isExpense ? 'expense' : 'income',
-          'date': t['date'] ?? DateTime.now().toIso8601String().split('T')[0],
-          'description': t['description'] ?? l10n.transactionAi,
-        });
+      final normalized = AiResponseAdapter.adaptMultiTransaction(transactions);
+      for (var t in normalized) {
+        await _financeService.createRecord(t.toMap());
       }
       
       await _markAsHandled();
@@ -1443,6 +1590,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   Widget _buildGoalSuggestionCard(Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
+    // Use adapter
+    final goal = AiResponseAdapter.adaptGoal(data);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1478,11 +1628,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(data['title'] ?? l10n.goal, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          Text(goal.title, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
           const SizedBox(height: 4),
-          Text(l10n.objective(data['target_amount']?.toString() ?? '0'), style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(l10n.objective(goal.targetAmount.toStringAsFixed(0)), style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
-          Text(data['reason'] ?? '', style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
+          Text(goal.description, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
@@ -1558,14 +1708,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     setState(() => _isSaving = true);
     try {
       final financeService = FinanceService();
-      await financeService.createGoal({
-        'title': data['title'],
-        'target_amount': double.tryParse(data['target_amount'].toString()) ?? 0.0,
-        'target_date': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0], // Default 30 days
-        'current_amount': 0.0,
-        'status': 'active',
-        'description': data['reason'] ?? l10n.goalAiDescription,
-      });
+      // Use adapter
+      final goal = AiResponseAdapter.adaptGoal(data);
+      await financeService.createGoal(goal.toMap());
 
       await _markAsHandled();
       if (mounted) {
@@ -1588,10 +1733,13 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   Widget _buildTransactionCard(Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
-    final bool isExpense = data['is_expense'] ?? true;
-    final double amount = double.tryParse(data['amount'].toString()) ?? 0.0;
-    final String category = data['category'] ?? l10n.general;
-    final String description = data['description'] ?? l10n.transaction;
+    // Adapt data
+    final transaction = AiResponseAdapter.adaptTransaction(data);
+
+    final bool isExpense = transaction.isExpense;
+    final double amount = transaction.amount;
+    final String category = transaction.category;
+    final String description = transaction.description;
 
     return Container(
       width: double.infinity,
@@ -1614,11 +1762,31 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.ticketGenerated, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Text(l10n.ticketGenerated, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                  if (!widget.message.isHandled) ...[
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () => _showEditTransactionDialog(transaction),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.edit_rounded, size: 14, color: AppTheme.primary),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
               Icon(isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, 
                    color: isExpense ? Colors.redAccent : Colors.green, size: 20),
             ],
           ),
+
           const SizedBox(height: 16),
           Row(
             children: [
@@ -1700,9 +1868,12 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   Widget _buildBalanceCard(Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
-    final double total = double.tryParse(data['total'].toString()) ?? 0.0;
-    final double income = double.tryParse(data['income'].toString()) ?? 0.0;
-    final double expenses = double.tryParse(data['expenses'].toString()) ?? 0.0;
+    // Use adapter
+    final balance = AiResponseAdapter.adaptBalance(data);
+    
+    final double total = balance.total;
+    final double income = balance.income;
+    final double expenses = balance.expenses;
 
     return Container(
       width: double.infinity,
