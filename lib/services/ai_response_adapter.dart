@@ -1,23 +1,29 @@
 
 class AiResponseAdapter {
   /// Adapts a single transaction map into a consistent NormalizedTransaction
-  static NormalizedTransaction adaptTransaction(Map<String, dynamic> raw) {
-    return NormalizedTransaction.fromMap(raw);
+  static NormalizedTransaction adaptTransaction(Map raw) {
+    return NormalizedTransaction.fromMap(Map<String, dynamic>.from(raw));
   }
 
   /// Adapts a list of transactions
   static List<NormalizedTransaction> adaptMultiTransaction(List<dynamic> rawList) {
     return rawList
-        .whereType<Map<String, dynamic>>() // Filter only valid maps
-        .map((data) => NormalizedTransaction.fromMap(data))
+        .map((item) {
+          if (item is Map) {
+            return NormalizedTransaction.fromMap(Map<String, dynamic>.from(item));
+          }
+          return null;
+        })
+        .whereType<NormalizedTransaction>()
         .toList();
   }
-  static NormalizedGoal adaptGoal(Map<String, dynamic> raw) {
-    return NormalizedGoal.fromMap(raw);
+
+  static NormalizedGoal adaptGoal(Map raw) {
+    return NormalizedGoal.fromMap(Map<String, dynamic>.from(raw));
   }
 
-  static NormalizedBalance adaptBalance(Map<String, dynamic> raw) {
-    return NormalizedBalance.fromMap(raw);
+  static NormalizedBalance adaptBalance(Map raw) {
+    return NormalizedBalance.fromMap(Map<String, dynamic>.from(raw));
   }
 
   // --- Shared Helpers ---

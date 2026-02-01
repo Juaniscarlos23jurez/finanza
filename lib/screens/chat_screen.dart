@@ -557,7 +557,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   void initState() {
     super.initState();
     if (widget.message.data != null) {
-      _localData = Map.from(widget.message.data!);
+      _localData = Map<String, dynamic>.from(widget.message.data!);
     }
   }
   

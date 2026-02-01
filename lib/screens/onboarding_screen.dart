@@ -629,7 +629,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             title: Text(item['name'], style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-            subtitle: Text(isGoal ? "" : (item['frequency'] ?? "${item['interest']}%")),
+            subtitle: Text(isGoal 
+                ? "" 
+                : (item.containsKey('interest') 
+                    ? "${item['interest']}% - Pagos: \$${_formatAmount((item['monthly_payment'] ?? 0).toDouble())}" 
+                    : (item['frequency'] ?? ""))),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

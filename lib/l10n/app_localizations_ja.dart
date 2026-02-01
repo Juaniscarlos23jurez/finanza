@@ -852,4 +852,40 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get savingCapacityTitle => 'Tu capacidad de ahorro mensual';
+
+  @override
+  String get debtPayment => 'Pago mensual';
+
+  @override
+  String get debtPaymentHint => 'Ej. 500';
+
+  @override
+  String get monthlyDebtCommitment => 'Compromiso Mensual de Deuda';
+
+  @override
+  String get realSavingCapacity => 'Capacidad de Ahorro Real';
+
+  @override
+  String get advisorContext => 'Como tu asesor financiero, te sugiero...';
+
+  @override
+  String get financialHealthGood =>
+      'Tu salud financiera se ve sólida. Tienes un excedente positivo para tus metas.';
+
+  @override
+  String get financialHealthWarning =>
+      'Atención: Tus compromisos mensuales superan tus ingresos. Necesitas ajustar tu presupuesto.';
+
+  @override
+  String get netCashFlow => 'Flujo de Caja Neto';
+
+  @override
+  String savingCapacityFormulaRefined(
+    Object balance,
+    Object budget,
+    Object debt,
+    Object income,
+  ) {
+    return 'Ingresos ($income) - Gastos ($budget) - Pagos Deuda ($debt) = $balance libres.';
+  }
 }

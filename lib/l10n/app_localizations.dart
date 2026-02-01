@@ -1699,6 +1699,65 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Tu capacidad de ahorro mensual'**
   String get savingCapacityTitle;
+
+  /// No description provided for @debtPayment.
+  ///
+  /// In es, this message translates to:
+  /// **'Pago mensual'**
+  String get debtPayment;
+
+  /// No description provided for @debtPaymentHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej. 500'**
+  String get debtPaymentHint;
+
+  /// No description provided for @monthlyDebtCommitment.
+  ///
+  /// In es, this message translates to:
+  /// **'Compromiso Mensual de Deuda'**
+  String get monthlyDebtCommitment;
+
+  /// No description provided for @realSavingCapacity.
+  ///
+  /// In es, this message translates to:
+  /// **'Capacidad de Ahorro Real'**
+  String get realSavingCapacity;
+
+  /// No description provided for @advisorContext.
+  ///
+  /// In es, this message translates to:
+  /// **'Como tu asesor financiero, te sugiero...'**
+  String get advisorContext;
+
+  /// No description provided for @financialHealthGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu salud financiera se ve sólida. Tienes un excedente positivo para tus metas.'**
+  String get financialHealthGood;
+
+  /// No description provided for @financialHealthWarning.
+  ///
+  /// In es, this message translates to:
+  /// **'Atención: Tus compromisos mensuales superan tus ingresos. Necesitas ajustar tu presupuesto.'**
+  String get financialHealthWarning;
+
+  /// No description provided for @netCashFlow.
+  ///
+  /// In es, this message translates to:
+  /// **'Flujo de Caja Neto'**
+  String get netCashFlow;
+
+  /// No description provided for @savingCapacityFormulaRefined.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos ({income}) - Gastos ({budget}) - Pagos Deuda ({debt}) = {balance} libres.'**
+  String savingCapacityFormulaRefined(
+    Object balance,
+    Object budget,
+    Object debt,
+    Object income,
+  );
 }
 
 class _AppLocalizationsDelegate
