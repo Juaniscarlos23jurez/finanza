@@ -695,4 +695,139 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareLinkAndCode => 'Share Link and Code';
+
+  @override
+  String get onboardingWelcome => 'Welcome to Finance AI';
+
+  @override
+  String get onboardingSubtitle =>
+      'Let\'s set up your financial profile in 3 simple steps.';
+
+  @override
+  String get stepBudgetTitle => '1. Your Budget';
+
+  @override
+  String get stepBudgetSubtitle =>
+      'How much do you plan to spend monthly in total?';
+
+  @override
+  String get stepBudgetHint => 'e.g. 5000';
+
+  @override
+  String get stepSaleTitle => '2. First Sale';
+
+  @override
+  String get stepSaleSubtitle => 'Record your first sale or income of the day.';
+
+  @override
+  String get stepSaleHint => 'e.g. Product sale';
+
+  @override
+  String get stepSourcesTitle => '3. Money Sources';
+
+  @override
+  String get stepSourcesSubtitle => 'Add your regular income sources.';
+
+  @override
+  String get addSource => 'Add Source';
+
+  @override
+  String get sourceName => 'Source name';
+
+  @override
+  String get sourceAmount => 'Amount';
+
+  @override
+  String get sourceFrequency => 'Frequency';
+
+  @override
+  String get frequencyWeekly => 'Weekly';
+
+  @override
+  String get frequencyMonthly => 'Monthly';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get onboardingComplete => 'Setup completed!';
+
+  @override
+  String get budgetRequired => 'Please enter a valid budget';
+
+  @override
+  String get saleRequired => 'Please record your first sale';
+
+  @override
+  String get sourcesRequired => 'Please add at least one income source';
+
+  @override
+  String get stepDebtTitle => '4. Your Debts';
+
+  @override
+  String get stepDebtSubtitle => 'Record your current debts to help us plan.';
+
+  @override
+  String get addDebt => 'Add Debt';
+
+  @override
+  String get debtName => 'Debt name';
+
+  @override
+  String get debtAmount => 'Total amount';
+
+  @override
+  String get debtInterest => 'Interest (%)';
+
+  @override
+  String get debtDueDate => 'Due date';
+
+  @override
+  String get stepGoalTitle => '5. Your Goals';
+
+  @override
+  String get stepGoalSubtitle => 'What are you saving for?';
+
+  @override
+  String get addGoal => 'Add Goal';
+
+  @override
+  String get goalName => 'Goal name';
+
+  @override
+  String get goalTarget => 'Target amount';
+
+  @override
+  String get onboardingSummary => 'Financial Summary';
+
+  @override
+  String get onboardingSummarySubtitle =>
+      'This is how your configured finances look.';
+
+  @override
+  String get estimatedMonthlyBalance => 'Estimated Monthly Balance';
+
+  @override
+  String get totalDebts => 'Total Debts';
+
+  @override
+  String get totalGoals => 'Budget for Goals';
+
+  @override
+  String get myBudget => 'My Budget';
+
+  @override
+  String get budgetUsed => 'Budget Used';
+
+  @override
+  String get remainingBudget => 'Remaining';
+
+  @override
+  String get debtsTitle => 'My Debts';
 }

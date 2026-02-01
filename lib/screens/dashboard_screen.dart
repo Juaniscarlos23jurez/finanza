@@ -39,6 +39,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _goals = [];
   List<dynamic> _recentTransactions = [];
   List<FlSpot> _balanceHistory = [];
+  double _userBudget = 0.0;
+  List<Map<String, dynamic>> _userDebts = [];
   String _userName = '';
   String _userCode = '';
 
@@ -205,10 +207,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final futures = await Future.wait([
         _financeService.getFinanceData(),
         _financeService.getGoals(),
+        _authService.getBudget(),
+        _authService.getDebts(),
       ]);
 
       final data = futures[0] as Map<String, dynamic>;
       final goals = futures[1] as List<dynamic>;
+      final budget = futures[2] as double?;
+      final debts = futures[3] as List<Map<String, dynamic>>;
 
       if (!mounted) return;
 
@@ -280,6 +286,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _goals = goals;
           _recentTransactions = recent;
           _balanceHistory = historySpots.reversed.toList();
+          _userBudget = budget ?? 0.0;
+          _userDebts = debts;
           _isLoading = false;
         });
       }
@@ -353,6 +361,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 32),
                     _buildBalanceCard(),
                     const SizedBox(height: 32),
+                    _buildBudgetSection(),
+                    const SizedBox(height: 32),
                     _buildSectionTitle(AppLocalizations.of(context)!.balanceTrend),
                     const SizedBox(height: 16),
                     _buildHistoryChart(),
@@ -360,6 +370,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildSectionTitle(AppLocalizations.of(context)!.yourGoals, onAdd: _showAddGoalDialog),
                     const SizedBox(height: 16),
                     _buildGoalsList(),
+                    const SizedBox(height: 32),
+                    _buildDebtsSection(),
                     const SizedBox(height: 32),
                     _buildSectionTitle(AppLocalizations.of(context)!.expensesByCategory),
                     const SizedBox(height: 16),
@@ -373,6 +385,142 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
       ),
+    );
+  }
+
+  Widget _buildBudgetSection() {
+    final l10n = AppLocalizations.of(context)!;
+    if (_userBudget <= 0) return const SizedBox.shrink();
+
+    final double totalExpense = double.tryParse((_summary['total_expense'] ?? 0).toString()) ?? 0.0;
+    final double progress = (totalExpense / _userBudget).clamp(0.0, 1.0);
+    final double remaining = _userBudget - totalExpense;
+    final bool isOverBudget = totalExpense > _userBudget;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(l10n.myBudget),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 10,
+              )
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l10n.budgetUsed, style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold)),
+                  Text(
+                    '${(progress * 100).toStringAsFixed(0)}%',
+                    style: GoogleFonts.manrope(
+                      color: isOverBudget ? Colors.redAccent : AppTheme.primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 12,
+                  backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(isOverBudget ? Colors.redAccent : AppTheme.primary),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.amount, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                      Text('\$${totalExpense.toStringAsFixed(0)} / \$${_userBudget.toStringAsFixed(0)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(l10n.remainingBudget, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                      Text(
+                        '\$${remaining.toStringAsFixed(0)}',
+                        style: GoogleFonts.manrope(
+                          fontWeight: FontWeight.bold,
+                          color: remaining < 0 ? Colors.redAccent : Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDebtsSection() {
+    final l10n = AppLocalizations.of(context)!;
+    if (_userDebts.isEmpty) return const SizedBox.shrink();
+
+    double totalDebt = _userDebts.fold(0.0, (sum, item) => sum + (double.tryParse(item['amount'].toString()) ?? 0.0));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(l10n.debtsTitle),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.redAccent.withValues(alpha: 0.1), Colors.redAccent.withValues(alpha: 0.05)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.totalDebts, style: GoogleFonts.manrope(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+              Text(
+                '\$${totalDebt.toStringAsFixed(2)}',
+                style: GoogleFonts.manrope(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.redAccent),
+              ),
+              const SizedBox(height: 16),
+              ..._userDebts.map((debt) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(debt['name'] ?? '', style: GoogleFonts.manrope(fontSize: 14)),
+                    Text(
+                      '\$${(double.tryParse(debt['amount'].toString()) ?? 0.0).toStringAsFixed(0)} (${debt['interest'] ?? 0}%)',
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                  ],
+                ),
+              )),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

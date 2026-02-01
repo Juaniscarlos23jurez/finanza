@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'firebase_service.dart';
 
 class AuthService {
   final Dio _dio = Dio();
+  final FirebaseService _firebaseService = FirebaseService();
   static const String baseUrl = 'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth';
 
   AuthService() {
@@ -344,6 +347,108 @@ class AuthService {
     } catch (e) {
       return {'success': false, 'message': _handleError(e)};
     }
+  }
+
+  Future<bool> isOnboardingComplete() async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final config = await _firebaseService.getUserConfig(email);
+      if (config != null) {
+        return config['onboarding_complete'] ?? false;
+      }
+    }
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('onboarding_complete') ?? false;
+  }
+
+  Future<void> setOnboardingComplete(bool complete) async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final currentConfig = await _firebaseService.getUserConfig(email) ?? {};
+      currentConfig['onboarding_complete'] = complete;
+      await _firebaseService.saveUserConfig(email, currentConfig);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_complete', complete);
+  }
+
+  Future<void> saveBudget(double budget) async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final currentConfig = await _firebaseService.getUserConfig(email) ?? {};
+      currentConfig['user_monthly_budget'] = budget;
+      await _firebaseService.saveUserConfig(email, currentConfig);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('user_monthly_budget', budget);
+  }
+
+  Future<double?> getBudget() async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final config = await _firebaseService.getUserConfig(email);
+      if (config != null && config['user_monthly_budget'] != null) {
+        return (config['user_monthly_budget'] as num).toDouble();
+      }
+    }
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble('user_monthly_budget');
+  }
+
+  Future<void> saveIncomeSources(List<Map<String, dynamic>> sources) async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final currentConfig = await _firebaseService.getUserConfig(email) ?? {};
+      currentConfig['user_income_sources'] = sources;
+      await _firebaseService.saveUserConfig(email, currentConfig);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final String sourcesJson = json.encode(sources);
+    await prefs.setString('user_income_sources', sourcesJson);
+  }
+
+  Future<List<Map<String, dynamic>>> getIncomeSources() async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final config = await _firebaseService.getUserConfig(email);
+      if (config != null && config['user_income_sources'] != null) {
+        final List<dynamic> sources = config['user_income_sources'];
+        return sources.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final String? sourcesJson = prefs.getString('user_income_sources');
+    if (sourcesJson == null) return [];
+    final List<dynamic> decoded = json.decode(sourcesJson);
+    return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<void> saveDebts(List<Map<String, dynamic>> debts) async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final currentConfig = await _firebaseService.getUserConfig(email) ?? {};
+      currentConfig['user_debts'] = debts;
+      await _firebaseService.saveUserConfig(email, currentConfig);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final String debtsJson = json.encode(debts);
+    await prefs.setString('user_debts', debtsJson);
+  }
+
+  Future<List<Map<String, dynamic>>> getDebts() async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final config = await _firebaseService.getUserConfig(email);
+      if (config != null && config['user_debts'] != null) {
+        final List<dynamic> debts = config['user_debts'];
+        return debts.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final String? debtsJson = prefs.getString('user_debts');
+    if (debtsJson == null) return [];
+    final List<dynamic> decoded = json.decode(debtsJson);
+    return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
   String _handleError(dynamic e) {

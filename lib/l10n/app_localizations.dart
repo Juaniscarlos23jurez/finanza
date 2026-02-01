@@ -1381,6 +1381,270 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Compartir Enlace y Código'**
   String get shareLinkAndCode;
+
+  /// No description provided for @onboardingWelcome.
+  ///
+  /// In es, this message translates to:
+  /// **'Bienvenido a Finanzas AI'**
+  String get onboardingWelcome;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vamos a configurar tu perfil financiero en 3 simples pasos.'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @stepBudgetTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'1. Tu Presupuesto'**
+  String get stepBudgetTitle;
+
+  /// No description provided for @stepBudgetSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cuánto planeas gastar mensualmente en total?'**
+  String get stepBudgetSubtitle;
+
+  /// No description provided for @stepBudgetHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej. 5000'**
+  String get stepBudgetHint;
+
+  /// No description provided for @stepSaleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'2. Primera Venta'**
+  String get stepSaleTitle;
+
+  /// No description provided for @stepSaleSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra tu primera venta o ingreso del día.'**
+  String get stepSaleSubtitle;
+
+  /// No description provided for @stepSaleHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej. Venta de producto'**
+  String get stepSaleHint;
+
+  /// No description provided for @stepSourcesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'3. Fuentes de Dinero'**
+  String get stepSourcesTitle;
+
+  /// No description provided for @stepSourcesSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Agrega tus fuentes de ingresos regulares.'**
+  String get stepSourcesSubtitle;
+
+  /// No description provided for @addSource.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar Fuente'**
+  String get addSource;
+
+  /// No description provided for @sourceName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la fuente'**
+  String get sourceName;
+
+  /// No description provided for @sourceAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto'**
+  String get sourceAmount;
+
+  /// No description provided for @sourceFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencia'**
+  String get sourceFrequency;
+
+  /// No description provided for @frequencyWeekly.
+  ///
+  /// In es, this message translates to:
+  /// **'Semanal'**
+  String get frequencyWeekly;
+
+  /// No description provided for @frequencyMonthly.
+  ///
+  /// In es, this message translates to:
+  /// **'Mensual'**
+  String get frequencyMonthly;
+
+  /// No description provided for @finish.
+  ///
+  /// In es, this message translates to:
+  /// **'Finalizar'**
+  String get finish;
+
+  /// No description provided for @next.
+  ///
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get next;
+
+  /// No description provided for @back.
+  ///
+  /// In es, this message translates to:
+  /// **'Atrás'**
+  String get back;
+
+  /// No description provided for @onboardingComplete.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Configuración completada!'**
+  String get onboardingComplete;
+
+  /// No description provided for @budgetRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor ingresa un presupuesto válido'**
+  String get budgetRequired;
+
+  /// No description provided for @saleRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor registra tu primera venta'**
+  String get saleRequired;
+
+  /// No description provided for @sourcesRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor agrega al menos una fuente de ingresos'**
+  String get sourcesRequired;
+
+  /// No description provided for @stepDebtTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'4. Tus Deudas'**
+  String get stepDebtTitle;
+
+  /// No description provided for @stepDebtSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra tus deudas actuales para ayudarte a planear.'**
+  String get stepDebtSubtitle;
+
+  /// No description provided for @addDebt.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar Deuda'**
+  String get addDebt;
+
+  /// No description provided for @debtName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la deuda'**
+  String get debtName;
+
+  /// No description provided for @debtAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto total'**
+  String get debtAmount;
+
+  /// No description provided for @debtInterest.
+  ///
+  /// In es, this message translates to:
+  /// **'Interés (%)'**
+  String get debtInterest;
+
+  /// No description provided for @debtDueDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de pago'**
+  String get debtDueDate;
+
+  /// No description provided for @stepGoalTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'5. Tus Metas'**
+  String get stepGoalTitle;
+
+  /// No description provided for @stepGoalSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Para qué estás ahorrando?'**
+  String get stepGoalSubtitle;
+
+  /// No description provided for @addGoal.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar Meta'**
+  String get addGoal;
+
+  /// No description provided for @goalName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la meta'**
+  String get goalName;
+
+  /// No description provided for @goalTarget.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto objetivo'**
+  String get goalTarget;
+
+  /// No description provided for @onboardingSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen Financiero'**
+  String get onboardingSummary;
+
+  /// No description provided for @onboardingSummarySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Así se ven tus finanzas configuradas.'**
+  String get onboardingSummarySubtitle;
+
+  /// No description provided for @estimatedMonthlyBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'Balance Mensual Estimado'**
+  String get estimatedMonthlyBalance;
+
+  /// No description provided for @totalDebts.
+  ///
+  /// In es, this message translates to:
+  /// **'Deudas Totales'**
+  String get totalDebts;
+
+  /// No description provided for @totalGoals.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto para Metas'**
+  String get totalGoals;
+
+  /// No description provided for @myBudget.
+  ///
+  /// In es, this message translates to:
+  /// **'Mi Presupuesto'**
+  String get myBudget;
+
+  /// No description provided for @budgetUsed.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto Usado'**
+  String get budgetUsed;
+
+  /// No description provided for @remainingBudget.
+  ///
+  /// In es, this message translates to:
+  /// **'Restante'**
+  String get remainingBudget;
+
+  /// No description provided for @debtsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis Deudas'**
+  String get debtsTitle;
 }
 
 class _AppLocalizationsDelegate

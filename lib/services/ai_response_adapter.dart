@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 class AiResponseAdapter {
   /// Adapts a single transaction map into a consistent NormalizedTransaction
@@ -19,6 +18,32 @@ class AiResponseAdapter {
 
   static NormalizedBalance adaptBalance(Map<String, dynamic> raw) {
     return NormalizedBalance.fromMap(raw);
+  }
+
+  // --- Shared Helpers ---
+
+  static String _safeString(Map data, List<String> keys, {String defaultVal = ''}) {
+    for (final key in keys) {
+      if (data.containsKey(key) && data[key] != null) {
+        return data[key].toString();
+      }
+    }
+    return defaultVal;
+  }
+
+  static double _safeDouble(Map data, List<String> keys, {double defaultVal = 0.0}) {
+    for (final key in keys) {
+      if (data.containsKey(key) && data[key] != null) {
+        final val = data[key];
+        if (val is num) return val.toDouble();
+        if (val is String) {
+          // Remove currency symbols and cleaner parse
+          String clean = val.replaceAll(RegExp(r'[^\d.-]'), ''); 
+          return double.tryParse(clean) ?? defaultVal;
+        }
+      }
+    }
+    return defaultVal;
   }
 }
 
@@ -42,10 +67,10 @@ class NormalizedTransaction {
     final bool isExpense = _parseTransactionType(map);
 
     // 2. Safe Field Extraction
-    final double amount = _safeDouble(map, ['amount', 'cost', 'price', 'value', 'monto']);
-    final String category = _safeString(map, ['category', 'cat', 'categoria'], defaultVal: 'General');
-    final String description = _safeString(map, ['description', 'desc', 'concept', 'concepto'], defaultVal: 'Transacción AI');
-    final String date = _safeString(map, ['date', 'time', 'fecha'], defaultVal: DateTime.now().toIso8601String().split('T')[0]);
+    final double amount = AiResponseAdapter._safeDouble(map, ['amount', 'cost', 'price', 'value', 'monto']);
+    final String category = AiResponseAdapter._safeString(map, ['category', 'cat', 'categoria'], defaultVal: 'General');
+    final String description = AiResponseAdapter._safeString(map, ['description', 'desc', 'concept', 'concepto'], defaultVal: 'Transacción AI');
+    final String date = AiResponseAdapter._safeString(map, ['date', 'time', 'fecha'], defaultVal: DateTime.now().toIso8601String().split('T')[0]);
 
     return NormalizedTransaction(
       amount: amount,
@@ -80,7 +105,7 @@ class NormalizedTransaction {
     }
 
     // Check synonym keys for "type"
-    final typeVal = _safeString(map, ['type', 'tipo']).toLowerCase();
+    final typeVal = AiResponseAdapter._safeString(map, ['type', 'tipo']).toLowerCase();
     if (['expense', 'gasto', 'deuda', 'payment', 'pago', 'cost'].contains(typeVal)) {
       return true;
     }
@@ -93,46 +118,17 @@ class NormalizedTransaction {
     // If user prompt says "Gaste -500", AI might output amount: -500.
     // Let's check if amount is explicitly negative in the raw data
     if (map.containsKey('amount') || map.containsKey('cost') || map.containsKey('price')) {
-       double val = _safeDouble(map, ['amount', 'cost', 'price', 'monto']);
-       // If explicitly negative, it might be an expense represented as negative flow? 
-       // Or income? In many apps, expense is positive number, just typed 'expense'.
-       // But if AI sends "amount": -500, and no type, what is it?
-       // Usually "Gane 500" -> Income. "Perdi 500" -> Expense.
-       // Let's stick to explicit keys first.
+       // Inference by value logic (optional)
     }
 
     // Inference by Description
-    final desc = _safeString(map, ['description', 'desc', 'concept']).toLowerCase();
+    final desc = AiResponseAdapter._safeString(map, ['description', 'desc', 'concept']).toLowerCase();
     if (desc.contains('gane') || desc.contains('recibi') || desc.contains('deposito') || desc.contains('cobro')) {
        return false; // Income
     }
 
     // Default to true (Expense)
     return true; 
-  }
-
-  static String _safeString(Map data, List<String> keys, {String defaultVal = ''}) {
-    for (final key in keys) {
-      if (data.containsKey(key) && data[key] != null) {
-        return data[key].toString();
-      }
-    }
-    return defaultVal;
-  }
-
-  static double _safeDouble(Map data, List<String> keys, {double defaultVal = 0.0}) {
-    for (final key in keys) {
-      if (data.containsKey(key) && data[key] != null) {
-        final val = data[key];
-        if (val is num) return val.toDouble();
-        if (val is String) {
-          // Remove currency symbols and cleaner parse
-          String clean = val.replaceAll(RegExp(r'[^\d.-]'), ''); 
-          return double.tryParse(clean) ?? defaultVal;
-        }
-      }
-    }
-    return defaultVal;
   }
 }
 

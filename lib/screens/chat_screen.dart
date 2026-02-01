@@ -658,7 +658,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     TextField(
                       controller: _categoryController,
                       decoration: InputDecoration(
-                        labelText: l10n.category,
+                        labelText: l10n.categoryLabel,
                         labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
                         prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.secondary, size: 18),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -715,27 +715,25 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     setState(() => _isSaving = true);
     
     try {
-    // Use Adapter to normalize data
-    final transaction = AiResponseAdapter.adaptTransaction(data);
-    
-    try {
+      // Use Adapter to normalize data
+      final transaction = AiResponseAdapter.adaptTransaction(data);
+      
       await _financeService.createRecord(transaction.toMap());
-
       await _markAsHandled();
 
-      if (!mounted) return;
-      setState(() {
-        _isSaving = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.transactionSavedSuccess)),
-      );
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.transactionSavedSuccess)),
+        );
+      }
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.saveError(e.toString()))),
-      );
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorGeneric(e.toString()))),
+        );
+      }
     }
   }
 
@@ -1312,7 +1310,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   ),
                   Expanded(
                     child: Text(
-                      '\$${(double.tryParse(item['balance']?.toString() ?? '') ?? 0.0).toStringAsFixed(0)}',
+                      '', // Balance not available
                       textAlign: TextAlign.right,
                       style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primary),
                     ),

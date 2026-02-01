@@ -73,4 +73,23 @@ class FirebaseService {
   Stream<DatabaseEvent> listenToGoalUpdates(int goalId) {
     return _db.ref('goals_sync/$goalId').onValue;
   }
+
+  /// Saves general user configuration (budget, sources, debts, onboarding status)
+  Future<void> saveUserConfig(String email, Map<String, dynamic> config) async {
+    final String safeEmail = _safeEmail(email);
+    await _db.ref('user_configs/$safeEmail').set({
+      ...config,
+      'updatedAt': ServerValue.timestamp,
+    });
+  }
+
+  /// Retrieves user configuration
+  Future<Map<String, dynamic>?> getUserConfig(String email) async {
+    final String safeEmail = _safeEmail(email);
+    final snapshot = await _db.ref('user_configs/$safeEmail').get();
+    if (snapshot.exists) {
+      return Map<String, dynamic>.from(snapshot.value as Map);
+    }
+    return null;
+  }
 }

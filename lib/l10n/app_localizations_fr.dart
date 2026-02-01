@@ -701,4 +701,141 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareLinkAndCode => 'Partager le lien et le code';
+
+  @override
+  String get onboardingWelcome => 'Bienvenido a Finanzas AI';
+
+  @override
+  String get onboardingSubtitle =>
+      'Vamos a configurar tu perfil financiero en 3 simples pasos.';
+
+  @override
+  String get stepBudgetTitle => '1. Tu Presupuesto';
+
+  @override
+  String get stepBudgetSubtitle =>
+      '¿Cuánto planeas gastar mensualmente en total?';
+
+  @override
+  String get stepBudgetHint => 'Ej. 5000';
+
+  @override
+  String get stepSaleTitle => '2. Primera Venta';
+
+  @override
+  String get stepSaleSubtitle => 'Registra tu primera venta o ingreso del día.';
+
+  @override
+  String get stepSaleHint => 'Ej. Venta de producto';
+
+  @override
+  String get stepSourcesTitle => '3. Fuentes de Dinero';
+
+  @override
+  String get stepSourcesSubtitle => 'Agrega tus fuentes de ingresos regulares.';
+
+  @override
+  String get addSource => 'Agregar Fuente';
+
+  @override
+  String get sourceName => 'Nombre de la fuente';
+
+  @override
+  String get sourceAmount => 'Monto';
+
+  @override
+  String get sourceFrequency => 'Frecuencia';
+
+  @override
+  String get frequencyWeekly => 'Semanal';
+
+  @override
+  String get frequencyMonthly => 'Mensual';
+
+  @override
+  String get finish => 'Finalizar';
+
+  @override
+  String get next => 'Siguiente';
+
+  @override
+  String get back => 'Atrás';
+
+  @override
+  String get onboardingComplete => '¡Configuración completada!';
+
+  @override
+  String get budgetRequired => 'Por favor ingresa un presupuesto válido';
+
+  @override
+  String get saleRequired => 'Por favor registra tu primera venta';
+
+  @override
+  String get sourcesRequired =>
+      'Por favor agrega al menos una fuente de ingresos';
+
+  @override
+  String get stepDebtTitle => '4. Tus Deudas';
+
+  @override
+  String get stepDebtSubtitle =>
+      'Registra tus deudas actuales para ayudarte a planear.';
+
+  @override
+  String get addDebt => 'Agregar Deuda';
+
+  @override
+  String get debtName => 'Nombre de la deuda';
+
+  @override
+  String get debtAmount => 'Monto total';
+
+  @override
+  String get debtInterest => 'Interés (%)';
+
+  @override
+  String get debtDueDate => 'Fecha de pago';
+
+  @override
+  String get stepGoalTitle => '5. Tus Metas';
+
+  @override
+  String get stepGoalSubtitle => '¿Para qué estás ahorrando?';
+
+  @override
+  String get addGoal => 'Agregar Meta';
+
+  @override
+  String get goalName => 'Nombre de la meta';
+
+  @override
+  String get goalTarget => 'Monto objetivo';
+
+  @override
+  String get onboardingSummary => 'Resumen Financiero';
+
+  @override
+  String get onboardingSummarySubtitle =>
+      'Así se ven tus finanzas configuradas.';
+
+  @override
+  String get estimatedMonthlyBalance => 'Balance Mensual Estimado';
+
+  @override
+  String get totalDebts => 'Deudas Totales';
+
+  @override
+  String get totalGoals => 'Presupuesto para Metas';
+
+  @override
+  String get myBudget => 'Mi Presupuesto';
+
+  @override
+  String get budgetUsed => 'Presupuesto Usado';
+
+  @override
+  String get remainingBudget => 'Restante';
+
+  @override
+  String get debtsTitle => 'Mis Deudas';
 }
