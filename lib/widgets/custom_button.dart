@@ -3,7 +3,7 @@ import '../theme/app_theme.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isOutlined;
   final IconData? icon;
 

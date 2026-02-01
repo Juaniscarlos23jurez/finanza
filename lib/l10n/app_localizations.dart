@@ -1397,7 +1397,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Vamos a configurar tu perfil financiero en 3 simples pasos.'**
+  /// **'Vamos a configurar tu perfil financiero en unos simples pasos.'**
   String get onboardingSubtitle;
 
   /// No description provided for @stepBudgetTitle.
@@ -1439,7 +1439,7 @@ abstract class AppLocalizations {
   /// No description provided for @stepSourcesTitle.
   ///
   /// In es, this message translates to:
-  /// **'3. Fuentes de Dinero'**
+  /// **'2. Fuentes de Dinero'**
   String get stepSourcesTitle;
 
   /// No description provided for @stepSourcesSubtitle.
@@ -1529,7 +1529,7 @@ abstract class AppLocalizations {
   /// No description provided for @stepDebtTitle.
   ///
   /// In es, this message translates to:
-  /// **'4. Tus Deudas'**
+  /// **'3. Tus Deudas'**
   String get stepDebtTitle;
 
   /// No description provided for @stepDebtSubtitle.
@@ -1571,7 +1571,7 @@ abstract class AppLocalizations {
   /// No description provided for @stepGoalTitle.
   ///
   /// In es, this message translates to:
-  /// **'5. Tus Metas'**
+  /// **'4. Tus Metas'**
   String get stepGoalTitle;
 
   /// No description provided for @stepGoalSubtitle.
@@ -1651,6 +1651,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Mis Deudas'**
   String get debtsTitle;
+
+  /// No description provided for @chartBudget.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto'**
+  String get chartBudget;
+
+  /// No description provided for @chartSavings.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahorros'**
+  String get chartSavings;
+
+  /// No description provided for @chartDebt.
+  ///
+  /// In es, this message translates to:
+  /// **'Deuda'**
+  String get chartDebt;
+
+  /// No description provided for @onboardingSummaryExplanation.
+  ///
+  /// In es, this message translates to:
+  /// **'Este resumen muestra la relación entre tus ingresos, gastos mensuales presupuestados y deudas. El \'Balance Mensual\' es el dinero disponible que tienes cada mes para ahorrar o invertir.'**
+  String get onboardingSummaryExplanation;
+
+  /// No description provided for @totalMonthlyIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingreso Mensual Total'**
+  String get totalMonthlyIncome;
+
+  /// No description provided for @monthlyBudgetLimit.
+  ///
+  /// In es, this message translates to:
+  /// **'Límite de Presupuesto'**
+  String get monthlyBudgetLimit;
+
+  /// No description provided for @savingCapacityFormula.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingreso ({income}) - Gastos ({budget}) = {balance} libres para metas y emergencias.'**
+  String savingCapacityFormula(Object balance, Object budget, Object income);
+
+  /// No description provided for @savingCapacityTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu capacidad de ahorro mensual'**
+  String get savingCapacityTitle;
 }
 
 class _AppLocalizationsDelegate

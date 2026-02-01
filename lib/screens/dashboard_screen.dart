@@ -25,6 +25,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final FinanceService _financeService = FinanceService();
   final AuthService _authService = AuthService();
   final FirebaseService _firebaseService = FirebaseService();
+  final NumberFormat _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+  final NumberFormat _preciseCurrencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+  String _formatCurrency(double amount, {bool precise = false}) {
+    return (precise ? _preciseCurrencyFormat : _currencyFormat).format(amount);
+  }
 
   StreamSubscription? _updateSubscription;
   StreamSubscription? _invitationSubscription;
@@ -445,11 +451,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                   Column(
+                    Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(l10n.amount, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
-                      Text('\$${totalExpense.toStringAsFixed(0)} / \$${_userBudget.toStringAsFixed(0)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                      Text('${_formatCurrency(totalExpense)} / ${_formatCurrency(_userBudget)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   Column(
@@ -457,7 +463,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(l10n.remainingBudget, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
                       Text(
-                        '\$${remaining.toStringAsFixed(0)}',
+                        _formatCurrency(remaining),
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.bold,
                           color: remaining < 0 ? Colors.redAccent : Colors.green,
@@ -500,7 +506,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(l10n.totalDebts, style: GoogleFonts.manrope(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12)),
               Text(
-                '\$${totalDebt.toStringAsFixed(2)}',
+                _formatCurrency(totalDebt, precise: true),
                 style: GoogleFonts.manrope(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.redAccent),
               ),
               const SizedBox(height: 16),
@@ -511,7 +517,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(debt['name'] ?? '', style: GoogleFonts.manrope(fontSize: 14)),
                     Text(
-                      '\$${(double.tryParse(debt['amount'].toString()) ?? 0.0).toStringAsFixed(0)} (${debt['interest'] ?? 0}%)',
+                      '${_formatCurrency(double.tryParse(debt['amount'].toString()) ?? 0.0)} (${debt['interest'] ?? 0}%)',
                       style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ],
@@ -567,7 +573,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
                 return touchedBarSpots.map((barSpot) {
                   return LineTooltipItem(
-                    '\$ ${barSpot.y.toStringAsFixed(0)}',
+                    _formatCurrency(barSpot.y),
                     GoogleFonts.manrope(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -651,7 +657,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final String category = item['category'] ?? AppLocalizations.of(context)!.general;
     final double amountVal = double.tryParse(item['amount'].toString()) ?? 0.0;
     final bool isIncome = item['type'] == 'income';
-    final String amountStr = '${isIncome ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}';
+    final String amountStr = '${isIncome ? "+" : "-"}${_formatCurrency(amountVal, precise: true)}';
     
     // Parse Date
     String formattedDate = '';
@@ -801,7 +807,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '\$${_totalBalance.toStringAsFixed(2)}',
+            _formatCurrency(_totalBalance, precise: true),
             style: GoogleFonts.manrope(
               fontSize: 36,
               color: Colors.white,
@@ -813,13 +819,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               _buildMiniStat(
                 AppLocalizations.of(context)!.incomes, 
-                '+\$${(_summary['total_income'] ?? 0).toStringAsFixed(0)}', 
+                '+${_formatCurrency((_summary['total_income'] ?? 0).toDouble())}', 
                 Colors.greenAccent
               ),
               const SizedBox(width: 32),
               _buildMiniStat(
                 AppLocalizations.of(context)!.expenses, 
-                '-\$${(_summary['total_expense'] ?? 0).toStringAsFixed(0)}', 
+                '-${_formatCurrency((_summary['total_expense'] ?? 0).toDouble())}', 
                 Colors.redAccent
               ),
             ],
@@ -1106,7 +1112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          '\$${current.toStringAsFixed(0)}',
+                          _formatCurrency(current),
                           style: GoogleFonts.manrope(
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
@@ -1116,7 +1122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '/ ${target.toStringAsFixed(0)}',
+                          '/ ${_formatCurrency(target)}',
                           style: GoogleFonts.manrope(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -1364,7 +1370,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary),
                         ),
                         Text(
-                          '\$${current.toStringAsFixed(2)}',
+                          _formatCurrency(current, precise: true),
                           style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold, 
                             fontSize: 18,
@@ -1382,8 +1388,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         Text(
                           isWithdrawMode 
-                              ? '\$${target.toStringAsFixed(2)}'
-                              : '\$${remaining.toStringAsFixed(2)}',
+                              ? _formatCurrency(target, precise: true)
+                              : _formatCurrency(remaining, precise: true),
                           style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold, 
                             fontSize: 18,
@@ -1573,7 +1579,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         Text(
-                          '\$${current.toStringAsFixed(0)} de \$${target.toStringAsFixed(0)}',
+                          '${_formatCurrency(current)} de ${_formatCurrency(target)}',
                           style: GoogleFonts.manrope(
                             color: AppTheme.secondary,
                             fontSize: 12,

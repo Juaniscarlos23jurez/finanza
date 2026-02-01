@@ -726,7 +726,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepSaleHint => 'e.g. Product sale';
 
   @override
-  String get stepSourcesTitle => '3. Money Sources';
+  String get stepSourcesTitle => '2. Money Sources';
 
   @override
   String get stepSourcesSubtitle => 'Add your regular income sources.';
@@ -771,7 +771,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sourcesRequired => 'Please add at least one income source';
 
   @override
-  String get stepDebtTitle => '4. Your Debts';
+  String get stepDebtTitle => '3. Your Debts';
 
   @override
   String get stepDebtSubtitle => 'Record your current debts to help us plan.';
@@ -792,7 +792,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtDueDate => 'Due date';
 
   @override
-  String get stepGoalTitle => '5. Your Goals';
+  String get stepGoalTitle => '4. Your Goals';
 
   @override
   String get stepGoalSubtitle => 'What are you saving for?';
@@ -833,4 +833,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get debtsTitle => 'My Debts';
+
+  @override
+  String get chartBudget => 'Budget';
+
+  @override
+  String get chartSavings => 'Savings';
+
+  @override
+  String get chartDebt => 'Debt';
+
+  @override
+  String get onboardingSummaryExplanation =>
+      'This summary shows the relationship between your income, budgeted monthly expenses, and debts. The \'Monthly Balance\' is the free money you have each month to save or invest.';
+
+  @override
+  String get totalMonthlyIncome => 'Total Monthly Income';
+
+  @override
+  String get monthlyBudgetLimit => 'Monthly Budget Limit';
+
+  @override
+  String savingCapacityFormula(Object balance, Object budget, Object income) {
+    return 'Income ($income) - Expenses ($budget) = $balance free for goals and emergencies.';
+  }
+
+  @override
+  String get savingCapacityTitle => 'Your monthly saving capacity';
 }

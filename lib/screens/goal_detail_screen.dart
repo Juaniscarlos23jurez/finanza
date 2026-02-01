@@ -23,6 +23,13 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   final FinanceService _financeService = FinanceService();
   final FirebaseService _firebaseService = FirebaseService();
   final AuthService _authService = AuthService();
+  final NumberFormat _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+  final NumberFormat _preciseCurrencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+  String _formatCurrency(double amount, {bool precise = false}) {
+    return (precise ? _preciseCurrencyFormat : _currencyFormat).format(amount);
+  }
+
   StreamSubscription? _syncSubscription;
   bool _isLoading = false;
 
@@ -291,7 +298,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: '\$${current.toStringAsFixed(0)}',
+                            text: _formatCurrency(current),
                             style: GoogleFonts.manrope(
                               color: AppTheme.primary,
                               fontSize: 32,
@@ -299,7 +306,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                             ),
                           ),
                           TextSpan(
-                            text: ' / \$${target.toStringAsFixed(0)}',
+                            text: ' / ${_formatCurrency(target)}',
                             style: GoogleFonts.manrope(
                               color: AppTheme.secondary.withValues(alpha: 0.6),
                               fontSize: 16,
@@ -705,7 +712,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             ],
           ),
           Text(
-            '${isIncome ? '+' : '-'}\$${amount.toStringAsFixed(0)}',
+            '${isIncome ? '+' : '-'}${_formatCurrency(amount, precise: true)}',
             style: GoogleFonts.manrope(
               fontWeight: FontWeight.w800,
               fontSize: 16,

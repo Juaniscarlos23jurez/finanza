@@ -8,6 +8,8 @@ import '../widgets/custom_text_field.dart';
 import '../services/auth_service.dart';
 import '../services/finance_service.dart';
 import 'main_screen.dart';
+import 'package:intl/intl.dart';
+import '../utils/number_formatter.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -22,34 +24,86 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final FinanceService _financeService = FinanceService();
   
   int _currentStep = 0;
-  final int _totalSteps = 6;
+  final int _totalSteps = 5;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _budgetController.addListener(() => setState(() {}));
+  }
+
+  bool _isStepValid() {
+    if (_currentStep == 0) {
+      final text = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+      return text.isNotEmpty && double.tryParse(text) != null;
+    } else if (_currentStep == 1) {
+      return _incomeSources.isNotEmpty;
+    } else if (_currentStep == 2) {
+      return _debts.isNotEmpty;
+    }
+    return true;
+  }
+
+  final NumberFormat _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+  final NumberFormat _simpleCurrencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+
+  String _formatAmount(double amount) {
+    return NumberFormat('#,###.##').format(amount);
+  }
 
   // Step 1: Budget
   final TextEditingController _budgetController = TextEditingController();
 
-  // Step 2: First Sale
-  final TextEditingController _saleDescController = TextEditingController();
-  final TextEditingController _saleAmountController = TextEditingController();
-
-  // Step 3: Income Sources
+  // Step 2: Income Sources (Previous Step 3)
   final List<Map<String, dynamic>> _incomeSources = [];
   final TextEditingController _sourceNameController = TextEditingController();
   final TextEditingController _sourceAmountController = TextEditingController();
   String _selectedFrequency = 'Monthly';
 
-  // Step 4: Debts
+  // Step 3: Debts (Previous Step 4)
   final List<Map<String, dynamic>> _debts = [];
   final TextEditingController _debtNameController = TextEditingController();
   final TextEditingController _debtAmountController = TextEditingController();
   final TextEditingController _debtInterestController = TextEditingController();
+  final TextEditingController _debtPaymentController = TextEditingController();
 
-  // Step 5: Goals
+  // Step 4: Goals (Previous Step 5)
   final List<Map<String, dynamic>> _goals = [];
   final TextEditingController _goalNameController = TextEditingController();
   final TextEditingController _goalTargetController = TextEditingController();
 
   void _nextStep() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Validations for mandatory steps
+    if (_currentStep == 0) {
+      final budgetStr = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+      if (budgetStr.isEmpty || double.tryParse(budgetStr) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.budgetRequired)));
+        return;
+      }
+    } else if (_currentStep == 1) {
+      if (_incomeSources.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.sourcesRequired)));
+        return;
+      }
+    } else if (_currentStep == 2) {
+      // Debts are now mandatory
+      if (_debts.isEmpty) {
+        // Option to skip if no debts? User said mandatory.
+        // Let's assume mandatory means at least acknowledge. 
+        // If they have no debts, they can add one with 0? 
+        // Actually usually mandatory means "you must fill this", 
+        // but if they don't have debts, we should allow skip.
+        // Let's check user's exact words: "cosas obligatorias es el presupuesto fuentes de ingreso y deudas"
+        // I will make it mandatory but maybe add a "No tengo deudas" option? 
+        // Simplified: if empty, show warning.
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Por favor agrega al menos una deuda o ingreso 0 si no tienes.")));
+        return;
+      }
+    }
+
     if (_currentStep < _totalSteps - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -72,17 +126,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishOnboarding() async {
-    final budgetStr = _budgetController.text.trim();
-    final saleAmountStr = _saleAmountController.text.trim();
-    final saleDesc = _saleDescController.text.trim();
+    final budgetStr = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
 
     if (budgetStr.isEmpty || double.tryParse(budgetStr) == null) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.budgetRequired)));
-      return;
-    }
-
-    if (saleAmountStr.isEmpty || double.tryParse(saleAmountStr) == null || saleDesc.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.saleRequired)));
       return;
     }
 
@@ -97,14 +144,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // 1. Save Budget
       await _authService.saveBudget(double.parse(budgetStr));
 
-      // 2. Register First Sale as Transaction
-      await _financeService.createRecord({
-        'description': saleDesc,
-        'amount': double.parse(saleAmountStr),
-        'type': 'income',
-        'category': 'Ventas',
-        'date': DateTime.now().toIso8601String(),
-      });
+      // (Step 2 First Sale removed as per user request)
 
       // 3. Save Income Sources
       await _authService.saveIncomeSources(_incomeSources);
@@ -143,7 +183,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _addIncomeSource() {
     final name = _sourceNameController.text.trim();
-    final amount = _sourceAmountController.text.trim();
+    final amount = _sourceAmountController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
     if (name.isNotEmpty && amount.isNotEmpty && double.tryParse(amount) != null) {
       setState(() {
         _incomeSources.add({'name': name, 'amount': double.parse(amount), 'frequency': _selectedFrequency});
@@ -155,26 +195,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _addDebt() {
     final name = _debtNameController.text.trim();
-    final amount = _debtAmountController.text.trim();
+    final amount = _debtAmountController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
     final interest = _debtInterestController.text.trim();
+    final payment = _debtPaymentController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+    
     if (name.isNotEmpty && amount.isNotEmpty && double.tryParse(amount) != null) {
       setState(() {
         _debts.add({
           'name': name, 
           'amount': double.parse(amount), 
           'interest': double.tryParse(interest) ?? 0.0,
+          'monthly_payment': double.tryParse(payment) ?? 0.0,
           'date': DateTime.now().toIso8601String(),
         });
         _debtNameController.clear();
         _debtAmountController.clear();
         _debtInterestController.clear();
+        _debtPaymentController.clear();
       });
     }
   }
 
   void _addGoal() {
     final name = _goalNameController.text.trim();
-    final target = _goalTargetController.text.trim();
+    final target = _goalTargetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
     if (name.isNotEmpty && target.isNotEmpty && double.tryParse(target) != null) {
       setState(() {
         _goals.add({'name': name, 'target': double.parse(target)});
@@ -220,7 +264,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildBudgetStep(l10n),
-                    _buildSaleStep(l10n),
                     _buildSourcesStep(l10n),
                     _buildDebtStep(l10n),
                     _buildGoalStep(l10n),
@@ -233,7 +276,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 text: _isLoading 
                     ? l10n.loading 
                     : (_currentStep == _totalSteps - 1 ? l10n.finish : l10n.next),
-                onPressed: _isLoading ? () {} : _nextStep,
+                onPressed: (_isLoading || !_isStepValid()) ? null : _nextStep,
               ),
             ],
           ),
@@ -249,13 +292,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       content: [
         const SizedBox(height: 40),
         Center(
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
+          child: Hero(
+            tag: 'budget_icon',
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.account_balance_wallet_rounded, size: 80, color: AppTheme.primary),
             ),
-            child: const Icon(Icons.account_balance_wallet_outlined, size: 80, color: AppTheme.primary),
           ),
         ),
         const SizedBox(height: 48),
@@ -263,45 +309,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           label: l10n.amount,
           controller: _budgetController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [ThousandsSeparatorInputFormatter()],
           hintText: l10n.stepBudgetHint,
         ),
       ],
     );
   }
 
-  Widget _buildSaleStep(AppLocalizations l10n) {
-    return _buildStepLayout(
-      title: l10n.stepSaleTitle,
-      subtitle: l10n.stepSaleSubtitle,
-      content: [
-        const SizedBox(height: 32),
-        CustomTextField(
-          label: l10n.description,
-          controller: _saleDescController,
-          hintText: l10n.stepSaleHint,
-        ),
-        const SizedBox(height: 24),
-        CustomTextField(
-          label: l10n.amount,
-          controller: _saleAmountController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          hintText: "0.00",
-        ),
-      ],
-    );
-  }
 
   Widget _buildSourcesStep(AppLocalizations l10n) {
     return _buildStepLayout(
       title: l10n.stepSourcesTitle,
       subtitle: l10n.stepSourcesSubtitle,
       content: [
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Icon(Icons.trending_up_rounded, size: 50, color: Colors.green),
+          ),
+        ),
+        const SizedBox(height: 32),
         CustomTextField(label: l10n.sourceName, controller: _sourceNameController, hintText: "Sueldo, Freelance, etc."),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(flex: 2, child: CustomTextField(label: l10n.amount, controller: _sourceAmountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), hintText: "0.00")),
+            Expanded(flex: 2, child: CustomTextField(label: l10n.amount, controller: _sourceAmountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00")),
             const SizedBox(width: 12),
             Expanded(
               flex: 3,
@@ -339,16 +376,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: l10n.stepDebtTitle,
       subtitle: l10n.stepDebtSubtitle,
       content: [
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Icon(Icons.credit_card_off_rounded, size: 50, color: Colors.redAccent),
+          ),
+        ),
+        const SizedBox(height: 32),
         CustomTextField(label: l10n.debtName, controller: _debtNameController, hintText: "Tarjeta de crédito, Préstamo, etc."),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: CustomTextField(label: l10n.debtAmount, controller: _debtAmountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), hintText: "0.00")),
+            Expanded(child: CustomTextField(label: l10n.debtAmount, controller: _debtAmountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00")),
             const SizedBox(width: 12),
-            Expanded(child: CustomTextField(label: l10n.debtInterest, controller: _debtInterestController, keyboardType: const TextInputType.numberWithOptions(decimal: true), hintText: "0%")),
+            Expanded(child: CustomTextField(label: l10n.debtPayment, controller: _debtPaymentController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: l10n.debtPaymentHint)),
           ],
         ),
+        const SizedBox(height: 16),
+        CustomTextField(label: l10n.debtInterest, controller: _debtInterestController, keyboardType: const TextInputType.numberWithOptions(decimal: true), hintText: "0%"),
         const SizedBox(height: 16),
         CustomButton(text: l10n.addDebt, onPressed: _addDebt, isOutlined: true),
         const SizedBox(height: 16),
@@ -362,10 +412,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: l10n.stepGoalTitle,
       subtitle: l10n.stepGoalSubtitle,
       content: [
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Icon(Icons.auto_awesome_rounded, size: 50, color: AppTheme.primary),
+          ),
+        ),
+        const SizedBox(height: 32),
         CustomTextField(label: l10n.goalName, controller: _goalNameController, hintText: "Viaje, Carro, Emergencias..."),
         const SizedBox(height: 16),
-        CustomTextField(label: l10n.goalTarget, controller: _goalTargetController, keyboardType: const TextInputType.numberWithOptions(decimal: true), hintText: "0.00"),
+        CustomTextField(label: l10n.goalTarget, controller: _goalTargetController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00"),
         const SizedBox(height: 16),
         CustomButton(text: l10n.addGoal, onPressed: _addGoal, isOutlined: true),
         const SizedBox(height: 16),
@@ -379,33 +440,165 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       double val = (item['amount'] as num).toDouble();
       return sum + (item['frequency'] == 'Weekly' ? val * 4 : val);
     });
-    double budget = double.tryParse(_budgetController.text) ?? 0;
+    double budget = double.tryParse(_budgetController.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
     double totalDebt = _debts.fold(0, (sum, item) => sum + (item['amount'] as num).toDouble());
-    
-    return _buildStepLayout(
-      title: l10n.onboardingSummary,
-      subtitle: l10n.onboardingSummarySubtitle,
-      content: [
-        const SizedBox(height: 24),
-        SizedBox(
-          height: 200,
-          child: PieChart(
-            PieChartData(
-              sections: [
-                PieChartSectionData(value: budget, color: Colors.orangeAccent, title: 'Budget', radius: 50, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                PieChartSectionData(value: totalIncome > budget ? totalIncome - budget : 0.1, color: Colors.greenAccent, title: 'Savings', radius: 50, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                if (totalDebt > 0) PieChartSectionData(value: totalDebt / 10, color: Colors.redAccent, title: 'Debt', radius: 50, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-              ],
-              centerSpaceRadius: 40,
-              sectionsSpace: 2,
+    double monthlyDebtPayments = _debts.fold(0, (sum, item) => sum + ((item['monthly_payment'] ?? 0) as num).toDouble());
+    double netBalance = totalIncome - budget - monthlyDebtPayments;
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.onboardingSummary, style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 28, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(l10n.onboardingSummarySubtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.secondary)),
+          const SizedBox(height: 32),
+          
+          // Chart Section
+          SizedBox(
+            height: 180,
+            child: PieChart(
+              PieChartData(
+                sections: [
+                  PieChartSectionData(value: budget, color: Colors.orangeAccent, title: l10n.chartBudget, radius: 50, titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                  if (monthlyDebtPayments > 0) PieChartSectionData(value: monthlyDebtPayments, color: Colors.redAccent, title: l10n.chartDebt, radius: 50, titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                  if (netBalance > 0) PieChartSectionData(value: netBalance, color: Colors.greenAccent, title: l10n.chartSavings, radius: 50, titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                ],
+                centerSpaceRadius: 40,
+                sectionsSpace: 3,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 32),
-        _buildSummaryRow(l10n.estimatedMonthlyBalance, "\$${(totalIncome - budget).toStringAsFixed(2)}", Colors.green),
-        _buildSummaryRow(l10n.totalDebts, "\$${totalDebt.toStringAsFixed(2)}", Colors.redAccent),
-        _buildSummaryRow(l10n.totalGoals, "${_goals.length} ${l10n.yourGoals}", AppTheme.primary),
-      ],
+          const SizedBox(height: 32),
+
+          // Main Stats
+          _buildSummaryCard(
+            icon: Icons.payments_rounded,
+            label: l10n.totalMonthlyIncome,
+            value: "\$${_formatAmount(totalIncome)}",
+            color: Colors.blueAccent,
+          ),
+          _buildSummaryCard(
+            icon: Icons.account_balance_wallet_rounded,
+            label: l10n.monthlyBudgetLimit,
+            value: "\$${_formatAmount(budget)}",
+            color: Colors.orangeAccent,
+          ),
+          _buildSummaryCard(
+            icon: Icons.credit_card_off_rounded,
+            label: l10n.monthlyDebtCommitment,
+            value: "\$${_formatAmount(monthlyDebtPayments)}",
+            color: Colors.redAccent,
+          ),
+          
+          const Divider(height: 48),
+          
+          // Result Section (Advisor Perspective)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: (netBalance >= 0 ? Colors.green : Colors.red).withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: (netBalance >= 0 ? Colors.green : Colors.red).withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      netBalance >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded, 
+                      color: netBalance >= 0 ? Colors.green : Colors.red,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      l10n.realSavingCapacity,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 16, color: netBalance >= 0 ? Colors.green : Colors.red),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "\$${_formatAmount(netBalance)}",
+                  style: GoogleFonts.manrope(fontSize: 32, fontWeight: FontWeight.w900, color: netBalance >= 0 ? Colors.green : Colors.red),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.savingCapacityFormulaRefined(
+                    "\$${_formatAmount(totalIncome)}", 
+                    "\$${_formatAmount(budget)}", 
+                    "\$${_formatAmount(monthlyDebtPayments)}",
+                    "\$${_formatAmount(netBalance)}"
+                  ),
+                  style: GoogleFonts.manrope(
+                    fontSize: 14, 
+                    color: AppTheme.secondary,
+                    fontWeight: FontWeight.w600,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Advisor Message
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.advisorContext,
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  netBalance >= 0 ? l10n.financialHealthGood : l10n.financialHealthWarning,
+                  style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+
+          if (_goals.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            Text(l10n.yourGoals, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primary)),
+            const SizedBox(height: 16),
+            ..._goals.map((goal) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.stars_rounded, color: Colors.orangeAccent, size: 22),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(child: Text(goal['name'], style: GoogleFonts.manrope(fontWeight: FontWeight.w700, fontSize: 15))),
+                  Text("\$${_formatAmount((goal['target'] as num).toDouble())}", style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: AppTheme.primary, fontSize: 16)),
+                ],
+              ),
+            )),
+          ],
+
+          const SizedBox(height: 48),
+        ],
+      ),
     );
   }
 
@@ -440,13 +633,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("\$${isGoal ? item['target'] : item['amount']}", style: GoogleFonts.manrope(color: isGoal ? AppTheme.primary : (item.containsKey('interest') ? Colors.redAccent : Colors.green), fontWeight: FontWeight.bold)),
+                Text("\$${_formatAmount(isGoal ? (item['target'] as num).toDouble() : (item['amount'] as num).toDouble())}", style: GoogleFonts.manrope(color: isGoal ? AppTheme.primary : (item.containsKey('interest') ? Colors.redAccent : Colors.green), fontWeight: FontWeight.bold)),
                 IconButton(icon: const Icon(Icons.close, size: 20, color: Colors.grey), onPressed: () => onDelete(index)),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSummaryCard({required IconData icon, required String label, required String value, required Color color}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(child: Text(label, style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w600))),
+          Text(value, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
     );
   }
 

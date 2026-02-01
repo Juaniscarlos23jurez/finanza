@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import 'package:intl/intl.dart';
 import '../services/finance_service.dart';
 
 class CategoryDetailsScreen extends StatefulWidget {
@@ -15,6 +16,11 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
   bool _isLoading = true;
   Map<String, double> _categoryAmounts = {};
   double _totalExpense = 0.0;
+  final NumberFormat _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+
+  String _formatCurrency(double amount) {
+    return _currencyFormat.format(amount);
+  }
 
   // Colors for categories to match Dashboard
   Color _getCategoryColor(String category) {
@@ -172,7 +178,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            '\$${amount.toStringAsFixed(0)}',
+                            _formatCurrency(amount),
                             style: GoogleFonts.manrope(
                               fontWeight: FontWeight.w800,
                               fontSize: 16,

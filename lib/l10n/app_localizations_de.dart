@@ -706,7 +706,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingSubtitle =>
-      'Vamos a configurar tu perfil financiero en 3 simples pasos.';
+      'Vamos a configurar tu perfil financiero en unos simples pasos.';
 
   @override
   String get stepBudgetTitle => '1. Tu Presupuesto';
@@ -728,7 +728,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get stepSaleHint => 'Ej. Venta de producto';
 
   @override
-  String get stepSourcesTitle => '3. Fuentes de Dinero';
+  String get stepSourcesTitle => '2. Fuentes de Dinero';
 
   @override
   String get stepSourcesSubtitle => 'Agrega tus fuentes de ingresos regulares.';
@@ -774,7 +774,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Por favor agrega al menos una fuente de ingresos';
 
   @override
-  String get stepDebtTitle => '4. Tus Deudas';
+  String get stepDebtTitle => '3. Tus Deudas';
 
   @override
   String get stepDebtSubtitle =>
@@ -796,7 +796,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get debtDueDate => 'Fecha de pago';
 
   @override
-  String get stepGoalTitle => '5. Tus Metas';
+  String get stepGoalTitle => '4. Tus Metas';
 
   @override
   String get stepGoalSubtitle => '¿Para qué estás ahorrando?';
@@ -837,4 +837,31 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get debtsTitle => 'Mis Deudas';
+
+  @override
+  String get chartBudget => 'Presupuesto';
+
+  @override
+  String get chartSavings => 'Ahorros';
+
+  @override
+  String get chartDebt => 'Deuda';
+
+  @override
+  String get onboardingSummaryExplanation =>
+      'Este resumen muestra la relación entre tus ingresos, gastos mensuales presupuestados y deudas. El \'Balance Mensual\' es el dinero disponible que tienes cada mes para ahorrar o invertir.';
+
+  @override
+  String get totalMonthlyIncome => 'Ingreso Mensual Total';
+
+  @override
+  String get monthlyBudgetLimit => 'Límite de Presupuesto';
+
+  @override
+  String savingCapacityFormula(Object balance, Object budget, Object income) {
+    return 'Ingreso ($income) - Gastos ($budget) = $balance libres para metas y emergencias.';
+  }
+
+  @override
+  String get savingCapacityTitle => 'Tu capacidad de ahorro mensual';
 }
