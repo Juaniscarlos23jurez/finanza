@@ -1996,12 +1996,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SizedBox(
             height: 180,
             child: _weightSpots.isEmpty 
-              ? Center(
-                  child: Text(
-                    'Registra tu peso para ver el progreso',
-                    style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13),
-                  ),
-                )
+                ? Center(
+                    child: Text(
+                      l10n.logWeightToSeeProgress,
+                      style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13),
+                    ),
+                  )
               : LineChart(
                   LineChartData(
                     gridData: const FlGridData(show: false),
@@ -2099,14 +2099,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    showHistory ? 'Historial de Peso' : (_canRegisterToday ? l10n.logWeight : 'Actualizar Peso'),
+                    showHistory ? l10n.weightHistoryTitle : (_canRegisterToday ? l10n.logWeight : l10n.updateWeight),
                     style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
                   ),
                   TextButton.icon(
                     onPressed: () => setModalState(() => showHistory = !showHistory),
                     icon: Icon(showHistory ? Icons.edit_note : Icons.history, size: 20),
                     label: Text(
-                      showHistory ? 'Registrar' : 'Historial',
+                      showHistory ? l10n.registerAction : l10n.historyAction,
                       style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
                     ),
                     style: TextButton.styleFrom(foregroundColor: AppTheme.secondary),
@@ -2118,7 +2118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
                   child: _weightHistory.isEmpty
-                      ? Center(child: Text('Sin registros aún', style: GoogleFonts.manrope(color: AppTheme.secondary)))
+                      ? Center(child: Text(l10n.noRecordsYet, style: GoogleFonts.manrope(color: AppTheme.secondary)))
                       : ListView.builder(
                           shrinkWrap: true,
                           itemCount: _weightHistory.length,
@@ -2144,7 +2144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
                                       ),
                                       Text(
-                                        'Registro diario',
+                                        l10n.dailyLog,
                                         style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
                                       ),
                                     ],
@@ -2177,7 +2177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const Icon(Icons.info_outline, color: Colors.orange, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          'Ya registrado hoy. Al guardar se actualizará.',
+                          l10n.weightAlreadyLoggedHint,
                           style: GoogleFonts.manrope(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -2215,7 +2215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       
                       if (weight == null || weight <= 0 || weight > 500) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Por favor ingresa un peso válido (ej. 70.5)'), backgroundColor: Colors.redAccent),
+                          SnackBar(content: Text(l10n.invalidWeightError), backgroundColor: Colors.redAccent),
                         );
                         return;
                       }
@@ -2233,7 +2233,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         if (!context.mounted) return;
                         setModalState(() => isSaving = false);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.redAccent),
+                          SnackBar(content: Text(l10n.saveErrorMsg(e.toString())), backgroundColor: Colors.redAccent),
                         );
                       }
                     },

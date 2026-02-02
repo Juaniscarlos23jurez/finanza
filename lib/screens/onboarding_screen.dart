@@ -44,78 +44,82 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final NutritionService _nutritionService = NutritionService();
   final AiService _aiService = AiService();
   
-  final List<Map<String, dynamic>> _steps = [
-    {
-      'title': '¿Cuál es tu objetivo principal?',
-      'subtitle': 'Personalizaremos tu IA basado en esto.',
-      'type': 'choice',
-      'options': [
-        {'label': 'Perder Peso', 'icon': Icons.trending_down, 'value': 'weight_loss'},
-        {'label': 'Ganar Músculo', 'icon': Icons.fitness_center, 'value': 'muscle_gain'},
-        {'label': 'Salud Mental', 'icon': Icons.psychology, 'value': 'mental_health'},
-        {'label': 'Comer Sano', 'icon': Icons.apple, 'value': 'general_health'},
-      ]
-    },
-    {
-      'title': '¿Cuál es tu género?',
-      'subtitle': 'Esto nos ayuda a ser más precisos.',
-      'type': 'gender',
-      'options': [
-        {'label': 'Hombre', 'icon': Icons.male, 'value': 'male'},
-        {'label': 'Mujer', 'icon': Icons.female, 'value': 'female'},
-      ]
-    },
-    {
-      'title': 'Tus Mediciones',
-      'subtitle': 'Esto nos permite calcular tu metabolismo basal.',
-      'type': 'physical',
-    },
-    {
-      'title': '¿Qué tan activo eres?',
-      'subtitle': 'Esto ayuda a calcular tus calorías.',
-      'type': 'choice',
-      'options': [
-        {'label': 'Sedentario', 'icon': Icons.chair, 'value': 'sedentary'},
-        {'label': 'Ligero', 'icon': Icons.directions_walk, 'value': 'light'},
-        {'label': 'Moderado', 'icon': Icons.directions_run, 'value': 'moderate'},
-        {'label': 'Muy Activo', 'icon': Icons.bolt, 'value': 'very_active'},
-      ]
-    },
-    {
-      'title': 'Restricciones Médicas',
-      'subtitle': '¿Algo que debamos evitar?',
-      'type': 'multi',
-      'options': [
-        {'label': 'Keto', 'icon': Icons.egg, 'value': 'keto'},
-        {'label': 'Vegano', 'icon': Icons.eco, 'value': 'vegan'},
-        {'label': 'Sin Gluten', 'icon': Icons.no_food, 'value': 'gluten_free'},
-        {'label': 'Sin Lactosa', 'icon': Icons.water_drop_outlined, 'value': 'lactose_free'},
-      ]
-    },
-    {
-      'title': 'Habilidad en Cocina',
-      'subtitle': '¿Cuánto tiempo quieres dedicar?',
-      'type': 'choice',
-      'options': [
-        {'label': 'Express (<15 min)', 'icon': Icons.timer, 'value': 'fast'},
-        {'label': 'Intermedio', 'icon': Icons.restaurant, 'value': 'medium'},
-        {'label': 'Chef (Me encanta)', 'icon': Icons.outdoor_grill, 'value': 'elaborate'},
-      ]
-    },
-    {
-      'title': 'Visualiza tu Meta',
-      'subtitle': 'Sube una foto y dinos qué quieres lograr. Nuestra IA te mostrará el camino.',
-      'type': 'motivation',
-    },
-    {
-      'title': '¡Todo listo!',
-      'subtitle': 'Tu IA nutricional está lista para empezar.',
-      'type': 'final',
-      'icon': Icons.auto_awesome_rounded,
-    }
-  ];
+  List<Map<String, dynamic>> get _steps {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      {
+        'title': l10n.onboardingGoalTitle,
+        'subtitle': l10n.onboardingGoalSubtitle,
+        'type': 'choice',
+        'options': [
+          {'label': l10n.onboardingGoalWeightLoss, 'icon': Icons.trending_down, 'value': 'weight_loss'},
+          {'label': l10n.onboardingGoalMuscleGain, 'icon': Icons.fitness_center, 'value': 'muscle_gain'},
+          {'label': l10n.onboardingGoalMentalHealth, 'icon': Icons.psychology, 'value': 'mental_health'},
+          {'label': l10n.onboardingGoalGeneralHealth, 'icon': Icons.apple, 'value': 'general_health'},
+        ]
+      },
+      {
+        'title': l10n.onboardingGenderTitle,
+        'subtitle': l10n.onboardingGenderSubtitle,
+        'type': 'gender',
+        'options': [
+          {'label': l10n.onboardingGenderMale, 'icon': Icons.male, 'value': 'male'},
+          {'label': l10n.onboardingGenderFemale, 'icon': Icons.female, 'value': 'female'},
+        ]
+      },
+      {
+        'title': l10n.onboardingPhysicalTitle,
+        'subtitle': l10n.onboardingPhysicalSubtitle,
+        'type': 'physical',
+      },
+      {
+        'title': l10n.onboardingActivityTitle,
+        'subtitle': l10n.onboardingActivitySubtitle,
+        'type': 'choice',
+        'options': [
+          {'label': l10n.onboardingActivitySedentary, 'icon': Icons.chair, 'value': 'sedentary'},
+          {'label': l10n.onboardingActivityLight, 'icon': Icons.directions_walk, 'value': 'light'},
+          {'label': l10n.onboardingActivityModerate, 'icon': Icons.directions_run, 'value': 'moderate'},
+          {'label': l10n.onboardingActivityVeryActive, 'icon': Icons.bolt, 'value': 'very_active'},
+        ]
+      },
+      {
+        'title': l10n.onboardingRestrictionsTitle,
+        'subtitle': l10n.onboardingRestrictionsSubtitle,
+        'type': 'multi',
+        'options': [
+          {'label': l10n.onboardingRestrictionKeto, 'icon': Icons.egg, 'value': 'keto'},
+          {'label': l10n.onboardingRestrictionVegan, 'icon': Icons.eco, 'value': 'vegan'},
+          {'label': l10n.onboardingRestrictionGlutenFree, 'icon': Icons.no_food, 'value': 'gluten_free'},
+          {'label': l10n.onboardingRestrictionLactoseFree, 'icon': Icons.water_drop_outlined, 'value': 'lactose_free'},
+        ]
+      },
+      {
+        'title': l10n.onboardingCookingTitle,
+        'subtitle': l10n.onboardingCookingSubtitle,
+        'type': 'choice',
+        'options': [
+          {'label': l10n.onboardingCookingFast, 'icon': Icons.timer, 'value': 'fast'},
+          {'label': l10n.onboardingCookingMedium, 'icon': Icons.restaurant, 'value': 'medium'},
+          {'label': l10n.onboardingCookingElaborate, 'icon': Icons.outdoor_grill, 'value': 'elaborate'},
+        ]
+      },
+      {
+        'title': l10n.onboardingMotivationTitle,
+        'subtitle': l10n.onboardingMotivationSubtitle,
+        'type': 'motivation',
+      },
+      {
+        'title': l10n.onboardingFinalTitle,
+        'subtitle': l10n.onboardingFinalSubtitle,
+        'type': 'final',
+        'icon': Icons.auto_awesome_rounded,
+      }
+    ];
+  }
 
   Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -133,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Tip: Si la foto falla, intenta usar una imagen (JPG/PNG) que tengas en tu carpeta de Descargas o Escritorio.'),
+            content: Text(l10n.onboardingUploadTip),
             backgroundColor: Colors.orangeAccent,
             duration: const Duration(seconds: 6),
             action: SnackBarAction(label: 'OK', textColor: Colors.white, onPressed: () {}),
@@ -144,6 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _pasteImage() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final bytes = await Pasteboard.image;
       if (bytes != null) {
@@ -157,13 +162,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Imagen pegada con éxito')),
+            SnackBar(content: Text(l10n.onboardingImagePasted)),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No hay ninguna imagen en el portapapeles')),
+            SnackBar(content: Text(l10n.onboardingNoImageClipboard)),
           );
         }
       }
@@ -173,70 +178,73 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   List<String> _getSmartPrompts() {
+    final l10n = AppLocalizations.of(context)!;
     final prompts = <String>[];
     final isFemale = _gender == 'female';
     
     if (_goal == 'weight_loss') {
       if (isFemale) {
         prompts.addAll([
-          'Escupida, tonificada y radiante',
-          'Verme ligera con abdomen plano',
-          'Esbelta con curvas definidas',
-          'Mi mejor versión "Fitness Chic"'
+          l10n.onboardingPromptWeightLossFemale1,
+          l10n.onboardingPromptWeightLossFemale2,
+          l10n.onboardingPromptWeightLossFemale3,
+          l10n.onboardingPromptWeightLossFemale4,
         ]);
       } else {
         prompts.addAll([
-          'Definición extrema y abdomen marcado',
-          'Atlético y sin grasa abdominal',
-          'Físico "Aesthetic" y ligero',
-          'Verme fuerte y recortado'
+          l10n.onboardingPromptWeightLossMale1,
+          l10n.onboardingPromptWeightLossMale2,
+          l10n.onboardingPromptWeightLossMale3,
+          l10n.onboardingPromptWeightLossMale4,
         ]);
       }
     } else if (_goal == 'muscle_gain') {
       if (isFemale) {
         prompts.addAll([
-          'Atleta Power y estilizada',
-          'Piernas y glúteos fuertes',
-          'Figura de "Bikini Fitness"',
-          'Verme poderosa y definida'
+          l10n.onboardingPromptMuscleGainFemale1,
+          l10n.onboardingPromptMuscleGainFemale2,
+          l10n.onboardingPromptMuscleGainFemale3,
+          l10n.onboardingPromptMuscleGainFemale4,
         ]);
       } else {
         prompts.addAll([
-          'Ganar volumen masivo y fuerza',
-          'Efecto V-Taper (Hombros anchos)',
-          'Físico de gladiador moderno',
-          'Músculos densos y estéticos'
+          l10n.onboardingPromptMuscleGainMale1,
+          l10n.onboardingPromptMuscleGainMale2,
+          l10n.onboardingPromptMuscleGainMale3,
+          l10n.onboardingPromptMuscleGainMale4,
         ]);
       }
     } else {
       prompts.addAll([
-        'Salud total y vitalidad',
-        'Brillo en la piel y postura ideal',
-        'Físico equilibrado y enérgico'
+        l10n.onboardingPromptHealth1,
+        l10n.onboardingPromptHealth2,
+        l10n.onboardingPromptHealth3,
       ]);
     }
 
     if (_restrictions.contains('vegan')) {
-      prompts.add('Físico "Plant-Powered" Pro');
+      prompts.add(l10n.onboardingPromptPlantPowered);
     }
     
     return prompts;
   }
 
   Future<void> _processMotivation() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_progressImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecciona una foto para continuar.')),
+        SnackBar(content: Text(l10n.onboardingSelectPhotoError)),
       );
       return;
     }
 
     if (_motivationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona o escribe tu meta visual.')),
+        SnackBar(content: Text(l10n.onboardingSelectGoalError)),
       );
       return;
     }
+
 
     setState(() {
       _isAnalyzing = true;
@@ -262,7 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       debugPrint('Onboarding: Requesting Combined Vision and Image (Saving Quota)...');
       final combinedResult = await _aiService.generateVisionAndImage(fullContextPrompt, bytes);
       
-      final vision = combinedResult?['description'] ?? '¡Te verás increíble alcanzando tu meta!';
+      final vision = combinedResult?['description'] ?? l10n.everythingSaved; // Fallback
       final imageBytes = combinedResult?['imageBytes'] as Uint8List?;
       
       // Upload original image to Firebase Storage
@@ -293,8 +301,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           debugPrint('Onboarding: FALLBACK - No se recibió imagen de la IA, usando la original.');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('La IA no pudo generar la imagen de transformación esta vez (Límite de cuota excedido). Mostrando descripción visual.'),
+              SnackBar(
+                content: Text(l10n.onboardingQuotaError),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -401,19 +409,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         minHeight: 6,
                       ),
                     ),
-                    if (_currentPage < _steps.length - 1) ...[
-                      const SizedBox(width: 16),
-                      TextButton(
-                        onPressed: _completeOnboarding,
-                        child: Text(
-                          'Saltar',
-                          style: GoogleFonts.manrope(
-                            color: AppTheme.secondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+              if (_currentPage < _steps.length - 1) ...[
+                const SizedBox(width: 16),
+                TextButton(
+                  onPressed: _completeOnboarding,
+                  child: Text(
+                    l10n.onboardingSkip,
+                    style: GoogleFonts.manrope(
+                      color: AppTheme.secondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
                   ],
                 ),
               ),
@@ -480,7 +488,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
-                child: Text('CONTINUAR', 
+                child: Text(l10n.onboardingContinue.toUpperCase(), 
                   style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white)),
               ),
             ),
@@ -495,7 +503,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
-                child: Text('EMPEZAR AHORA', 
+                child: Text(l10n.onboardingStartNow.toUpperCase(), 
                   style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white)),
               ),
             ),
@@ -508,13 +516,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPhysicalStep() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _buildInputField(
-                label: 'Edad',
+                label: l10n.onboardingAgeLabel,
                 controller: _ageController,
                 icon: Icons.cake_outlined,
                 keyboardType: TextInputType.number,
@@ -523,7 +532,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildInputField(
-                label: 'Peso (kg)',
+                label: l10n.onboardingWeightLabel,
                 controller: _weightController,
                 icon: Icons.monitor_weight_outlined,
                 keyboardType: TextInputType.number,
@@ -533,14 +542,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 16),
         _buildInputField(
-          label: 'Altura (cm)',
+          label: l10n.onboardingHeightLabel,
           controller: _heightController,
           icon: Icons.height,
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 16),
         _buildInputField(
-          label: 'Cintura (cm) - Opcional',
+          label: l10n.onboardingWaistLabel,
           controller: _waistController,
           icon: Icons.straighten,
           keyboardType: TextInputType.number,
@@ -555,7 +564,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            child: Text('CONTINUAR', 
+            child: Text(l10n.onboardingContinue.toUpperCase(), 
               style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white)),
           ),
         ),
@@ -621,6 +630,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildMotivationStep() {
+    final l10n = AppLocalizations.of(context)!;
     debugPrint('Onboarding: Building motivation step. Generated Image URL: $_generatedGoalImageUrl');
     if (_generatedGoalImageUrl != null) {
       return Column(
@@ -637,7 +647,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const Icon(Icons.remove_red_eye_outlined, color: AppTheme.accent, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'ESCANEANDO TRANSFORMACIÓN',
+                  l10n.onboardingScanningTransformation.toUpperCase(),
                   style: GoogleFonts.manrope(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
@@ -658,7 +668,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'ESTADO ACTUAL',
+                      l10n.onboardingCurrentState.toUpperCase(),
                       style: GoogleFonts.manrope(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -686,7 +696,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'ANÁLISIS IA',
+                      l10n.onboardingAiAnalysis.toUpperCase(),
                       style: GoogleFonts.manrope(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
@@ -817,7 +827,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const Icon(Icons.auto_awesome, color: Colors.cyanAccent, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'PROYECCIÓN DE ÉXITO',
+                      l10n.onboardingSuccessProjection.toUpperCase(),
                       style: GoogleFonts.manrope(
                         fontWeight: FontWeight.w900,
                         fontSize: 12,
@@ -835,7 +845,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    _aiVisionDescription ?? 'Calculando transformación óptima...',
+                    _aiVisionDescription ?? l10n.onboardingCalculating,
                     style: GoogleFonts.manrope(
                       color: AppTheme.primary,
                       fontSize: 15,
@@ -860,7 +870,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 elevation: 0,
               ),
               child: Text(
-                'ACEPTAR TRANSFORMACIÓN',
+                l10n.onboardingAcceptTransformation.toUpperCase(),
                 style: GoogleFonts.manrope(
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
@@ -903,7 +913,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       const Icon(Icons.add_a_photo_outlined, size: 48, color: AppTheme.accent),
                       const SizedBox(height: 12),
                       Text(
-                        'Toca para subir tu foto',
+                        l10n.onboardingTapUpload,
                         style: GoogleFonts.manrope(
                           color: AppTheme.secondary,
                           fontWeight: FontWeight.bold,
@@ -920,7 +930,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: OutlinedButton.icon(
                 onPressed: _pasteImage,
                 icon: const Icon(Icons.content_paste, size: 18),
-                label: const Text('PEGAR IMAGEN'),
+                label: Text(l10n.onboardingPasteImage.toUpperCase()),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: const BorderSide(color: AppTheme.accent),
@@ -933,7 +943,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Selecciona tu meta visual:',
+          l10n.onboardingSelectVisualGoal,
           style: GoogleFonts.manrope(
             fontSize: 14,
             fontWeight: FontWeight.bold,
@@ -980,7 +990,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _processMotivation(),
           decoration: InputDecoration(
-            hintText: 'O escribe tu propia meta detallada...',
+            hintText: l10n.onboardingOwnGoalHint,
             hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
             filled: true,
             fillColor: Colors.white,
@@ -1003,20 +1013,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
             child: _isAnalyzing
-                ? const Row(
+                ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                       ),
-                      SizedBox(width: 12),
-                      Text('LA IA ESTÁ ANALIZANDO...', style: TextStyle(color: Colors.white)),
+                      const SizedBox(width: 12),
+                      Text(l10n.onboardingAiAnalyzing.toUpperCase(), style: const TextStyle(color: Colors.white)),
                     ],
                   )
                 : Text(
-                    'GENERAR VISIÓN AI',
+                    l10n.onboardingGenerateVision.toUpperCase(),
                     style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white),
                   ),
           ),

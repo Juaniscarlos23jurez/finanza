@@ -139,7 +139,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileHeader() {
-    final name = _userData?['name'] ?? 'Usuario';
+    final l10n = AppLocalizations.of(context)!;
+    final name = _userData?['name'] ?? l10n.defaultUserName;
     final photoUrl = _userData?['photo_url'];
 
     return StreamBuilder<DatabaseEvent>(
@@ -161,11 +162,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         int xpToNextLevel = 500;
         double progress = ((xp - xpForCurrentLevel) / xpToNextLevel).clamp(0.0, 1.0);
 
-        String rankTitle = 'Novato';
-        if (level > 2) rankTitle = 'Aprendiz';
-        if (level > 5) rankTitle = 'Guerrero';
-        if (level > 10) rankTitle = 'Maestro';
-        if (level > 20) rankTitle = 'Leyenda';
+        String rankTitle = l10n.rankNovice;
+        if (level > 2) rankTitle = l10n.rankApprentice;
+        if (level > 5) rankTitle = l10n.rankWarrior;
+        if (level > 10) rankTitle = l10n.rankMaster;
+        if (level > 20) rankTitle = l10n.rankLegend;
 
         return Column(
           children: [
@@ -459,6 +460,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showPersonalInfoModal(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -469,15 +471,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Información Personal', style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+            Text(l10n.personalInfo, style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary)),
             const SizedBox(height: 24),
-            Text('Nombre: ${_userData?['name'] ?? 'N/A'}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-            Text('Email: ${_userData?['email'] ?? 'N/A'}', style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            Text('${l10n.nameLabelProfile}: ${_userData?['name'] ?? 'N/A'}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+            Text('${l10n.emailLabelProfile}: ${_userData?['email'] ?? 'N/A'}', style: GoogleFonts.manrope(color: AppTheme.secondary)),
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, minimumSize: const Size(double.infinity, 50)),
-              child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+              child: Text(l10n.closeBtn, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -486,22 +488,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showResetAIModal(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('¿Reiniciar Memoria?', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-        content: const Text('Se borrará el historial de chat y el plan actual.'),
+        title: Text(l10n.resetMemoryTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        content: Text(l10n.resetMemoryDesc),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancelLabel)),
           ElevatedButton(
             onPressed: () async {
               await _nutritionService.resetAIMemory();
               if (!context.mounted) return;
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Memoria reiniciada')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.memoryResetSuccess)));
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('Confirmar', style: TextStyle(color: Colors.white)),
+            child: Text(l10n.confirmBtn, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -509,6 +512,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showPrivacyInfo(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -516,9 +520,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Tus datos están seguros. No los vendemos y puedes borrarlos cuando quieras.', textAlign: TextAlign.center),
+            Text(l10n.privacyDesc, textAlign: TextAlign.center),
             const SizedBox(height: 24),
-            ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
+            ElevatedButton(onPressed: () => Navigator.pop(context), child: Text(l10n.closeBtn)),
           ],
         ),
       ),
@@ -526,8 +530,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showFeedbackModal(BuildContext context) {
+     final l10n = AppLocalizations.of(context)!;
      // Simplifying for space
-     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gracias por tu interés en darnos feedback!')));
+     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.feedbackThanks)));
   }
 
   void _showEmojiSelector(BuildContext context) {
@@ -551,7 +556,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Elige tu Animal',
+              l10n.chooseAnimalTitle,
               style: GoogleFonts.manrope(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
@@ -560,7 +565,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Este emoji aparecerá en el ranking',
+              l10n.emojiRankingHint,
               style: GoogleFonts.manrope(
                 fontSize: 14,
                 color: AppTheme.secondary,
@@ -589,7 +594,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Sync with ranking
                       final result = await _authService.getProfile();
                       if (result['success']) {
-                        final name = result['data']['name'] ?? 'Usuario';
+                        final name = result['data']['name'] ?? l10n.defaultUserName;
                         // Get current streak
                         final streakSnapshot = await _nutritionService.getStreak().first;
                         final streak = streakSnapshot.snapshot.value != null 
@@ -601,7 +606,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('¡Emoji actualizado a $emoji!')),
+                        SnackBar(content: Text(l10n.emojiUpdated(emoji))),
                       );
                     },
                     child: Container(
