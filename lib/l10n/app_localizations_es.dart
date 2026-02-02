@@ -239,6 +239,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get categoryLabel => 'Categoría';
 
   @override
+  String get paymentMethod => 'Detalles del Pago';
+
+  @override
   String get delete => 'Eliminar';
 
   @override
@@ -737,6 +740,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sourceName => 'Nombre de la fuente';
 
   @override
+  String get sourceNameHint => 'Sueldo, Freelance, etc.';
+
+  @override
   String get sourceAmount => 'Monto';
 
   @override
@@ -784,6 +790,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get debtName => 'Nombre de la deuda';
 
   @override
+  String get debtNameHint => 'Tarjeta de crédito, Préstamo, etc.';
+
+  @override
   String get debtAmount => 'Monto total';
 
   @override
@@ -803,6 +812,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get goalName => 'Nombre de la meta';
+
+  @override
+  String get goalNameHintOnboarding => 'Viaje, Carro, Emergencias...';
 
   @override
   String get goalTarget => 'Monto objetivo';

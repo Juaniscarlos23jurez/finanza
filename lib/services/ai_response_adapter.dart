@@ -26,6 +26,10 @@ class AiResponseAdapter {
     return NormalizedBalance.fromMap(Map<String, dynamic>.from(raw));
   }
 
+  static NormalizedDebtPayment adaptDebtPayment(Map raw) {
+    return NormalizedDebtPayment.fromMap(Map<String, dynamic>.from(raw));
+  }
+
   // --- Shared Helpers ---
 
   static String _safeString(Map data, List<String> keys, {String defaultVal = ''}) {
@@ -188,6 +192,23 @@ class NormalizedBalance {
       total: AiResponseAdapter._safeDouble(map, ['total', 'balance', 'saldo']),
       income: AiResponseAdapter._safeDouble(map, ['income', 'ingresos', 'ganancias']),
       expenses: AiResponseAdapter._safeDouble(map, ['expenses', 'gastos', 'salidas']),
+    );
+  }
+}
+
+class NormalizedDebtPayment {
+  final String debtName;
+  final double amount;
+
+  NormalizedDebtPayment({
+    required this.debtName,
+    required this.amount,
+  });
+
+  factory NormalizedDebtPayment.fromMap(Map<String, dynamic> map) {
+    return NormalizedDebtPayment(
+      debtName: AiResponseAdapter._safeString(map, ['debt_name', 'name', 'deuda'], defaultVal: 'Deuda'),
+      amount: AiResponseAdapter._safeDouble(map, ['amount', 'monto', 'pago', 'value']),
     );
   }
 }

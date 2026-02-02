@@ -34,6 +34,10 @@ class FinanceService {
   static final StreamController<void> _updateController = StreamController<void>.broadcast();
   Stream<void> get onDataUpdated => _updateController.stream;
 
+  void notifyListeners() {
+    _updateController.add(null);
+  }
+
   Future<Map<String, dynamic>> getFinanceData({
     String? type,
     String? startDate,

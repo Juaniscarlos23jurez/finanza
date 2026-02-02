@@ -554,6 +554,12 @@ abstract class AppLocalizations {
   /// **'Categoría'**
   String get categoryLabel;
 
+  /// No description provided for @paymentMethod.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalles del Pago'**
+  String get paymentMethod;
+
   /// No description provided for @delete.
   ///
   /// In es, this message translates to:
@@ -1460,6 +1466,12 @@ abstract class AppLocalizations {
   /// **'Nombre de la fuente'**
   String get sourceName;
 
+  /// No description provided for @sourceNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Sueldo, Freelance, etc.'**
+  String get sourceNameHint;
+
   /// No description provided for @sourceAmount.
   ///
   /// In es, this message translates to:
@@ -1550,6 +1562,12 @@ abstract class AppLocalizations {
   /// **'Nombre de la deuda'**
   String get debtName;
 
+  /// No description provided for @debtNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Tarjeta de crédito, Préstamo, etc.'**
+  String get debtNameHint;
+
   /// No description provided for @debtAmount.
   ///
   /// In es, this message translates to:
@@ -1591,6 +1609,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Nombre de la meta'**
   String get goalName;
+
+  /// No description provided for @goalNameHintOnboarding.
+  ///
+  /// In es, this message translates to:
+  /// **'Viaje, Carro, Emergencias...'**
+  String get goalNameHintOnboarding;
 
   /// No description provided for @goalTarget.
   ///

@@ -34,19 +34,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   bool _isStepValid() {
-    if (_currentStep == 0) {
+    if (_currentStep == 0) { // Sources
+      return _incomeSources.isNotEmpty;
+    } else if (_currentStep == 1) { // Debts
+      return _debts.isNotEmpty;
+    } else if (_currentStep == 2) { // Budget
       final text = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
       return text.isNotEmpty && double.tryParse(text) != null;
-    } else if (_currentStep == 1) {
-      return _incomeSources.isNotEmpty;
-    } else if (_currentStep == 2) {
-      return _debts.isNotEmpty;
     }
     return true;
   }
-
-  final NumberFormat _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-  final NumberFormat _simpleCurrencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
   String _formatAmount(double amount) {
     return NumberFormat('#,###.##').format(amount);
@@ -77,29 +74,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l10n = AppLocalizations.of(context)!;
     
     // Validations for mandatory steps
-    if (_currentStep == 0) {
-      final budgetStr = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
-      if (budgetStr.isEmpty || double.tryParse(budgetStr) == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.budgetRequired)));
-        return;
-      }
-    } else if (_currentStep == 1) {
+    if (_currentStep == 0) { // Sources
       if (_incomeSources.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.sourcesRequired)));
         return;
       }
-    } else if (_currentStep == 2) {
-      // Debts are now mandatory
+    } else if (_currentStep == 1) { // Debts
       if (_debts.isEmpty) {
-        // Option to skip if no debts? User said mandatory.
-        // Let's assume mandatory means at least acknowledge. 
-        // If they have no debts, they can add one with 0? 
-        // Actually usually mandatory means "you must fill this", 
-        // but if they don't have debts, we should allow skip.
-        // Let's check user's exact words: "cosas obligatorias es el presupuesto fuentes de ingreso y deudas"
-        // I will make it mandatory but maybe add a "No tengo deudas" option? 
-        // Simplified: if empty, show warning.
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Por favor agrega al menos una deuda o ingreso 0 si no tienes.")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Por favor agrega al menos una deuda o ingresa 0 si no tienes.")));
+        return;
+      }
+    } else if (_currentStep == 2) { // Budget
+      final budgetStr = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+      if (budgetStr.isEmpty || double.tryParse(budgetStr) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.budgetRequired)));
         return;
       }
     }
@@ -263,9 +251,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    _buildBudgetStep(l10n),
                     _buildSourcesStep(l10n),
                     _buildDebtStep(l10n),
+                    _buildBudgetStep(l10n),
                     _buildGoalStep(l10n),
                     _buildSummaryStep(l10n),
                   ],
@@ -286,31 +274,56 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildBudgetStep(AppLocalizations l10n) {
+    double totalIncome = _incomeSources.fold(0, (sum, item) {
+      double val = (item['amount'] as num).toDouble();
+      return sum + (item['frequency'] == 'Weekly' ? val * 4 : val);
+    });
+    double monthlyDebtPayments = _debts.fold(0, (sum, item) => sum + ((item['monthly_payment'] ?? 0) as num).toDouble());
+    double recommended = totalIncome - monthlyDebtPayments;
+
     return _buildStepLayout(
       title: l10n.stepBudgetTitle,
       subtitle: l10n.stepBudgetSubtitle,
       content: [
-        const SizedBox(height: 40),
-        Center(
-          child: Hero(
-            tag: 'budget_icon',
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            children: [
+               Text(
+                "Dinero disponible mensual",
+                style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, fontWeight: FontWeight.w600),
               ),
-              child: const Icon(Icons.account_balance_wallet_rounded, size: 80, color: AppTheme.primary),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                "\$${_formatAmount(recommended)}",
+                style: GoogleFonts.manrope(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Tus ingresos menos tus deudas.",
+                style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 48),
+        const SizedBox(height: 32),
         CustomTextField(
-          label: l10n.amount,
+          label: "¿Cuánto asignarás a tus gastos?",
           controller: _budgetController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [ThousandsSeparatorInputFormatter()],
-          hintText: l10n.stepBudgetHint,
+          hintText: "Ej. ${_formatAmount(recommended * 0.7)}",
+        ),
+        const SizedBox(height: 16),
+        Text(
+          "Este será tu límite mensual para gastos fuera de tus deudas.",
+          style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary, fontStyle: FontStyle.italic),
         ),
       ],
     );
@@ -334,7 +347,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        CustomTextField(label: l10n.sourceName, controller: _sourceNameController, hintText: "Sueldo, Freelance, etc."),
+        CustomTextField(label: l10n.sourceName, controller: _sourceNameController, hintText: l10n.sourceNameHint),
         const SizedBox(height: 16),
         Row(
           children: [
@@ -388,7 +401,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        CustomTextField(label: l10n.debtName, controller: _debtNameController, hintText: "Tarjeta de crédito, Préstamo, etc."),
+        CustomTextField(label: l10n.debtName, controller: _debtNameController, hintText: l10n.debtNameHint),
         const SizedBox(height: 16),
         Row(
           children: [
@@ -424,7 +437,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        CustomTextField(label: l10n.goalName, controller: _goalNameController, hintText: "Viaje, Carro, Emergencias..."),
+        CustomTextField(label: l10n.goalName, controller: _goalNameController, hintText: l10n.goalNameHintOnboarding),
         const SizedBox(height: 16),
         CustomTextField(label: l10n.goalTarget, controller: _goalTargetController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00"),
         const SizedBox(height: 16),
@@ -441,7 +454,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return sum + (item['frequency'] == 'Weekly' ? val * 4 : val);
     });
     double budget = double.tryParse(_budgetController.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
-    double totalDebt = _debts.fold(0, (sum, item) => sum + (item['amount'] as num).toDouble());
     double monthlyDebtPayments = _debts.fold(0, (sum, item) => sum + ((item['monthly_payment'] ?? 0) as num).toDouble());
     double netBalance = totalIncome - budget - monthlyDebtPayments;
 
@@ -666,19 +678,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(width: 16),
           Expanded(child: Text(label, style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w600))),
           Text(value, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryRow(String label, String value, Color valueColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: GoogleFonts.manrope(fontSize: 16)),
-          Text(value, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: valueColor)),
         ],
       ),
     );

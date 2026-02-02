@@ -16,6 +16,7 @@ import '../services/chat_service.dart';
 import '../services/ad_service.dart';
 import '../l10n/app_localizations.dart';
 import '../services/ai_response_adapter.dart';
+import '../services/auth_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -845,6 +846,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         return _buildPremiumAnalysisCard(data);
       case 'csv_export':
         return _buildCsvExportCard(data);
+      case 'pay_debt':
+        return _buildDebtPaymentCard(data);
       default:
         return const SizedBox.shrink();
     }
@@ -1205,30 +1208,60 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   void _showRewardedAd() {
     setState(() => _isSaving = true); // Loading state
-    AdService().loadRewardedAd(
+    
+    // El usuario reporta que es un "Intersticial Recompensado", por lo que usamos esa clase específicamente.
+    AdService().loadRewardedInterstitialAd(
       onAdLoaded: (ad) {
         setState(() => _isSaving = false);
+        
+        ad.fullScreenContentCallback = FullScreenContentCallback(
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            if (mounted) setState(() => _isSaving = false);
+          },
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+          },
+        );
+
         ad.show(
           onUserEarnedReward: (AdWithoutView ad, RewardItem rewardItem) {
-            // User watched the ad! Unlock the content.
-            _markAsHandled(); // This persists "unlocked" state to Firebase
-            // _markAsHandled call will update the widget via StreamBuilder update in parent or strict setState if local?
-            // Since we are inside a widget that might not rebuild from stream instantly without parent update, let's force local update too.
-            // But actually ChatMessageWidget receives 'message' as param. 
-            // We should optimistically update local state or rely on Firebase Stream.
-            // For immediate feedback let's assume parent stream updates automatically.
-            final l10n = AppLocalizations.of(context)!;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.contentUnlocked), backgroundColor: Colors.green),
-            );
+            // Usuario vio el anuncio! Desbloqueamos el contenido.
+            _markAsHandled(); // Esto persiste el estado "desbloqueado" en Firebase
+            
+            if (mounted) {
+              final l10n = AppLocalizations.of(context)!;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.contentUnlocked), backgroundColor: Colors.green),
+              );
+            }
           }
         );
       },
       onAdFailedToLoad: (error) {
-        final l10n = AppLocalizations.of(context)!;
-        setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.adLoadError(error.toString())), backgroundColor: Colors.red),
+        // Fallback: Intentar como RewardedAd estándar si falló como Intersticial (o viceversa)
+        AdService().loadRewardedAd(
+          onAdLoaded: (ad) {
+            setState(() => _isSaving = false);
+            ad.show(
+              onUserEarnedReward: (AdWithoutView ad, RewardItem rewardItem) {
+                _markAsHandled();
+                if (mounted) {
+                  final l10n = AppLocalizations.of(context)!;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.contentUnlocked), backgroundColor: Colors.green),
+                  );
+                }
+              }
+            );
+          },
+          onAdFailedToLoad: (error2) {
+            final l10n = AppLocalizations.of(context)!;
+            setState(() => _isSaving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.adLoadError(error.toString())), backgroundColor: Colors.red),
+            );
+          },
         );
       },
     );
@@ -1909,6 +1942,105 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         Text(value, style: GoogleFonts.manrope(color: color, fontSize: 16, fontWeight: FontWeight.bold)),
       ],
     );
+  }
+
+  Widget _buildDebtPaymentCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
+    final payment = AiResponseAdapter.adaptDebtPayment(data);
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.payment_rounded, color: Colors.blueAccent, size: 32),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.paymentMethod,
+            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "${payment.debtName}: \$${payment.amount.toStringAsFixed(2)}",
+            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveDebtPayment(payment),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: widget.message.isHandled ? Colors.green : AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: _isSaving 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text(
+                      widget.message.isHandled ? l10n.allSaved : l10n.save,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveDebtPayment(NormalizedDebtPayment payment) async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _isSaving = true);
+    
+    try {
+      // 1. Update debt balance
+      final AuthService authService = AuthService();
+      await authService.payDebt(payment.debtName, payment.amount);
+
+      // 2. Create transaction record
+      await _financeService.createRecord({
+        'description': "Pago: ${payment.debtName}",
+        'amount': payment.amount,
+        'type': 'expense',
+        'category': 'Deuda',
+        'date': DateTime.now().toIso8601String(),
+      });
+
+      await _markAsHandled();
+      _financeService.notifyListeners();
+
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Pago registrado exitosamente"), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorGeneric(e.toString()))),
+        );
+      }
+    }
   }
 }
 

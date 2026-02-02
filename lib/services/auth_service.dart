@@ -28,7 +28,7 @@ class AuthService {
           'idToken': idToken,
           'provider': provider,
           'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
-          'app_name': 'finanzas',
+          'app_name': 'Finanzas AI',
         },
       );
       
@@ -64,7 +64,9 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
-          'app_name': 'finanzas',
+          'app_name': 'Finanzas AI',
+          'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
+          'provider': 'email',
         },
       );
       
@@ -98,7 +100,9 @@ class AuthService {
           'name': name,
           'email': email,
           'password': password,
-          'app_name': 'finanzas',
+          'app_name': 'Finanzas AI',
+          'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
+          'provider': 'email',
         },
       );
       
@@ -328,7 +332,8 @@ class AuthService {
         data: {
           if (fcmToken != null) 'fcm_token': fcmToken,
           if (devicePlatform != null) 'device_platform': devicePlatform,
-          'app_name': 'finanzas',
+          if (devicePlatform == null) 'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
+          'app_name': 'Finanzas AI',
         },
         options: Options(
           headers: {
@@ -449,6 +454,25 @@ class AuthService {
     if (debtsJson == null) return [];
     final List<dynamic> decoded = json.decode(debtsJson);
     return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<void> payDebt(String debtName, double amount) async {
+    final List<Map<String, dynamic>> currentDebts = await getDebts();
+    bool found = false;
+
+    for (var debt in currentDebts) {
+      if (debt['name'] == debtName) {
+        double currentAmount = (double.tryParse(debt['amount'].toString()) ?? 0.0);
+        debt['amount'] = currentAmount - amount;
+        if (debt['amount'] < 0) debt['amount'] = 0.0;
+        found = true;
+        break;
+      }
+    }
+
+    if (found) {
+      await saveDebts(currentDebts);
+    }
   }
 
   String _handleError(dynamic e) {

@@ -515,10 +515,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(debt['name'] ?? '', style: GoogleFonts.manrope(fontSize: 14)),
-                    Text(
-                      '${_formatCurrency(double.tryParse(debt['amount'].toString()) ?? 0.0)} (${debt['interest'] ?? 0}%)',
-                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(debt['name'] ?? '', style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text(
+                            '${l10n.debtPayment}: ${_formatCurrency(double.tryParse(debt['monthly_payment'].toString()) ?? 0.0)} (${debt['interest'] ?? 0}%)',
+                            style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          _formatCurrency(double.tryParse(debt['amount'].toString()) ?? 0.0),
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.payment_rounded, size: 20, color: Colors.blueAccent),
+                          onPressed: () => _showPayDebtDialog(debt),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          tooltip: l10n.deposit, // Reusing existing l10n for "Abonar" or podobne
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -532,6 +556,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ... (Header and BalanceCard remain the same) ...
   // ... (Previous methods) ...
+
+  void _showPayDebtDialog(Map<String, dynamic> debt) {
+    final l10n = AppLocalizations.of(context)!;
+    final TextEditingController amountController = TextEditingController(
+      text: (double.tryParse(debt['monthly_payment'].toString()) ?? 0.0).toStringAsFixed(0)
+    );
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text("${l10n.depositToGoal}: ${debt['name']}", style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Registra el pago de este mes. Esto creará un gasto y descontará del saldo total de la deuda.",
+                style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.amount,
+                  hintText: "0.00",
+                  prefixText: "\$ ",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            ),
+            ElevatedButton(
+              onPressed: isSaving ? null : () async {
+                final double? amount = double.tryParse(amountController.text);
+                if (amount == null || amount <= 0) return;
+
+                setDialogState(() => isSaving = true);
+                try {
+                  // 1. Create transaction record
+                  await _financeService.createRecord({
+                    'description': "Pago: ${debt['name']}",
+                    'amount': amount,
+                    'type': 'expense',
+                    'category': 'Deuda',
+                    'date': DateTime.now().toIso8601String(),
+                  });
+
+                  // 2. Update debt balance
+                  await _authService.payDebt(debt['name'], amount);
+
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  _fetchFinanceData(); // Refresh everything
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Pago registrado exitosamente"), backgroundColor: Colors.green),
+                  );
+                } catch (e) {
+                  if (context.mounted) {
+                    setDialogState(() => isSaving = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: isSaving 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text(l10n.confirm, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildRecentTransactions() {
     if (_recentTransactions.isEmpty) {
