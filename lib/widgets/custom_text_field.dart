@@ -7,6 +7,9 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final String? hintText;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextField({
     super.key,
@@ -16,6 +19,9 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.hintText,
     this.inputFormatters,
+    this.textInputAction,
+    this.onSubmitted,
+    this.onChanged,
   });
 
   final List<TextInputFormatter>? inputFormatters;
@@ -51,6 +57,9 @@ class CustomTextField extends StatelessWidget {
             obscureText: obscureText,
             keyboardType: keyboardType,
             inputFormatters: inputFormatters,
+            textInputAction: textInputAction,
+            onSubmitted: onSubmitted,
+            onChanged: onChanged,
             style: const TextStyle(fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               border: InputBorder.none,

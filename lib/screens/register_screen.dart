@@ -216,6 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: AppLocalizations.of(context)!.name,
                 controller: _nameController,
                 hintText: 'John Doe',
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 24),
               CustomTextField(
@@ -223,6 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 hintText: 'john@example.com',
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 24),
               CustomTextField(
@@ -230,6 +232,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 obscureText: true,
                 hintText: '••••••••',
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _handleRegister(),
               ),
               const SizedBox(height: 40),
               CustomButton(

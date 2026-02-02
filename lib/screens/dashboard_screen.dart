@@ -660,6 +660,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) async {
+                  final budget = double.tryParse(controller.text);
+                  if (budget == null) return;
+                  setDialogState(() => isSaving = true);
+                  try {
+                    await _authService.saveBudget(budget);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    _fetchFinanceData();
+                  } catch (e) {
+                    setDialogState(() => isSaving = false);
+                  }
+                },
                 decoration: InputDecoration(
                   labelText: l10n.monthlyBudgetLabel,
                   prefixText: "\$ ",
@@ -814,23 +828,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               TextField(
                 controller: nameController, 
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(labelText: l10n.debtName, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: amountController, 
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(labelText: l10n.debtAmount, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), 
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: paymentController, 
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(labelText: l10n.debtMonthlyPayment, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), 
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: interestController, 
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) {
+                  if (nameController.text.isEmpty || amountController.text.isEmpty) return;
+                  setDialogState(() {
+                    tempDebts.add({
+                      'name': nameController.text,
+                      'amount': double.tryParse(amountController.text) ?? 0.0,
+                      'monthly_payment': double.tryParse(paymentController.text) ?? 0.0,
+                      'interest': double.tryParse(interestController.text) ?? 0.0,
+                    });
+                  });
+                  Navigator.pop(context);
+                },
                 decoration: InputDecoration(labelText: l10n.debtInterest, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), 
                 keyboardType: TextInputType.number,
               ),
@@ -919,6 +949,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextField(
                 controller: amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) async {
+                  final double? amount = double.tryParse(amountController.text);
+                  if (amount == null || amount <= 0) return;
+
+                  setDialogState(() => isSaving = true);
+                  try {
+                    await _financeService.createRecord({
+                      'description': "Pago: ${debt['name']}",
+                      'amount': amount,
+                      'type': 'expense',
+                      'category': 'Deuda',
+                      'date': DateTime.now().toIso8601String(),
+                    });
+
+                    await _authService.payDebt(debt['name'], amount);
+
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    _fetchFinanceData();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Pago registrado exitosamente"), backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    if (context.mounted) {
+                      setDialogState(() => isSaving = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+                      );
+                    }
+                  }
+                },
                 decoration: InputDecoration(
                   labelText: l10n.amount,
                   hintText: "0.00",
@@ -1465,6 +1527,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 24),
               TextField(
                 controller: titleController,
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.goalNameHint,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
@@ -1474,6 +1537,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: amountController,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) async {
+                  final double? amount = double.tryParse(amountController.text);
+                  if (titleController.text.isEmpty || amount == null) return;
+
+                  setDialogState(() => isSaving = true);
+                  
+                  try {
+                    await _financeService.createGoal({
+                      'title': titleController.text,
+                      'target_amount': amount,
+                      'current_amount': 0,
+                      'deadline': DateTime.now().add(const Duration(days: 90)).toIso8601String().split('T')[0],
+                    });
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    _fetchFinanceData(); // Refresh UI
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    setDialogState(() => isSaving = false);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString()))));
+                  }
+                },
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.targetAmountHint,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),

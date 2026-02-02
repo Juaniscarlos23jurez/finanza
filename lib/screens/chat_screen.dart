@@ -637,6 +637,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     const SizedBox(height: 16),
                     TextField(
                       controller: descController,
+                      textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: l10n.description,
                         labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
@@ -647,6 +648,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: amountController,
+                      textInputAction: TextInputAction.next,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         labelText: l10n.amountLabel,
@@ -658,6 +660,17 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: categoryController,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) {
+                        final newMap = Map<String, dynamic>.from(_localData ?? {});
+                        newMap['description'] = descController.text;
+                        newMap['amount'] = double.tryParse(amountController.text) ?? 0.0;
+                        newMap['category'] = categoryController.text;
+                        newMap['is_expense'] = isExpense;
+                        
+                        _updateLocalData(newMap);
+                        Navigator.pop(context);
+                      },
                       decoration: InputDecoration(
                         labelText: l10n.categoryLabel,
                         labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),

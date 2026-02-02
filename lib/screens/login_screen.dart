@@ -189,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 hintText: 'john@example.com',
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 24),
               CustomTextField(
@@ -196,6 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passwordController,
                 obscureText: true,
                 hintText: '••••••••',
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _handleLogin(),
               ),
               const SizedBox(height: 40),
               CustomButton(

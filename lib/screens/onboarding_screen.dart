@@ -311,6 +311,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [ThousandsSeparatorInputFormatter()],
           hintText: l10n.stepBudgetHint(_formatAmount(recommended * 0.7)),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _nextStep(),
         ),
         const SizedBox(height: 16),
         Text(
@@ -339,11 +341,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        CustomTextField(label: l10n.sourceName, controller: _sourceNameController, hintText: l10n.sourceNameHint),
+        CustomTextField(
+          label: l10n.sourceName,
+          controller: _sourceNameController,
+          hintText: l10n.sourceNameHint,
+          textInputAction: TextInputAction.next,
+        ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(flex: 2, child: CustomTextField(label: l10n.amount, controller: _sourceAmountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00")),
+            Expanded(
+              flex: 2,
+              child: CustomTextField(
+                label: l10n.amount,
+                controller: _sourceAmountController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
+                hintText: "0.00",
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _addIncomeSource(),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               flex: 3,
@@ -371,7 +389,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         const SizedBox(height: 16),
         CustomButton(text: l10n.addSource, onPressed: _addIncomeSource, isOutlined: true),
         const SizedBox(height: 16),
-        Expanded(child: _buildItemList(_incomeSources, (i) => setState(() => _incomeSources.removeAt(i)))),
+        _buildItemList(_incomeSources, (i) => setState(() => _incomeSources.removeAt(i))),
       ],
     );
   }
@@ -393,21 +411,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        CustomTextField(label: l10n.debtName, controller: _debtNameController, hintText: l10n.debtNameHint),
+        CustomTextField(
+          label: l10n.debtName,
+          controller: _debtNameController,
+          hintText: l10n.debtNameHint,
+          textInputAction: TextInputAction.next,
+        ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: CustomTextField(label: l10n.debtAmount, controller: _debtAmountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00")),
+            Expanded(
+              child: CustomTextField(
+                label: l10n.debtAmount,
+                controller: _debtAmountController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
+                hintText: "0.00",
+                textInputAction: TextInputAction.next,
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: CustomTextField(label: l10n.debtPayment, controller: _debtPaymentController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: l10n.debtPaymentHint)),
+            Expanded(
+              child: CustomTextField(
+                label: l10n.debtPayment,
+                controller: _debtPaymentController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
+                hintText: l10n.debtPaymentHint,
+                textInputAction: TextInputAction.next,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
-        CustomTextField(label: l10n.debtInterest, controller: _debtInterestController, keyboardType: const TextInputType.numberWithOptions(decimal: true), hintText: "0%"),
+        CustomTextField(
+          label: l10n.debtInterest,
+          controller: _debtInterestController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          hintText: "0%",
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _addDebt(),
+        ),
         const SizedBox(height: 16),
         CustomButton(text: l10n.addDebt, onPressed: _addDebt, isOutlined: true),
         const SizedBox(height: 16),
-        Expanded(child: _buildItemList(_debts, (i) => setState(() => _debts.removeAt(i)))),
+        _buildItemList(_debts, (i) => setState(() => _debts.removeAt(i))),
       ],
     );
   }
@@ -429,13 +477,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        CustomTextField(label: l10n.goalName, controller: _goalNameController, hintText: l10n.goalNameHintOnboarding),
+        CustomTextField(
+          label: l10n.goalName,
+          controller: _goalNameController,
+          hintText: l10n.goalNameHintOnboarding,
+          textInputAction: TextInputAction.next,
+        ),
         const SizedBox(height: 16),
-        CustomTextField(label: l10n.goalTarget, controller: _goalTargetController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [ThousandsSeparatorInputFormatter()], hintText: "0.00"),
+        CustomTextField(
+          label: l10n.goalTarget,
+          controller: _goalTargetController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [ThousandsSeparatorInputFormatter()],
+          hintText: "0.00",
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _addGoal(),
+        ),
         const SizedBox(height: 16),
         CustomButton(text: l10n.addGoal, onPressed: _addGoal, isOutlined: true),
         const SizedBox(height: 16),
-        Expanded(child: _buildItemList(_goals, (i) => setState(() => _goals.removeAt(i)), isGoal: true)),
+        _buildItemList(_goals, (i) => setState(() => _goals.removeAt(i)), isGoal: true),
       ],
     );
   }
@@ -607,20 +668,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildStepLayout({required String title, required String subtitle, required List<Widget> content}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 28)),
-        const SizedBox(height: 8),
-        Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.secondary)),
-        ...content,
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 28)),
+          const SizedBox(height: 8),
+          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.secondary)),
+          ...content,
+        ],
+      ),
     );
   }
 
   Widget _buildItemList(List<Map<String, dynamic>> items, Function(int) onDelete, {bool isGoal = false}) {
     final l10n = AppLocalizations.of(context)!;
+    if (items.isEmpty) return const SizedBox.shrink();
+    
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
