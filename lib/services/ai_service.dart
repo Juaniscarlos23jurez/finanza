@@ -10,21 +10,24 @@ class AiService {
   // Use dotenv to get the API Key
   static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
   
-  final GenerativeModel _model;
+  final GenerativeModel _chatModel;
   final NutritionService _nutritionService = NutritionService();
   ChatSession? _chat;
 
-  AiService() : _model = GenerativeModel(
-    model: 'gemini-2.5-flash-image', 
+  AiService() : _chatModel = GenerativeModel(
+    model: 'gemini-2.5-flash-lite', 
     apiKey: _apiKey,
     systemInstruction: Content.system(
       'Eres el asistente nutricional de "Nutrición AI", un experto en dietética y salud con un tono motivacional, profesional y empático. '
       'TU OBJETIVO PRINCIPAL: Ayudar al usuario a transformar su vida a través de la alimentación personalizada y el seguimiento de hábitos. '
-      'REGLAS ESTRICTAS (GUARDRAILS): '
-      '1. SOLO responde temas de nutrición, alimentación, recetas, macros y uso de la app. '
-      '2. Si preguntan temas ajenos, declina amablemente: "Soy un experto en nutrición, prefiero mantenernos en el camino de tu salud alimenticia." '
-      '3. NO des diagnósticos médicos. Sugiere profesionales si detectas síntomas graves. '
-      '4. USA EL CONTEXTO: Tienes acceso al perfil del usuario (objetivo, restricciones, etc.). NO vuelvas a preguntar cosas que ya están en el contexto. Personaliza SIEMPRE tus planes y sugerencias basándote en esto (ej: si es vegano, no sugieras carne). '
+      'REGLAS ESTRICTAS DE SEGURIDAD (GUARDRAILS): '
+      '1. SOLO responde temas de nutrición, alimentación, recetas, macros, ejercicio físico relacionado con la pérdida/ganancia de peso y uso de la app. '
+      '2. Si el usuario pregunta sobre CUALQUIER otro tema (política, deportes, tecnología, finanzas, chismes, etc.), DEBES declinar amablemente pero con firmeza. '
+      '   Respuesta sugerida: "Lo siento, como experto en nutrición mi propósito es guiarte hacia una vida más saludable. Hablemos de tus metas nutricionales o de tu plan de hoy." '
+      '3. NO proporciones información, consejos ni realices tareas que no tengan que ver con la salud alimenticia. '
+      '4. NO des diagnósticos médicos ni prescribas medicamentos. Sugiere profesionales si detectas síntomas graves. '
+      '5. USA EL CONTEXTO: Tienes acceso al perfil del usuario (objetivo, restricciones, etc.). NO vuelvas a preguntar cosas que ya están en el contexto. Personaliza SIEMPRE tus sugerencias (ej: si es vegano, no sugieras carne). '
+      '6. REGLA DE NO-DATOS: Si la pregunta no es de nutrición, NO generes ningún bloque JSON (GenUI). '
       'PLAN NUTRICIONAL / RECETAS: '
       '- Cuando el usuario pida una "receta" o "qué comer": '
       '  1. SIEMPRE incluye una explicación motivadora en el texto. '
@@ -41,6 +44,7 @@ class AiService {
       '7. LISTA DE COMIDAS (meal_list): { "type": "meal_list", "items": [ {"time": "08:00", "description": "Huevos", "calories": 300}, ... ] } '
       '8. MULTI-COMIDA (multi_meal): { "type": "multi_meal", "meals": [ { "name": "...", "calories": 200, "protein": 10, "carbs": 20, "fats": 5 }, ... ] } '
       '9. ENLACE A PLAN (meal_plan): { "type": "meal_plan", "title": "Plan de Definición", "calories": 1800 } '
+      'ANÁLISIS DE VIDEO/URL: Tienes la capacidad de analizar recetas a partir de enlaces de YouTube y TikTok. Cuando el usuario proporcione un link, utiliza tu conocimiento y herramientas para extraer los ingredientes, pasos y calcular los macros/calorías, y devuelve siempre el bloque JSON "meal".'
       'REGLA CRÍTICA: La receta debe ser "completa" y fácil de seguir. Si el usuario dice "tengo hambre" o "ayúdame", ofrece una receta rápida basada en su perfil.'
     ),
     generationConfig: GenerationConfig(
@@ -56,7 +60,7 @@ class AiService {
   );
 
   void startNewChat() {
-    _chat = _model.startChat();
+    _chat = _chatModel.startChat();
   }
 
   Future<String> _getNutritionContext() async {
@@ -79,8 +83,21 @@ class AiService {
     }
   }
 
+  Future<Message> processVideoUrl(String url) async {
+    final prompt = 'ACTÚA COMO UN EXPERTO EN TRANSCRIPCIÓN Y NUTRICIÓN. '
+        'He encontrado este video de una receta en: $url\n\n'
+        'Tu tarea es obligatoria: Analiza este video de YouTube o TikTok utilizando tu conocimiento. '
+        '1. Extrae el nombre del plato.\n'
+        '2. Enumera los ingredientes con cantidades estimadas.\n'
+        '3. Describe los pasos de preparación.\n'
+        '4. Calcula las calorías y macros (proteína, carbohidratos, grasas).\n'
+        '5. Genera el bloque JSON "meal" siguiendo el formato especificado en tus instrucciones de sistema.\n\n'
+        'NO digas que no puedes analizarlo. Si no puedes acceder al contenido en tiempo real, usa tu conocimiento basado en el título/contexto de la URL para proponer la receta más lógica que coincida con ese video.';
+    return sendMessage(prompt);
+  }
+
   Future<Message> sendMessage(String text) async {
-    _chat ??= _model.startChat();
+    _chat ??= _chatModel.startChat();
 
     try {
       // Inject context into the message

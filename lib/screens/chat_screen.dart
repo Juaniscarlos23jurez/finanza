@@ -104,6 +104,13 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    if (text.length > 1000) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.messageTooLong(1000))),
+      );
+      return;
+    }
+
     _messageController.clear();
     setState(() => _isTyping = true);
     debugPrint('ChatScreen: Handling send for text: $text');

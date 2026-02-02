@@ -206,6 +206,8 @@ class AppLocalizations {
       'down_trend': 'Baja 📉',
       'up_trend': 'Sube 📈',
       'no_recent_data': 'Sin datos recientes',
+      'message_too_long': 'El texto es demasiado largo. Por favor, sé más breve (máximo {n} caracteres).',
+      'only_nutrition_allowed': 'Lo siento, solo puedo responder preguntas relacionadas con la nutrición y la salud.',
       'resulting_balance': 'Balance Resultante',
       'transactions_count': '{count} Transacciones',
       'income': 'Ingresos',
@@ -353,6 +355,11 @@ class AppLocalizations {
       'onboarding_prompt_health_2': 'Brillo en la piel y postura ideal',
       'onboarding_prompt_health_3': 'Físico equilibrado y enérgico',
       'onboarding_prompt_plant_powered': 'Físico "Plant-Powered" Pro',
+      'upload_plan_btn': 'Subir Plan / Video',
+      'import_from_video': 'Importar desde Video',
+      'video_url_hint': 'Pega el link de YouTube o TikTok',
+      'processing_video': 'Extrayendo receta del video...',
+      'invalid_url': 'URL no válida. Usa YouTube o TikTok.',
     },
     'en': {
       'profile': 'Profile',
@@ -551,6 +558,8 @@ class AppLocalizations {
       'down_trend': 'Down 📉',
       'up_trend': 'Up 📈',
       'no_recent_data': 'No recent data',
+      'message_too_long': 'Text is too long. Please be more concise (max {n} characters).',
+      'only_nutrition_allowed': 'Sorry, I can only answer questions related to nutrition and health.',
       'resulting_balance': 'Resulting Balance',
       'transactions_count': '{count} Transactions',
       'income': 'Income',
@@ -698,6 +707,11 @@ class AppLocalizations {
       'onboarding_prompt_health_2': 'Glowing skin and ideal posture',
       'onboarding_prompt_health_3': 'Balanced and energetic physique',
       'onboarding_prompt_plant_powered': '"Plant-Powered" Pro Physique',
+      'upload_plan_btn': 'Upload Plan / Video',
+      'import_from_video': 'Importar from Video',
+      'video_url_hint': 'Paste YouTube or TikTok link',
+      'processing_video': 'Extracting recipe from video...',
+      'invalid_url': 'Invalid URL. Use YouTube or TikTok.',
     },
     'de': {
       'profile': 'Profil',
@@ -804,6 +818,8 @@ class AppLocalizations {
       'milestone_calories_title': 'Kalorienbrenner',
       'milestone_calories_desc': 'Du hast heute mehr als 500 Kalorien verbrannt.',
       'locked': 'Gesperrt',
+      'message_too_long': 'Der Text ist zu lang. Bitte fassen Sie sich kürzer (maximal {n} Zeichen).',
+      'only_nutrition_allowed': 'Entschuldigung, ich kann nur Fragen zu Ernährung und Gesundheit beantworten.',
       'caloric_history_7d': 'Kalorienhistorie (7 Tage)',
       'my_goals': 'Meine Ziele',
       'macro_distribution': 'Makroverteilung',
@@ -1068,6 +1084,8 @@ class AppLocalizations {
       'milestone_calories_title': 'Brûleur de Calories',
       'milestone_calories_desc': 'Vous avez brûlé plus de 500 calories aujourd\'hui.',
       'locked': 'Verrouillé',
+      'message_too_long': 'Le texte est trop long. Veuillez être plus concis (maximum {n} caractères).',
+      'only_nutrition_allowed': 'Désolé, je ne peux répondre qu\'aux questions liées à la nutrition et à la santé.',
       'caloric_history_7d': 'Historique Calorie (7 jours)',
       'my_goals': 'Mes Objectifs',
       'macro_distribution': 'Distribution des Macros',
@@ -1332,6 +1350,8 @@ class AppLocalizations {
       'milestone_calories_title': 'カロリーバーナー',
       'milestone_calories_desc': '今日、500カロリー以上消費しました。',
       'locked': 'ロック中',
+      'message_too_long': 'テキストが長すぎます。簡潔に入力してください（最大{n}文字）。',
+      'only_nutrition_allowed': '申し訳ありませんが、栄養と健康に関する質問にのみお答えできます。',
       'caloric_history_7d': '摂取カロリー履歴（7日間）',
       'my_goals': 'マイ・ゴール',
       'macro_distribution': 'マクロ栄養素の分布',
@@ -1596,6 +1616,8 @@ class AppLocalizations {
       'milestone_calories_title': 'Bruciatore di Calorie',
       'milestone_calories_desc': 'Hai bruciato più di 500 calorie oggi.',
       'locked': 'Bloccato',
+      'message_too_long': 'Il testo è troppo lungo. Per favore, sii più conciso (massimo {n} caratteri).',
+      'only_nutrition_allowed': 'Spiacente, posso rispondere solo a domande relative alla nutrizione e alla salute.',
       'caloric_history_7d': 'Cronologia Calorica (7 giorni)',
       'my_goals': 'I Miei Obiettivi',
       'macro_distribution': 'Distribuzione Macro',
@@ -1860,6 +1882,8 @@ class AppLocalizations {
       'milestone_calories_title': 'Queimador de Calorias',
       'milestone_calories_desc': 'Você queimou mais de 500 calorias hoje.',
       'locked': 'Bloqueado',
+      'message_too_long': 'O texto é muito longo. Por favor, seja mais conciso (máximo de {n} caracteres).',
+      'only_nutrition_allowed': 'Desculpe, só posso responder a perguntas relacionadas à nutrição e saúde.',
       'caloric_history_7d': 'Histórico Calórico (7 dias)',
       'my_goals': 'Meus Objetivos',
       'macro_distribution': 'Distribuição de Macros',
@@ -2223,6 +2247,8 @@ class AppLocalizations {
   String get upTrend => get('up_trend');
   String get noRecentData => get('no_recent_data');
   String get resultingBalance => get('resulting_balance');
+  String get onlyNutritionAllowed => get('only_nutrition_allowed');
+  String messageTooLong(int n) => get('message_too_long').replaceAll('{n}', n.toString());
   String get income => get('income');
   String get expenses => get('expenses');
   String get everythingSaved => get('everything_saved');
@@ -2372,6 +2398,11 @@ class AppLocalizations {
   String get onboardingPromptHealth2 => get('onboarding_prompt_health_2');
   String get onboardingPromptHealth3 => get('onboarding_prompt_health_3');
   String get onboardingPromptPlantPowered => get('onboarding_prompt_plant_powered');
+  String get uploadPlanBtn => get('upload_plan_btn');
+  String get importFromVideo => get('import_from_video');
+  String get videoUrlHint => get('video_url_hint');
+  String get processingVideo => get('processing_video');
+  String get invalidUrl => get('invalid_url');
 
   String errorSaving(String error) => get('error_saving').replaceAll('{error}', error);
   String transactionsCount(int count) => get('transactions_count').replaceAll('{count}', count.toString());

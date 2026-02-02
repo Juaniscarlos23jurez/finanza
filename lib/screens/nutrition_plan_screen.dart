@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
 import '../services/nutrition_service.dart';
 import '../services/gamification_service.dart';
+import '../services/ai_service.dart';
 import '../l10n/app_localizations.dart';
 
 class NutritionPlanScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class NutritionPlanScreen extends StatefulWidget {
 
 class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   final NutritionService _nutritionService = NutritionService();
+  final AiService _aiService = AiService();
   
   // Need to listen to two streams: Plan (for targets) and Daily Meals (for execution)
   late Stream<DatabaseEvent> _planStream;
@@ -326,13 +328,32 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           const SizedBox(height: 24),
           _buildMacroProgressChart(context, macros, dailyMeals),
           const SizedBox(height: 32),
-          Text(
-            l10n.smartMenu,
-            style: GoogleFonts.manrope(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.primary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.smartMenu,
+                style: GoogleFonts.manrope(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _showAddRecipeFromVideoDialog,
+                icon: const Icon(Icons.video_collection_outlined, size: 18),
+                label: Text(
+                  l10n.uploadPlanBtn,
+                  style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.primary,
+                  backgroundColor: AppTheme.primary.withValues(alpha: 0.05),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           ...mealsToShow.asMap().entries.map((entry) {
@@ -988,6 +1009,185 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
         Text(value, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.primary)),
         Text(unit, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary.withValues(alpha: 0.5))),
       ],
+    );
+  }
+
+  Future<void> _showAddRecipeFromVideoDialog() async {
+    final TextEditingController urlController = TextEditingController();
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.importFromVideo,
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 20),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Nuestra IA analizará el video para extraer ingredientes, pasos y nutrición.',
+                style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary, height: 1.5),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: urlController,
+                autofocus: true,
+                enabled: !isLoading,
+                decoration: InputDecoration(
+                  hintText: 'YouTube o TikTok URL',
+                  labelText: l10n.videoUrlHint,
+                  labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
+                  hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.4)),
+                  prefixIcon: const Icon(Icons.link, color: AppTheme.primary),
+                  filled: true,
+                  fillColor: AppTheme.primary.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                  ),
+                ),
+              ),
+              if (isLoading) ...[
+                const SizedBox(height: 32),
+                Center(
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 3),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.processingVideo,
+                        style: GoogleFonts.manrope(
+                          fontSize: 14, 
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.of(context).pop(),
+              child: Text(
+                l10n.cancelLabel,
+                style: GoogleFonts.manrope(fontWeight: FontWeight.w700, color: AppTheme.secondary),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: isLoading ? null : () async {
+                final url = urlController.text.trim();
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
+
+                if (url.isEmpty || (!url.contains('youtube.com') && !url.contains('youtu.be') && !url.contains('tiktok.com'))) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.invalidUrl),
+                      backgroundColor: Colors.redAccent,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                  return;
+                }
+
+                setStateDialog(() => isLoading = true);
+
+                try {
+                  final message = await _aiService.processVideoUrl(url);
+                  
+                  if (!mounted) return;
+
+                  if (message.isGenUI && message.data?['type'] == 'meal') {
+                    final meal = Map<String, dynamic>.from(message.data!);
+                    await _nutritionService.addMealToToday(meal);
+                    
+                    if (!mounted) return;
+                    navigator.pop();
+                    
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.white),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text('¡Receta "${meal['name']}" añadida con éxito! 🥗')),
+                          ],
+                        ),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                    
+                    // Show the recipe modal for the newly added meal
+                    if (mounted) {
+                      _showRecipeModal(context, meal);
+                    }
+                  } else {
+                    throw Exception('La IA no pudo generar un formato de receta válido. Intenta con otro video.');
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.redAccent,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                } finally {
+                  if (mounted) setStateDialog(() => isLoading = false);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                l10n.confirmBtn,
+                style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

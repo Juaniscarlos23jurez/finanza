@@ -181,6 +181,19 @@ class NutritionService {
     await _database.ref('users/$userId/daily_meals/$newId').set(newMeal);
   }
 
+  Future<void> addMealToToday(Map<String, dynamic> meal) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    final String newId = 'meal_${DateTime.now().millisecondsSinceEpoch}';
+    final Map<String, dynamic> mealData = Map<String, dynamic>.from(meal);
+    mealData['id'] = newId;
+    mealData['completed'] = false;
+    mealData['timestamp'] = ServerValue.timestamp;
+
+    await _database.ref('users/$userId/daily_meals/$newId').set(mealData);
+  }
+
   Stream<DatabaseEvent> getPlan() async* {
     final userId = await _authService.getUserId();
     if (userId == null) yield* const Stream.empty();
