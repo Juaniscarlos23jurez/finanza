@@ -1728,7 +1728,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         onPressed: () => setBottomSheetState(() => showHistory = !showHistory),
                         icon: Icon(showHistory ? Icons.edit_note : Icons.history, size: 16),
                         label: Text(
-                          showHistory ? l10n.register_action : l10n.history_action,
+                          showHistory ? l10n.registerAction : l10n.historyAction,
                           style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                         style: TextButton.styleFrom(

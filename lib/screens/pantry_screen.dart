@@ -23,6 +23,10 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   bool _isLoading = true;
   int _totalItems = 0;
   int _checkedItems = 0;
+  
+  // Selection Mode
+  bool _isSelectionMode = false;
+  final Set<String> _selectedInventory = {};
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -85,6 +89,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
         'bought': bought,
         'category': category,
         'quantity': item['quantity'] ?? '1 unidad',
+        'is_recurring': item['is_recurring'] ?? false,
         'affiliate_url': item['affiliate_url'] ?? 'https://www.amazon.com/s?k=${Uri.encodeComponent(name)}',
       });
       
@@ -254,6 +259,19 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
 
   Widget _buildSpeedDial() {
     final l10n = AppLocalizations.of(context)!;
+    
+    if (_isSelectionMode && _tabController.index == 1) {
+       return FloatingActionButton.extended(
+          onPressed: _deleteSelectedInventory,
+          backgroundColor: Colors.red,
+          icon: const Icon(Icons.delete_sweep, color: Colors.white),
+          label: Text(
+            'Eliminar (${_selectedInventory.length})',
+            style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        );
+    }
+    
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -288,6 +306,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
     final TextEditingController nameController = TextEditingController();
     final TextEditingController quantityController = TextEditingController();
     String selectedCategory = 'cat_others';
+    bool isRecurring = false;
 
     showModalBottomSheet(
       context: context,
@@ -362,22 +381,44 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (!isInventory) ...[
-                  TextField(
-                    controller: quantityController,
-                    decoration: InputDecoration(
-                      labelText: l10n.quantityOptional,
-                      hintText: 'Ej: 500g, 2 units...',
-                      prefixIcon: const Icon(Icons.scale),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  if (!isInventory) ...[
+                    TextField(
+                      controller: quantityController,
+                      decoration: InputDecoration(
+                        labelText: l10n.quantityOptional,
+                        hintText: 'Ej: 500g, 2 units...',
+                        prefixIcon: const Icon(Icons.scale),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        filled: true,
+                        fillColor: AppTheme.background,
                       ),
-                      filled: true,
-                      fillColor: AppTheme.background,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        'Producto Recurrente',
+                        style: GoogleFonts.manrope(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Se mantendrá en tu lista para la próxima vez',
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          color: AppTheme.secondary,
+                        ),
+                      ),
+                      value: isRecurring,
+                      activeTrackColor: AppTheme.primary,
+                      onChanged: (val) => setModalState(() => isRecurring = val),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
                     l10n.categoryLabel,
                     style: GoogleFonts.manrope(
                       fontSize: 14,
@@ -452,7 +493,12 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                         final quantity = quantityController.text.trim().isEmpty 
                             ? '1 ${l10n.itemQuantityUnit}' 
                             : quantityController.text.trim();
-                        await _nutritionService.addShoppingItem(name, quantity, selectedCategory);
+                        await _nutritionService.addShoppingItem(
+                          name, 
+                          quantity, 
+                          selectedCategory,
+                          isRecurring: isRecurring,
+                        );
                       }
 
                       if (!mounted) return;
@@ -616,12 +662,150 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
       return _buildEmptyState(context);
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      children: _categorizedIngredients.entries.map((entry) {
-        return _buildCategorySection(context, entry.key, entry.value);
-      }).toList(),
+    // Define category order
+    final List<String> categoryOrder = [
+      'cat_proteins', 
+      'cat_vegetables', 
+      'cat_fruits', 
+      'cat_grains', 
+      'cat_dairy', 
+      'cat_condiments',
+      'cat_others'
+    ];
+    
+    // Helper to process categories
+    List<Widget> sections = [];
+    
+    // 1. Process ordered categories
+    for (var category in categoryOrder) {
+      if (_categorizedIngredients.containsKey(category)) {
+        final rawItems = _categorizedIngredients[category]!;
+        // Filter out items already in inventory
+        final visibleItems = rawItems.where((item) {
+           final safeKey = NutritionService.sanitizeKey(item['name'].toString());
+           return !_inventory.containsKey(safeKey);
+        }).toList();
+        
+        if (visibleItems.isNotEmpty) {
+          sections.add(_buildCategorySection(context, category, visibleItems));
+        }
+      }
+    }
+    
+    // 2. Process any remaining categories not in the ordered list (custom ones?)
+    _categorizedIngredients.forEach((key, value) {
+      if (!categoryOrder.contains(key)) {
+        final visibleItems = value.where((item) {
+           final safeKey = NutritionService.sanitizeKey(item['name'].toString());
+           return !_inventory.containsKey(safeKey);
+        }).toList();
+        
+        if (visibleItems.isNotEmpty) {
+          sections.add(_buildCategorySection(context, key, visibleItems));
+        }
+      }
+    });
+
+    if (sections.isEmpty) {
+      return _buildEmptyState(context);
+    }
+
+    return Stack(
+      children: [
+        ListView(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+          children: sections,
+        ),
+        
+        // Show Finish Shopping button if there are bought items THAT ARE VISIBLE
+        // (If we hid them, we shouldn't count them? Wait, checking bought items.)
+        // We need to re-calc _checkedItems based on VISIBLE items effectively?
+        // Or does _checkedItems track global state? 
+        // Logic: You buy items you SEE. 
+        if (_checkedItems > 0)
+          Positioned(
+            bottom: 24,
+            left: 24,
+            right: 24,
+            child: ElevatedButton(
+              onPressed: _finishShopping,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                elevation: 4,
+                shadowColor: Colors.green.withValues(alpha: 0.4),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Finalizar Compra', // Removed count as it might be confusing if some are hidden
+                    style: GoogleFonts.manrope(
+                      fontSize: 16, 
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
+  }
+
+  Future<void> _finishShopping() async {
+    // Iterate over bought items
+    int addedCount = 0;
+    
+    // Create a flattened list of all items to find bought ones
+    final List<Map<String, dynamic>> allItems = [];
+    _categorizedIngredients.forEach((_, items) => allItems.addAll(items));
+    
+    final boughtItems = allItems.where((i) => i['bought'] == true).toList();
+    
+    if (boughtItems.isEmpty) return;
+
+    // Show confirmation or just do it? User wants convenience. Let's do it and show summary.
+    // Logic:
+    // 1. Add to inventory
+    // 2. If Recurring: Uncheck (bought=false)
+    // 3. If Not Recurring: Delete from shopping list
+
+    for (var item in boughtItems) {
+      final name = item['name'].toString();
+      final isRecurring = item['is_recurring'] == true;
+      final safeName = NutritionService.sanitizeKey(name);
+      
+      // 1. Add to inventory
+      await _nutritionService.addToInventory(name);
+      
+      // 2. Handle List Item
+      if (isRecurring) {
+        // Reset bought status
+        await FirebaseDatabase.instance
+            .ref('users/${await AuthService().getUserId()}/shopping_list/$safeName/bought')
+            .set(false);
+      } else {
+        // Delete
+        await FirebaseDatabase.instance
+            .ref('users/${await AuthService().getUserId()}/shopping_list/$safeName')
+            .remove();
+      }
+      addedCount++;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$addedCount productos movidos al inventario'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   Widget _buildCategorySection(BuildContext context, String category, List<Map<String, dynamic>> items) {
@@ -681,6 +865,7 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
   Widget _buildIngredientItem(Map<String, dynamic> item, Color categoryColor) {
     final l10n = AppLocalizations.of(context)!;
     final bool bought = item['bought'] ?? false;
+    final bool isRecurring = item['is_recurring'] ?? false;
     final String itemName = item['name'].toString();
     final bool inInventory = _inventory.containsKey(NutritionService.sanitizeKey(itemName));
 
@@ -803,6 +988,11 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
                 ],
               ),
             ),
+            if (isRecurring)
+               Padding(
+                 padding: const EdgeInsets.only(right: 8),
+                 child: Icon(Icons.repeat, color: AppTheme.primary.withValues(alpha: 0.5), size: 16),
+               ),
             if (inInventory)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -879,80 +1069,203 @@ class _PantryScreenState extends State<PantryScreen> with SingleTickerProviderSt
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      children: _inventory.entries.map((entry) {
-        final data = entry.value as Map<dynamic, dynamic>;
-        final String displayName = data['name'] ?? entry.key;
-        return _buildInventoryItem(displayName, data);
-      }).toList(),
-    );
-  }
-
-  Widget _buildInventoryItem(String name, dynamic data) {
-    final l10n = AppLocalizations.of(context)!;
-    final Map<String, dynamic> item = data is Map ? Map<String, dynamic>.from(data) : {'added_at': DateTime.now().millisecondsSinceEpoch};
-    final DateTime addedAt = DateTime.fromMillisecondsSinceEpoch(item['added_at'] ?? DateTime.now().millisecondsSinceEpoch);
-    final int daysAgo = DateTime.now().difference(addedAt).inDays;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
+    return Column(
+      children: [
+        if (_isSelectionMode)
           Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.check_circle, color: Colors.green.shade600, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+             color: Colors.red.withValues(alpha: 0.1),
+             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+             child: Row(
+               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+               children: [
+                 Text(
+                   '${_selectedInventory.length} seleccionados',
+                   style: GoogleFonts.manrope(
+                     fontWeight: FontWeight.bold,
+                     color: Colors.red,
+                   ),
+                 ),
+                 TextButton(
+                   onPressed: () {
+                     setState(() {
+                       _isSelectionMode = false;
+                       _selectedInventory.clear();
+                     });
+                   },
+                   child: Text('Cancelar', style: GoogleFonts.manrope(color: Colors.red)),
+                 ),
+               ],
+             ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  name,
-                  style: GoogleFonts.manrope(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: AppTheme.primary,
+                TextButton.icon(
+                  onPressed: () => setState(() => _isSelectionMode = true),
+                  icon: const Icon(Icons.checklist, size: 20),
+                  label: Text(
+                    'Seleccionar para borrar',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
                   ),
-                ),
-                Text(
-                  daysAgo == 0 ? l10n.addedToday : l10n.daysAgo(daysAgo),
-                  style: GoogleFonts.manrope(
-                    fontSize: 11,
-                    color: AppTheme.secondary.withValues(alpha: 0.7),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.secondary,
+                    backgroundColor: AppTheme.secondary.withValues(alpha: 0.05),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () => _removeFromInventory(name),
-            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.red.withValues(alpha: 0.1),
-              padding: const EdgeInsets.all(8),
-            ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 100),
+            children: _inventory.entries.map((entry) {
+              final data = entry.value as Map<dynamic, dynamic>;
+              final String displayName = data['name'] ?? entry.key;
+              final String safeKey = NutritionService.sanitizeKey(displayName);
+              return _buildInventoryItem(displayName, data, safeKey);
+            }).toList(),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInventoryItem(String name, dynamic data, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    final Map<String, dynamic> item = data is Map ? Map<String, dynamic>.from(data) : {'added_at': DateTime.now().millisecondsSinceEpoch};
+    final DateTime addedAt = DateTime.fromMillisecondsSinceEpoch(item['added_at'] ?? DateTime.now().millisecondsSinceEpoch);
+    final int daysAgo = DateTime.now().difference(addedAt).inDays;
+    
+    final bool isSelected = _selectedInventory.contains(key);
+
+    return InkWell(
+      onLongPress: () {
+        setState(() {
+          _isSelectionMode = true;
+          _selectedInventory.add(key);
+        });
+      },
+      onTap: _isSelectionMode ? () {
+        setState(() {
+          if (isSelected) {
+            _selectedInventory.remove(key);
+            if (_selectedInventory.isEmpty) _isSelectionMode = false;
+          } else {
+            _selectedInventory.add(key);
+          }
+        });
+      } : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.red.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: isSelected ? Border.all(color: Colors.red) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            if (_isSelectionMode)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(
+                  isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                  color: isSelected ? Colors.red : Colors.grey,
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.check_circle, color: Colors.green.shade600, size: 20),
+              ),
+            if (!_isSelectionMode) const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  Text(
+                    daysAgo == 0 ? l10n.addedToday : l10n.daysAgo(daysAgo),
+                    style: GoogleFonts.manrope(
+                      fontSize: 11,
+                      color: AppTheme.secondary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!_isSelectionMode)
+              IconButton(
+                onPressed: () => _removeFromInventory(name),
+                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.red.withValues(alpha: 0.1),
+                  padding: const EdgeInsets.all(8),
+                ),
+              ),
+          ],
+        ),
       ),
     );
+  }
+  
+  Future<void> _deleteSelectedInventory() async {
+     final int count = _selectedInventory.length;
+     
+     // Confirm?
+     for (var key in _selectedInventory) {
+       // We only have the key (sanitized name), or we might need the original name.
+       // NutritionService uses sanitizeKey(name) to store.
+       // Wait, removeFromInventory takes 'itemName' and sanitizes it again.
+       // Store logic assumes key IS the sanitized name.
+       // Let's call a method that deletes by key?
+       // NutritionService currently has: delete by name -> sanitizes name -> remove.
+       // If I have the sanitized key, I can't easily get the unsanitized name unless I store it.
+       // But wait, the key IS the sanitized name.
+       // So if I pass the key to something that expects a name to sanitize...
+       // If name 'A B', key 'A_B'.
+       // sanitize('A_B') -> 'A_B'.
+       // So passing the key as the name usually works IF sanitize is idempotent and simple (which it is, replaces speical chars).
+       await FirebaseDatabase.instance
+            .ref('users/${await AuthService().getUserId()}/inventory/$key')
+            .remove();
+     }
+
+     setState(() {
+       _selectedInventory.clear();
+       _isSelectionMode = false;
+     });
+
+     if (mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$count productos eliminados'),
+          backgroundColor: Colors.red,
+        ),
+      );
+     }
   }
 
   Widget _buildEmptyState(BuildContext context) {

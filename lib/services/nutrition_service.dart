@@ -165,6 +165,22 @@ class NutritionService {
     }
   }
 
+  Future<void> addExtraMeal(Map<String, dynamic> originalMeal) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    final String newId = 'extra_${DateTime.now().millisecondsSinceEpoch}';
+    
+    // Create a copy of the meal
+    final Map<String, dynamic> newMeal = Map<String, dynamic>.from(originalMeal);
+    newMeal['id'] = newId;
+    newMeal['completed'] = false; // Reset completion status
+    newMeal['name'] = '${newMeal['name']} (Extra)'; // Mark as extra/copy
+    newMeal['timestamp'] = ServerValue.timestamp;
+
+    await _database.ref('users/$userId/daily_meals/$newId').set(newMeal);
+  }
+
   Stream<DatabaseEvent> getPlan() async* {
     final userId = await _authService.getUserId();
     if (userId == null) yield* const Stream.empty();
@@ -390,7 +406,7 @@ class NutritionService {
     await _database.ref('users/$userId/inventory').remove();
   }
 
-  Future<void> addShoppingItem(String name, String quantity, String category) async {
+  Future<void> addShoppingItem(String name, String quantity, String category, {bool isRecurring = false}) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
@@ -401,6 +417,7 @@ class NutritionService {
       'quantity': quantity,
       'category': category,
       'bought': false,
+      'is_recurring': isRecurring, // New field
       'added_at': ServerValue.timestamp,
       'affiliate_url': 'https://www.amazon.com/s?k=${Uri.encodeComponent(name)}',
     });

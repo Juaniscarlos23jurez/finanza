@@ -821,74 +821,173 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
           ),
-          padding: const EdgeInsets.all(24),
-          child: ListView(
-            controller: controller,
+          child: Column(
             children: [
-              Center(
-                child: Container(
-                  width: 40, 
-                  height: 4, 
-                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                meal['name'] ?? l10n.recipe,
-                style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.local_fire_department_rounded, size: 16, color: Colors.orange),
-                  const SizedBox(width: 4),
-                  Text('${meal['calories'] ?? 0} kcal', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.secondary)),
-                  const SizedBox(width: 16),
-                  const Icon(Icons.timer_outlined, size: 16, color: Colors.blue),
-                  const SizedBox(width: 4),
-                  Text('15-20 min', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.secondary)), // Placeholder or data
-                ],
-              ),
-              const SizedBox(height: 32),
-              if (meal['recipe'] != null) ...[
-                Text(l10n.ingredients, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
-                const SizedBox(height: 12),
-                ...?meal['recipe']['ingredients']?.map<Widget>((ing) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.circle, size: 6, color: AppTheme.accent),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(ing.toString(), style: GoogleFonts.manrope(fontSize: 15, color: AppTheme.secondary))),
-                    ],
+               // Sticky drag handle
+               Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 40, 
+                    height: 4, 
+                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))
                   ),
-                )),
-                const SizedBox(height: 32),
-                Text(l10n.instructions, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
-                const SizedBox(height: 12),
-                ...?meal['recipe']['steps']?.asMap().entries.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                        child: Text('${entry.key + 1}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+               ),
+               Expanded(
+                 child: ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
+                  children: [
+                    Text(
+                      meal['name'] ?? l10n.recipe,
+                      style: GoogleFonts.manrope(fontSize: 28, fontWeight: FontWeight.w900, color: AppTheme.primary, height: 1.2),
+                    ),
+                    const SizedBox(height: 16),
+                    // Quick Stats Row
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.background,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(entry.value.toString(), style: GoogleFonts.manrope(fontSize: 15, color: AppTheme.secondary, height: 1.5))),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildRecipeStat(Icons.local_fire_department_rounded, '${meal['calories'] ?? 0}', 'kcal', Colors.orange),
+                          _buildRecipeStat(Icons.bolt, '${meal['protein'] ?? 0}g', 'Prot', Colors.red.shade400),
+                          _buildRecipeStat(Icons.grain, '${meal['carbs'] ?? 0}g', 'Carb', Colors.orange.shade400),
+                          _buildRecipeStat(Icons.water_drop, '${meal['fats'] ?? 0}g', 'Gras', Colors.amber.shade400),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    if (meal['recipe'] != null) ...[
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.shopping_basket_outlined, color: Colors.green),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(l10n.ingredients, style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          children: [
+                            ...?meal['recipe']['ingredients']?.map<Widget>((ing) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 6),
+                                    child: Icon(Icons.circle, size: 6, color: AppTheme.accent),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: Text(ing.toString(), style: GoogleFonts.manrope(fontSize: 15, color: AppTheme.secondary, fontWeight: FontWeight.w500))),
+                                ],
+                              ),
+                            )),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.menu_book_outlined, color: AppTheme.primary),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(l10n.instructions, style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ...?meal['recipe']['steps']?.asMap().entries.map((entry) => Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(color: AppTheme.secondary, borderRadius: BorderRadius.circular(8)),
+                              child: Text('${entry.key + 1}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(child: Text(entry.value.toString(), style: GoogleFonts.manrope(fontSize: 16, color: AppTheme.primary, height: 1.6))),
+                          ],
+                        ),
+                      )),
                     ],
-                  ),
-                )),
-              ],
-              const SizedBox(height: 32),
+                    const SizedBox(height: 32),
+                    
+                    // Buttons
+                    Row(
+                      children: [
+                         Expanded(
+                           child: ElevatedButton.icon(
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                final sm = ScaffoldMessenger.of(context);
+                                await _nutritionService.addExtraMeal(Map<String, dynamic>.from(meal));
+                                sm.showSnackBar(
+                                  SnackBar(
+                                    content: Text('Meal Added Again! 🍲'),
+                                    backgroundColor: Colors.green,
+                                    behavior: SnackBarBehavior.floating,
+                                  )
+                                );
+                              },
+                              icon: const Icon(Icons.control_point_duplicate_outlined, color: AppTheme.primary),
+                              label: Text('Repetir Comida', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                                foregroundColor: AppTheme.primary,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                           ),
+                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRecipeStat(IconData icon, String value, String unit, Color color) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(height: 8),
+        Text(value, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+        Text(unit, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary.withValues(alpha: 0.5))),
+      ],
     );
   }
 }
