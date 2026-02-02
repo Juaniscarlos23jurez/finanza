@@ -86,25 +86,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (!mounted) return;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            const Icon(Icons.people_alt_rounded, color: AppTheme.primary),
-            const SizedBox(width: 12),
-            Text(AppLocalizations.of(context)!.invitationTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-          ],
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        content: Column(
+        padding: const EdgeInsets.all(24),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.people_alt_rounded, color: AppTheme.primary, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  AppLocalizations.of(context)!.invitationTitle,
+                  style: GoogleFonts.manrope(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             RichText(
               text: TextSpan(
-                style: GoogleFonts.manrope(color: AppTheme.primary, fontSize: 16),
+                style: GoogleFonts.manrope(color: AppTheme.primary, fontSize: 16, height: 1.5),
                 children: [
                   TextSpan(text: AppLocalizations.of(context)!.invitationBody(fromName, goalName)),
                 ],
@@ -115,62 +147,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
               AppLocalizations.of(context)!.invitationQuestion,
               style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 14),
             ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () async {
+                      if (email != null) await _firebaseService.removeInvitation(email, key);
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.reject,
+                      style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        int? goalId;
+                        if (invitation['goalId'] is int) {
+                          goalId = invitation['goalId'];
+                        } else if (invitation['goalId'] is String) {
+                          goalId = int.tryParse(invitation['goalId']);
+                        }
+
+                        if (goalId != null) {
+                          await _financeService.joinGoal(goalId);
+                          if (email != null) await _firebaseService.removeInvitation(email, key);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(AppLocalizations.of(context)!.invitationAccepted), backgroundColor: Colors.green),
+                            );
+                            _fetchFinanceData();
+                          }
+                        } else {
+                          if (email != null) await _firebaseService.removeInvitation(email, key);
+                          if (context.mounted) Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.accept,
+                      style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              if (email != null) await _firebaseService.removeInvitation(email, key);
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: Text(AppLocalizations.of(context)!.reject, style: GoogleFonts.manrope(color: AppTheme.secondary)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                // Parse goalId safely
-                int? goalId;
-                if (invitation['goalId'] is int) {
-                  goalId = invitation['goalId'];
-                } else if (invitation['goalId'] is String) {
-                  goalId = int.tryParse(invitation['goalId']);
-                }
-
-                if (goalId != null) {
-                  // Call API to link user to goal
-                  await _financeService.joinGoal(goalId);
-                  
-                  // If successful, remove from Firebase
-                  if (email != null) await _firebaseService.removeInvitation(email, key);
-                  
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(AppLocalizations.of(context)!.invitationAccepted), backgroundColor: Colors.green),
-                    );
-                    _fetchFinanceData(); // Refresh to see new goal
-                  }
-                } else {
-                   debugPrint("Error: Invalid goalId in invitation: ${invitation['goalId']}");
-                   if (email != null) await _firebaseService.removeInvitation(email, key); // Remove invalid
-                   if (context.mounted) Navigator.pop(context);
-                }
-              } catch (e) {
-                debugPrint("Error accepting invitation: $e");
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(AppLocalizations.of(context)!.accept, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
   }
@@ -564,20 +609,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     bool isSaving = false;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: Text("${l10n.depositToGoal}: ${debt['name']}", style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-          content: Column(
+        builder: (context, setDialogState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 12,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                "${l10n.depositToGoal}: ${debt['name']}",
+                style: GoogleFonts.manrope(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 "Registra el pago de este mes. Esto creará un gasto y descontará del saldo total de la deuda.",
-                style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary),
+                style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               TextField(
                 controller: amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -586,58 +662,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   hintText: "0.00",
                   prefixText: "\$ ",
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  prefixIcon: const Icon(Icons.payment_rounded),
                 ),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                        l10n.cancel,
+                        style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isSaving ? null : () async {
+                        final double? amount = double.tryParse(amountController.text);
+                        if (amount == null || amount <= 0) return;
+
+                        setDialogState(() => isSaving = true);
+                        try {
+                          await _financeService.createRecord({
+                            'description': "Pago: ${debt['name']}",
+                            'amount': amount,
+                            'type': 'expense',
+                            'category': 'Deuda',
+                            'date': DateTime.now().toIso8601String(),
+                          });
+
+                          await _authService.payDebt(debt['name'], amount);
+
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          _fetchFinanceData();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Pago registrado exitosamente"), backgroundColor: Colors.green),
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            setDialogState(() => isSaving = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: isSaving 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(l10n.confirm, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
-            ),
-            ElevatedButton(
-              onPressed: isSaving ? null : () async {
-                final double? amount = double.tryParse(amountController.text);
-                if (amount == null || amount <= 0) return;
-
-                setDialogState(() => isSaving = true);
-                try {
-                  // 1. Create transaction record
-                  await _financeService.createRecord({
-                    'description': "Pago: ${debt['name']}",
-                    'amount': amount,
-                    'type': 'expense',
-                    'category': 'Deuda',
-                    'date': DateTime.now().toIso8601String(),
-                  });
-
-                  // 2. Update debt balance
-                  await _authService.payDebt(debt['name'], amount);
-
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                  _fetchFinanceData(); // Refresh everything
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Pago registrado exitosamente"), backgroundColor: Colors.green),
-                  );
-                } catch (e) {
-                  if (context.mounted) {
-                    setDialogState(() => isSaving = false);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: isSaving 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(l10n.confirm, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ],
         ),
       ),
     );
@@ -1009,59 +1101,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final amountController = TextEditingController();
     bool isSaving = false;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.newGoal, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-          content: Column(
+        builder: (context, setDialogState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 12,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                AppLocalizations.of(context)!.newGoal,
+                style: GoogleFonts.manrope(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const SizedBox(height: 24),
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.goalNameHint),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.goalNameHint,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  prefixIcon: const Icon(Icons.flag_rounded),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: amountController,
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.targetAmountHint, prefixText: '\$'),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.targetAmountHint,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  prefixIcon: const Icon(Icons.attach_money_rounded),
+                ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.cancel,
+                        style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isSaving ? null : () async {
+                        final double? amount = double.tryParse(amountController.text);
+                        if (titleController.text.isEmpty || amount == null) return;
+
+                        setDialogState(() => isSaving = true);
+                        
+                        try {
+                          await _financeService.createGoal({
+                            'title': titleController.text,
+                            'target_amount': amount,
+                            'current_amount': 0,
+                            'deadline': DateTime.now().add(const Duration(days: 90)).toIso8601String().split('T')[0],
+                          });
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          _fetchFinanceData(); // Refresh UI
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          setDialogState(() => isSaving = false);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString()))));
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: isSaving 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                        : Text(
+                            AppLocalizations.of(context)!.save,
+                            style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            ElevatedButton(
-              onPressed: isSaving ? null : () async {
-                final double? amount = double.tryParse(amountController.text);
-                if (titleController.text.isEmpty || amount == null) return;
-
-                setDialogState(() => isSaving = true);
-                
-                try {
-                  await _financeService.createGoal({
-                    'title': titleController.text,
-                    'target_amount': amount,
-                    'current_amount': 0,
-                    'deadline': DateTime.now().add(const Duration(days: 90)).toIso8601String().split('T')[0],
-                  });
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                  _fetchFinanceData(); // Refresh UI
-                } catch (e) {
-                  if (!context.mounted) return;
-                  setDialogState(() => isSaving = false);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString()))));
-                }
-              },
-              child: isSaving 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
-                : Text(AppLocalizations.of(context)!.save),
-            ),
-          ],
         ),
       ),
     );

@@ -57,6 +57,9 @@ class AiService {
       '10. EXPORTAR CSV (NUEVO): Usa esto si el usuario pide "exportar", "descargar CSV", "excel" o "guardar tabla". '
       'REGLA CRÍTICA: USA ÚNICAMENTE los datos reales de "MOVIMIENTOS RECIENTES" proporcionados en el contexto para generar el CSV. NUNCA inventes datos o uses ejemplos si hay movimientos disponibles. '
       'Formato: { "type": "csv_export", "filename": "movimientos.csv", "data": "fecha,descripcion,monto,tipo\\n2024-01-01,Sueldo,2000,ingreso\\n..." }'
+      '11. APORTAR A META (Cuando el usuario mencione ahorrar o abonar a una meta existente): '
+      '{ "type": "contribute_goal", "amount": 200, "goal_id": 1, "goal_title": "Nombre Meta" } '
+      'REGLA CRÍTICA: Usa "contribute_goal" SIEMPRE que el usuario quiera ahorrar para una meta que ya existe en el contexto. NO uses "transaction" genérico para esto, ya que causaría duplicados y no actualizaría el progreso de la meta.'
     ),
     generationConfig: GenerationConfig(
       temperature: 0.7,
@@ -91,7 +94,7 @@ class AiService {
       ).join(', ');
 
       final goalsString = goals.map((g) => 
-        "${g['title']}: \$${g['current_amount']}/\$${g['target_amount']}"
+        "${g['title']} (ID: ${g['id']}): \$${g['current_amount']}/\$${g['target_amount']}"
       ).join(', ');
 
       final debtsString = debts.map((d) => 

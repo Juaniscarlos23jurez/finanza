@@ -1236,22 +1236,62 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
     bool isSaving = false;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.editTransaction, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-          content: Column(
+        builder: (context, setDialogState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 12,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                AppLocalizations.of(context)!.editTransaction,
+                style: GoogleFonts.manrope(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const SizedBox(height: 24),
               TextField(
                 controller: descController,
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.description),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.description,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  prefixIcon: const Icon(Icons.description_outlined),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: amountController,
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.amount),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.amount,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  prefixIcon: const Icon(Icons.attach_money_rounded),
+                ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 16),
@@ -1286,60 +1326,92 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     });
                   }
                 },
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.date,
-                    border: const OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[400]!),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        DateFormat('dd/MM/yyyy').format(selectedDate),
-                        style: GoogleFonts.manrope(fontSize: 16),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today_rounded, size: 20, color: AppTheme.primary),
+                          const SizedBox(width: 12),
+                          Text(
+                            DateFormat('dd/MM/yyyy').format(selectedDate),
+                            style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                        ],
                       ),
-                      const Icon(Icons.calendar_today_rounded, size: 20, color: AppTheme.primary),
+                      Text(
+                        AppLocalizations.of(context)!.date,
+                        style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
+                      ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.cancel,
+                        style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isSaving ? null : () async {
+                        final double? amount = double.tryParse(amountController.text);
+                        if (descController.text.isEmpty || amount == null) return;
+
+                        setDialogState(() => isSaving = true);
+                        
+                        try {
+                          await _financeService.updateRecord(item['id'], {
+                            'description': descController.text,
+                            'amount': amount,
+                            'category': item['category'],
+                            'type': item['type'],
+                            'date': selectedDate.toIso8601String(),
+                          });
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          setDialogState(() => isSaving = false);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: isSaving 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                        : Text(
+                            AppLocalizations.of(context)!.save,
+                            style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            ElevatedButton(
-              onPressed: isSaving ? null : () async {
-                final double? amount = double.tryParse(amountController.text);
-                if (descController.text.isEmpty || amount == null) return;
-
-                setDialogState(() => isSaving = true);
-                
-                try {
-                  await _financeService.updateRecord(item['id'], {
-                    'description': descController.text,
-                    'amount': amount,
-                    'category': item['category'],
-                    'type': item['type'],
-                    'date': selectedDate.toIso8601String(),
-                  });
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                  // Refresh happens automatically via stream
-                } catch (e) {
-                  if (!context.mounted) return;
-                  setDialogState(() => isSaving = false);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
-                }
-              },
-              child: isSaving 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
-                : Text(AppLocalizations.of(context)!.save),
-            ),
-          ],
         ),
       ),
     );
@@ -1352,38 +1424,62 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final double amount = double.tryParse(item['amount'].toString()) ?? 0.0;
     final bool isIncome = item['type'] == 'income';
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.redAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-            ),
-            const SizedBox(width: 12),
-            Text(AppLocalizations.of(context)!.delete, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-          ],
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        content: Column(
+        padding: const EdgeInsets.all(24),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  AppLocalizations.of(context)!.delete,
+                  style: GoogleFonts.manrope(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             Text(
               AppLocalizations.of(context)!.deleteTransactionConfirm,
-              style: GoogleFonts.manrope(fontSize: 14),
+              style: GoogleFonts.manrope(fontSize: 16, color: AppTheme.secondary),
             ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppTheme.background,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
@@ -1393,13 +1489,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       children: [
                         Text(
                           description,
-                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         Text(
                           '${isIncome ? "+" : "-"}\$${amount.toStringAsFixed(2)}',
                           style: GoogleFonts.manrope(
                             color: isIncome ? Colors.green : Colors.redAccent,
                             fontWeight: FontWeight.w800,
+                            fontSize: 14,
                           ),
                         ),
                       ],
@@ -1408,41 +1505,59 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.cancel,
+                      style: GoogleFonts.manrope(color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      try {
+                        await _financeService.deleteRecord(item['id']);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppLocalizations.of(context)!.transactionDeleted),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(AppLocalizations.of(context)!.deleteError(e.toString()))),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.delete,
+                      style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context); // Close dialog
-              
-              try {
-                await _financeService.deleteRecord(item['id']);
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppLocalizations.of(context)!.transactionDeleted),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                // Refresh happens automatically via stream
-              } catch (e) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)!.deleteError(e.toString()))),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(AppLocalizations.of(context)!.delete, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
   }

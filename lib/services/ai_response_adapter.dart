@@ -41,10 +41,15 @@ class AiResponseAdapter {
     return defaultVal;
   }
 
-  static double _safeDouble(Map data, List<String> keys, {double defaultVal = 0.0}) {
+  static NormalizedGoalContribution adaptGoalContribution(Map<String, dynamic> data) {
+    return NormalizedGoalContribution.fromMap(data);
+  }
+
+  static double _safeDouble(dynamic map, List<String> keys, {double defaultVal = 0.0}) {
+    if (map is! Map) return defaultVal;
     for (final key in keys) {
-      if (data.containsKey(key) && data[key] != null) {
-        final val = data[key];
+      if (map.containsKey(key) && map[key] != null) {
+        final val = map[key];
         if (val is num) return val.toDouble();
         if (val is String) {
           // Remove currency symbols and cleaner parse
@@ -208,6 +213,26 @@ class NormalizedDebtPayment {
   factory NormalizedDebtPayment.fromMap(Map<String, dynamic> map) {
     return NormalizedDebtPayment(
       debtName: AiResponseAdapter._safeString(map, ['debt_name', 'name', 'deuda'], defaultVal: 'Deuda'),
+      amount: AiResponseAdapter._safeDouble(map, ['amount', 'monto', 'pago', 'value']),
+    );
+  }
+}
+
+class NormalizedGoalContribution {
+  final int? goalId;
+  final String goalTitle;
+  final double amount;
+
+  NormalizedGoalContribution({
+    this.goalId,
+    required this.goalTitle,
+    required this.amount,
+  });
+
+  factory NormalizedGoalContribution.fromMap(Map<String, dynamic> map) {
+    return NormalizedGoalContribution(
+      goalId: int.tryParse(AiResponseAdapter._safeString(map, ['goal_id', 'id'], defaultVal: '')),
+      goalTitle: AiResponseAdapter._safeString(map, ['goal_title', 'title', 'meta'], defaultVal: 'Meta'),
       amount: AiResponseAdapter._safeDouble(map, ['amount', 'monto', 'pago', 'value']),
     );
   }

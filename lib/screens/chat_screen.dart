@@ -848,6 +848,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         return _buildCsvExportCard(data);
       case 'pay_debt':
         return _buildDebtPaymentCard(data);
+      case 'contribute_goal':
+        return _buildGoalContributionCard(data);
       default:
         return const SizedBox.shrink();
     }
@@ -2004,6 +2006,99 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildGoalContributionCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
+    final contribution = AiResponseAdapter.adaptGoalContribution(data);
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orangeAccent.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.stars_rounded, color: Colors.orangeAccent, size: 32),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.addSaving,
+            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "${contribution.goalTitle}: \$${contribution.amount.toStringAsFixed(2)}",
+            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveGoalContribution(contribution),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: widget.message.isHandled ? Colors.green : Colors.orangeAccent,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: _isSaving 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text(
+                      widget.message.isHandled ? l10n.allSaved : l10n.save,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveGoalContribution(NormalizedGoalContribution contribution) async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _isSaving = true);
+    
+    try {
+      if (contribution.goalId == null) {
+        throw Exception("No se pudo identificar la meta. Por favor, especifica el nombre de la meta.");
+      }
+
+      // 1. Contribute to goal (This usually creates the financial record in the backend)
+      await _financeService.contributeToGoal(contribution.goalId!, contribution.amount);
+
+      await _markAsHandled();
+      _financeService.notifyListeners();
+
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Ahorro registrado exitosamente"), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorGeneric(e.toString()))),
+        );
+      }
+    }
   }
 
   Future<void> _saveDebtPayment(NormalizedDebtPayment payment) async {
