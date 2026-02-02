@@ -373,13 +373,24 @@
     "shareLinkAndCode": "Compartir Enlace y Código",
     "onboardingWelcome": "Bienvenido a Finanzas AI",
     "onboardingSubtitle": "Vamos a configurar tu perfil financiero en unos simples pasos.",
-    "stepBudgetTitle": "1. Tu Presupuesto",
+    "stepBudgetTitle": "3. Tu Presupuesto",
     "stepBudgetSubtitle": "¿Cuánto planeas gastar mensualmente en total?",
-    "stepBudgetHint": "Ej. 5000",
+    "stepBudgetHint": "Ej. {amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "Dinero disponible mensual",
+    "incomeMinusDebts": "Tus ingresos menos tus deudas.",
+    "howMuchToAssign": "¿Cuánto asignarás a tus gastos?",
+    "budgetLimitInfo": "Este será tu límite mensual para gastos fuera de tus deudas.",
     "stepSaleTitle": "2. Primera Venta",
     "stepSaleSubtitle": "Registra tu primera venta o ingreso del día.",
     "stepSaleHint": "Ej. Venta de producto",
-    "stepSourcesTitle": "2. Fuentes de Dinero",
+    "stepSourcesTitle": "1. Fuentes de Dinero",
     "stepSourcesSubtitle": "Agrega tus fuentes de ingresos regulares.",
     "addSource": "Agregar Fuente",
     "sourceName": "Nombre de la fuente",
@@ -395,8 +406,9 @@
     "budgetRequired": "Por favor ingresa un presupuesto válido",
     "saleRequired": "Por favor registra tu primera venta",
     "sourcesRequired": "Por favor agrega al menos una fuente de ingresos",
-    "stepDebtTitle": "3. Tus Deudas",
+    "stepDebtTitle": "2. Tus Deudas",
     "stepDebtSubtitle": "Registra tus deudas actuales para ayudarte a planear.",
+    "debtsRequired": "Por favor agrega al menos una deuda o ingresa 0 si no tienes.",
     "addDebt": "Agregar Deuda",
     "debtName": "Nombre de la deuda",
     "debtNameHint": "Tarjeta de crédito, Préstamo, etc.",
@@ -427,6 +439,17 @@
     "savingCapacityFormula": "Ingreso ({income}) - Gastos ({budget}) = {balance} libres para metas y emergencias.",
     "savingCapacityTitle": "Tu capacidad de ahorro mensual",
     "debtPayment": "Pago mensual",
+    "debtPaymentSummary": "{interest}% - Pagos: {amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "debtPaymentHint": "Ej. 500",
     "monthlyDebtCommitment": "Compromiso Mensual de Deuda",
     "realSavingCapacity": "Capacidad de Ahorro Real",

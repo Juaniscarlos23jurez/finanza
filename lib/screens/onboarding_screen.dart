@@ -81,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
     } else if (_currentStep == 1) { // Debts
       if (_debts.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Por favor agrega al menos una deuda o ingresa 0 si no tienes.")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.debtsRequired)));
         return;
       }
     } else if (_currentStep == 2) { // Budget
@@ -296,7 +296,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: Column(
             children: [
                Text(
-                "Dinero disponible mensual",
+                l10n.monthlyAvailableMoney,
                 style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -306,7 +306,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                "Tus ingresos menos tus deudas.",
+                l10n.incomeMinusDebts,
                 style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
               ),
             ],
@@ -314,15 +314,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 32),
         CustomTextField(
-          label: "¿Cuánto asignarás a tus gastos?",
+          label: l10n.howMuchToAssign,
           controller: _budgetController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [ThousandsSeparatorInputFormatter()],
-          hintText: "Ej. ${_formatAmount(recommended * 0.7)}",
+          hintText: l10n.stepBudgetHint(_formatAmount(recommended * 0.7)),
         ),
         const SizedBox(height: 16),
         Text(
-          "Este será tu límite mensual para gastos fuera de tus deudas.",
+          l10n.budgetLimitInfo,
           style: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary, fontStyle: FontStyle.italic),
         ),
       ],
@@ -627,6 +627,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildItemList(List<Map<String, dynamic>> items, Function(int) onDelete, {bool isGoal = false}) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -644,7 +645,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             subtitle: Text(isGoal 
                 ? "" 
                 : (item.containsKey('interest') 
-                    ? "${item['interest']}% - Pagos: \$${_formatAmount((item['monthly_payment'] ?? 0).toDouble())}" 
+                    ? l10n.debtPaymentSummary(
+                        item['interest'].toString(), 
+                        "\$${_formatAmount((item['monthly_payment'] ?? 0).toDouble())}"
+                      ) 
                     : (item['frequency'] ?? ""))),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

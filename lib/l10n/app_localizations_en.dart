@@ -717,7 +717,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'How much do you plan to spend monthly in total?';
 
   @override
-  String get stepBudgetHint => 'e.g. 5000';
+  String stepBudgetHint(String amount) {
+    return 'e.g. 5000';
+  }
+
+  @override
+  String get monthlyAvailableMoney => 'Dinero disponible mensual';
+
+  @override
+  String get incomeMinusDebts => 'Tus ingresos menos tus deudas.';
+
+  @override
+  String get howMuchToAssign => '¿Cuánto asignarás a tus gastos?';
+
+  @override
+  String get budgetLimitInfo =>
+      'Este será tu límite mensual para gastos fuera de tus deudas.';
 
   @override
   String get stepSaleTitle => '2. First Sale';
@@ -781,6 +796,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stepDebtSubtitle => 'Record your current debts to help us plan.';
+
+  @override
+  String get debtsRequired =>
+      'Por favor agrega al menos una deuda o ingresa 0 si no tienes.';
 
   @override
   String get addDebt => 'Add Debt';
@@ -875,6 +894,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get debtPayment => 'Monthly payment';
+
+  @override
+  String debtPaymentSummary(String interest, String amount) {
+    return '$interest% - Pagos: $amount';
+  }
 
   @override
   String get debtPaymentHint => 'e.g. 500';

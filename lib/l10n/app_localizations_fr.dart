@@ -716,14 +716,29 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vamos a configurar tu perfil financiero en unos simples pasos.';
 
   @override
-  String get stepBudgetTitle => '1. Tu Presupuesto';
+  String get stepBudgetTitle => '3. Tu Presupuesto';
 
   @override
   String get stepBudgetSubtitle =>
       '¿Cuánto planeas gastar mensualmente en total?';
 
   @override
-  String get stepBudgetHint => 'Ej. 5000';
+  String stepBudgetHint(String amount) {
+    return 'Ej. $amount';
+  }
+
+  @override
+  String get monthlyAvailableMoney => 'Dinero disponible mensual';
+
+  @override
+  String get incomeMinusDebts => 'Tus ingresos menos tus deudas.';
+
+  @override
+  String get howMuchToAssign => '¿Cuánto asignarás a tus gastos?';
+
+  @override
+  String get budgetLimitInfo =>
+      'Este será tu límite mensual para gastos fuera de tus deudas.';
 
   @override
   String get stepSaleTitle => '2. Primera Venta';
@@ -735,7 +750,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get stepSaleHint => 'Ej. Venta de producto';
 
   @override
-  String get stepSourcesTitle => '2. Fuentes de Dinero';
+  String get stepSourcesTitle => '1. Fuentes de Dinero';
 
   @override
   String get stepSourcesSubtitle => 'Agrega tus fuentes de ingresos regulares.';
@@ -784,11 +799,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Por favor agrega al menos una fuente de ingresos';
 
   @override
-  String get stepDebtTitle => '3. Tus Deudas';
+  String get stepDebtTitle => '2. Tus Deudas';
 
   @override
   String get stepDebtSubtitle =>
       'Registra tus deudas actuales para ayudarte a planear.';
+
+  @override
+  String get debtsRequired =>
+      'Por favor agrega al menos una deuda o ingresa 0 si no tienes.';
 
   @override
   String get addDebt => 'Agregar Deuda';
@@ -883,6 +902,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get debtPayment => 'Pago mensual';
+
+  @override
+  String debtPaymentSummary(String interest, String amount) {
+    return '$interest% - Pagos: $amount';
+  }
 
   @override
   String get debtPaymentHint => 'Ej. 500';

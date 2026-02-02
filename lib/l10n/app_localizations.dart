@@ -1409,7 +1409,7 @@ abstract class AppLocalizations {
   /// No description provided for @stepBudgetTitle.
   ///
   /// In es, this message translates to:
-  /// **'1. Tu Presupuesto'**
+  /// **'3. Tu Presupuesto'**
   String get stepBudgetTitle;
 
   /// No description provided for @stepBudgetSubtitle.
@@ -1421,8 +1421,32 @@ abstract class AppLocalizations {
   /// No description provided for @stepBudgetHint.
   ///
   /// In es, this message translates to:
-  /// **'Ej. 5000'**
-  String get stepBudgetHint;
+  /// **'Ej. {amount}'**
+  String stepBudgetHint(String amount);
+
+  /// No description provided for @monthlyAvailableMoney.
+  ///
+  /// In es, this message translates to:
+  /// **'Dinero disponible mensual'**
+  String get monthlyAvailableMoney;
+
+  /// No description provided for @incomeMinusDebts.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus ingresos menos tus deudas.'**
+  String get incomeMinusDebts;
+
+  /// No description provided for @howMuchToAssign.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cuánto asignarás a tus gastos?'**
+  String get howMuchToAssign;
+
+  /// No description provided for @budgetLimitInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Este será tu límite mensual para gastos fuera de tus deudas.'**
+  String get budgetLimitInfo;
 
   /// No description provided for @stepSaleTitle.
   ///
@@ -1445,7 +1469,7 @@ abstract class AppLocalizations {
   /// No description provided for @stepSourcesTitle.
   ///
   /// In es, this message translates to:
-  /// **'2. Fuentes de Dinero'**
+  /// **'1. Fuentes de Dinero'**
   String get stepSourcesTitle;
 
   /// No description provided for @stepSourcesSubtitle.
@@ -1541,7 +1565,7 @@ abstract class AppLocalizations {
   /// No description provided for @stepDebtTitle.
   ///
   /// In es, this message translates to:
-  /// **'3. Tus Deudas'**
+  /// **'2. Tus Deudas'**
   String get stepDebtTitle;
 
   /// No description provided for @stepDebtSubtitle.
@@ -1549,6 +1573,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Registra tus deudas actuales para ayudarte a planear.'**
   String get stepDebtSubtitle;
+
+  /// No description provided for @debtsRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor agrega al menos una deuda o ingresa 0 si no tienes.'**
+  String get debtsRequired;
 
   /// No description provided for @addDebt.
   ///
@@ -1729,6 +1759,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Pago mensual'**
   String get debtPayment;
+
+  /// No description provided for @debtPaymentSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'{interest}% - Pagos: {amount}'**
+  String debtPaymentSummary(String interest, String amount);
 
   /// No description provided for @debtPaymentHint.
   ///
