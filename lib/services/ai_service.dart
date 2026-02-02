@@ -148,40 +148,55 @@ class AiService {
           "parts": [
             {"text": prompt},
             {
-              "inline_data": {
-                "mime_type": "image/jpeg",
+              "inlineData": {
+                "mimeType": "image/jpeg",
                 "data": base64Image
               }
             }
           ]
         }
       ],
-      "generationConfig": {
+      "generationConfig": <String, dynamic>{
         "temperature": 0.7,
         "topK": 40,
         "topP": 0.95,
         "maxOutputTokens": 8192,
-      }
+      },
+      "safetySettings": [
+        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_CIVIC_INTEGRITY", "threshold": "BLOCK_NONE"}
+      ]
     };
 
     if (includeImageOutput) {
-      requestBody["generationConfig"]["response_modalities"] = ["TEXT", "IMAGE"];
+      requestBody["generationConfig"]["responseModalities"] = ["TEXT", "IMAGE"];
     }
 
     try {
-      debugPrint('AI_SERVICE: Sending REST request to Gemini...');
+      debugPrint('AI_SERVICE: Sending REST request to Gemini ($baseUrl)...');
+      debugPrint('AI_SERVICE: Prompt: ${prompt.substring(0, prompt.length > 100 ? 100 : prompt.length)}...');
+      
       final response = await dio.post(
         baseUrl,
         data: requestBody,
         options: dio_api.Options(headers: {'Content-Type': 'application/json'}),
       );
 
+      debugPrint('AI_SERVICE: REST Response Status: ${response.statusCode}');
+      debugPrint('AI_SERVICE: REST Response Data: ${jsonEncode(response.data)}');
       if (response.statusCode == 200) {
         return response.data;
       }
-      debugPrint('AI_SERVICE: REST Error - Status: ${response.statusCode}, Data: ${response.data}');
+      debugPrint('AI_SERVICE: REST Error Data: ${response.data}');
       return null;
     } catch (e) {
+      if (e is dio_api.DioException) {
+        debugPrint('AI_SERVICE: REST DioError - Status: ${e.response?.statusCode}');
+        debugPrint('AI_SERVICE: REST DioError - Data: ${e.response?.data}');
+      }
       debugPrint('AI_SERVICE: REST CRITICAL ERROR: $e');
       return null;
     }
@@ -232,23 +247,90 @@ class AiService {
     if (data != null && data['candidates'] != null) {
       final candidates = data['candidates'] as List;
       if (candidates.isNotEmpty) {
-        final content = candidates[0]['content'];
+        final candidate = candidates[0];
+        final finishReason = candidate['finishReason'];
+        debugPrint('AI_SERVICE: Candidate Finish Reason: $finishReason');
+        
+        if (candidate['safetyRatings'] != null) {
+           debugPrint('AI_SERVICE: Safety Ratings: ${jsonEncode(candidate['safetyRatings'])}');
+        }
+
+        final content = candidate['content'];
         if (content != null && content['parts'] != null) {
           final parts = content['parts'] as List;
           for (var part in parts) {
+            if (part['inlineData'] != null) {
+              final inlineData = part['inlineData'];
+              if (inlineData['data'] != null) {
+                debugPrint('AI_SERVICE: Image bytes found in REST response (inlineData)!');
+                return base64Decode(inlineData['data']);
+              }
+            }
+            // Fallback for different response versions
             if (part['inline_data'] != null) {
               final inlineData = part['inline_data'];
               if (inlineData['data'] != null) {
-                debugPrint('AI_SERVICE: Image bytes found in REST response!');
+                debugPrint('AI_SERVICE: Image bytes found in REST response (inline_data)!');
                 return base64Decode(inlineData['data']);
               }
+            }
+            // Some versions might return 'image' or 'blob' directly
+            if (part['image'] != null && part['image']['data'] != null) {
+              debugPrint('AI_SERVICE: Image bytes found in REST response (image.data)!');
+              return base64Decode(part['image']['data']);
             }
           }
         }
       }
     }
     
-    debugPrint('AI_SERVICE: No image found in REST response.');
+    debugPrint('AI_SERVICE: No image found in REST response candidates.');
+    return null;
+  }
+  Future<Map<String, dynamic>?> generateVisionAndImage(String textGoal, Uint8List imageBytes) async {
+    debugPrint('AI_SERVICE: Combining Vision and Image Generation in one request...');
+    
+    final prompt = '''
+      El usuario tiene este perfil y objetivo: $textGoal
+      
+      ACTÚA COMO UN EXPERTO:
+     Genera una foto fotorrealista de la persona en la imagen adjunta en su mejor versión física, manteniendo su identidad facial exacta.
+    ''';
+
+    final data = await _generateRestMultimodal(prompt, imageBytes, includeImageOutput: true);
+    
+    if (data != null && data['candidates'] != null) {
+      final candidates = data['candidates'] as List;
+      if (candidates.isNotEmpty) {
+        final candidate = candidates[0];
+        String? vision;
+        Uint8List? image;
+
+        final content = candidate['content'];
+        if (content != null && content['parts'] != null) {
+          final parts = content['parts'] as List;
+          for (var part in parts) {
+            if (part['text'] != null) {
+              vision = part['text'];
+            }
+            if (part['inlineData'] != null && part['inlineData']['data'] != null) {
+              image = base64Decode(part['inlineData']['data']);
+            } else if (part['inline_data'] != null && part['inline_data']['data'] != null) {
+              image = base64Decode(part['inline_data']['data']);
+            }
+          }
+        }
+        
+        if (vision != null || image != null) {
+          return {
+            'description': vision ?? '¡Te verás increíble alcanzando tu meta!',
+            'imageBytes': image,
+          };
+        }
+      }
+    }
+    
+    debugPrint('AI_SERVICE: No vision or image found in combined request.');
     return null;
   }
 }

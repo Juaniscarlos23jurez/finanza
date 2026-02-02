@@ -186,17 +186,112 @@ class NutritionService {
     yield* _database.ref('users/$userId/streak').onValue;
   }
 
-  Future<void> updateStreak(int increment) async {
+  Future<bool> updateStreak(int increment) async {
     final userId = await _authService.getUserId();
-    if (userId == null) return;
+    if (userId == null) return false;
 
     final ref = _database.ref('users/$userId/streak');
+    final dateRef = _database.ref('users/$userId/last_streak_date');
+    
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final dateSnapshot = await dateRef.get();
+    
+    if (dateSnapshot.exists && dateSnapshot.value.toString() == today && increment > 0) {
+      // Already updated streak today
+      return false;
+    }
+
     final snapshot = await ref.get();
     int currentStreak = 0;
     if (snapshot.exists) {
       currentStreak = int.tryParse(snapshot.value.toString()) ?? 0;
     }
-    await ref.set(currentStreak + increment);
+    
+    int newStreak = (increment > 0) ? currentStreak + increment : 0;
+    
+    await ref.set(newStreak);
+    if (increment > 0) {
+      await dateRef.set(today);
+    }
+    
+    // Sync with public ranking
+    final profile = await getUserProfile();
+    if (profile != null) {
+      await syncUserRanking(profile['name'] ?? 'Usuario', newStreak, emoji: profile['emoji']);
+    }
+    return true;
+  }
+
+  Future<Map<String, dynamic>> validateAndSyncGamification() async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return {};
+
+    final statsRef = _database.ref('users/$userId/stats');
+    final streakRef = _database.ref('users/$userId/streak');
+    final lastDateRef = _database.ref('users/$userId/last_streak_date');
+
+    final statsSnap = await statsRef.get();
+    final streakSnap = await streakRef.get();
+    final lastDateSnap = await lastDateRef.get();
+
+    if (!statsSnap.exists) {
+      await initializeGamificationStats();
+      return {};
+    }
+
+    final stats = Map<String, dynamic>.from(statsSnap.value as Map);
+    int lives = stats['lives'] ?? 5;
+    int streak = int.tryParse(streakSnap.value?.toString() ?? '0') ?? 0;
+    String lastDateStr = lastDateSnap.value?.toString() ?? '';
+
+    if (lastDateStr.isEmpty || streak == 0) return stats;
+
+    final DateTime lastDate = DateFormat('yyyy-MM-dd').parse(lastDateStr);
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    
+    final int daysDiff = today.difference(lastDate).inDays;
+
+    if (daysDiff > 1) {
+      // Missed days!
+      int missedDays = daysDiff - 1;
+      int livesToConsume = missedDays;
+      
+      if (lives >= livesToConsume) {
+        lives -= livesToConsume;
+        // Streak remains (we "saved" it with lives)
+      } else {
+        // Not enough lives to cover the gap
+        streak = 0;
+        lives = 0;
+      }
+
+      await statsRef.update({'lives': lives});
+      await streakRef.set(streak);
+      
+      // Update last_streak_date so we don't penalize again today
+      final yesterday = today.subtract(const Duration(days: 1));
+      await lastDateRef.set(DateFormat('yyyy-MM-dd').format(yesterday));
+      lastDateStr = DateFormat('yyyy-MM-dd').format(yesterday);
+    }
+
+    // --- Life Regeneration Logic ---
+    final int lastRegenTs = stats['last_regen'] ?? 0;
+    if (lives < 5 && lastRegenTs > 0) {
+      final lastRegen = DateTime.fromMillisecondsSinceEpoch(lastRegenTs);
+      final int hoursDiff = now.difference(lastRegen).inHours;
+      
+      if (hoursDiff >= 24) {
+        int livesToRegen = (hoursDiff / 24).floor();
+        lives = (lives + livesToRegen).clamp(0, 5);
+        await statsRef.update({
+          'lives': lives,
+          'last_regen': ServerValue.timestamp,
+        });
+      }
+    }
+
+    return {...stats, 'lives': lives, 'streak': streak, 'streak_lost': streak == 0 && streakSnap.value != null && int.parse(streakSnap.value.toString()) > 0};
   }
 
   Future<void> saveDailyTotal(double calories) async {
@@ -337,8 +432,21 @@ class NutritionService {
       ...goalData,
       'id': safeKey,
       'created_at': ServerValue.timestamp,
+      'last_update_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
       'status': 'active',
       'current_amount': goalData['current_amount'] ?? 0,
+      'is_daily': goalData['is_daily'] ?? false,
+    });
+  }
+
+  Future<void> resetDailyGoal(String goalId) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) return;
+
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    await _database.ref('users/$userId/goals/$goalId').update({
+      'current_amount': 0,
+      'last_update_date': today,
     });
   }
 
@@ -346,12 +454,30 @@ class NutritionService {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
-    final ref = _database.ref('users/$userId/goals/$goalId/current_amount');
+    final ref = _database.ref('users/$userId/goals/$goalId');
     final snapshot = await ref.get();
-    double current = double.tryParse(snapshot.value.toString()) ?? 0.0;
+    if (!snapshot.exists) return;
+
+    final data = Map<String, dynamic>.from(snapshot.value as Map);
+    double current = double.tryParse(data['current_amount']?.toString() ?? '0') ?? 0.0;
+    final String goalType = data['goal_type']?.toString() ?? '';
     
+    // Check if it's a daily goal and needs reset before updating
+    // Backward compatibility: exercise and distance are daily by default
+    final bool isDaily = data['is_daily'] == true || 
+                       (data['is_daily'] == null && (goalType == 'exercise_minutes' || goalType == 'distance_km'));
+
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    if (isDaily && data['last_update_date'] != today) {
+      current = 0;
+    }
+
     double newAmount = isWithdrawal ? current - amount : current + amount;
-    await ref.set(newAmount);
+    
+    await ref.update({
+      'current_amount': newAmount,
+      'last_update_date': today,
+    });
   }
 
   Future<void> deleteGoal(String goalId) async {

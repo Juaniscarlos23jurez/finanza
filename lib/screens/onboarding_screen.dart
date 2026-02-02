@@ -39,7 +39,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String? _generatedGoalImageUrl;
   Uint8List? _generatedGoalImageBytes;
   String? _aiVisionDescription;
-  String _visualGoalText = '';
   bool _isAnalyzing = false;
   final TextEditingController _motivationController = TextEditingController();
   final NutritionService _nutritionService = NutritionService();
@@ -173,6 +172,57 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  List<String> _getSmartPrompts() {
+    final prompts = <String>[];
+    final isFemale = _gender == 'female';
+    
+    if (_goal == 'weight_loss') {
+      if (isFemale) {
+        prompts.addAll([
+          'Escupida, tonificada y radiante',
+          'Verme ligera con abdomen plano',
+          'Esbelta con curvas definidas',
+          'Mi mejor versión "Fitness Chic"'
+        ]);
+      } else {
+        prompts.addAll([
+          'Definición extrema y abdomen marcado',
+          'Atlético y sin grasa abdominal',
+          'Físico "Aesthetic" y ligero',
+          'Verme fuerte y recortado'
+        ]);
+      }
+    } else if (_goal == 'muscle_gain') {
+      if (isFemale) {
+        prompts.addAll([
+          'Atleta Power y estilizada',
+          'Piernas y glúteos fuertes',
+          'Figura de "Bikini Fitness"',
+          'Verme poderosa y definida'
+        ]);
+      } else {
+        prompts.addAll([
+          'Ganar volumen masivo y fuerza',
+          'Efecto V-Taper (Hombros anchos)',
+          'Físico de gladiador moderno',
+          'Músculos densos y estéticos'
+        ]);
+      }
+    } else {
+      prompts.addAll([
+        'Salud total y vitalidad',
+        'Brillo en la piel y postura ideal',
+        'Físico equilibrado y enérgico'
+      ]);
+    }
+
+    if (_restrictions.contains('vegan')) {
+      prompts.add('Físico "Plant-Powered" Pro');
+    }
+    
+    return prompts;
+  }
+
   Future<void> _processMotivation() async {
     if (_progressImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,25 +233,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (_motivationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cuéntanos qué quieres lograr (ej: Bajar 10kg, ganar músculo)')),
+        const SnackBar(content: Text('Por favor selecciona o escribe tu meta visual.')),
       );
       return;
     }
 
     setState(() {
       _isAnalyzing = true;
-      _visualGoalText = _motivationController.text;
     });
 
     try {
       debugPrint('Onboarding: Starting analysis...');
       final bytes = await _progressImage!.readAsBytes();
       
-      debugPrint('Onboarding: Generating Goal Vision with AI...');
-      final vision = await _aiService.generateGoalVision(_visualGoalText, bytes);
+      // Enriquecer el prompt con TODO el contexto del onboarding
+      final fullContextPrompt = '''
+        Objetivo Visual: ${_motivationController.text}
+        Género: ${_gender == 'female' ? 'Mujer' : 'Hombre'}
+        Edad: ${_ageController.text} años
+        Peso actual: ${_weightController.text}kg
+        Altura: ${_heightController.text}cm
+        Nivel de actividad: $_activityLevel
+        Restricciones: ${_restrictions.join(', ')}
+        
+        IMPORTANTE: Genera una visión física que sea REALISTA para este perfil. 
+      ''';
+
+      debugPrint('Onboarding: Requesting Combined Vision and Image (Saving Quota)...');
+      final combinedResult = await _aiService.generateVisionAndImage(fullContextPrompt, bytes);
       
-      debugPrint('Onboarding: Generating ACTUAL Goal Image Bytes with Gemini 2.5 Flash Image...');
-      final imageBytes = await _aiService.generateGoalImageBytes(_visualGoalText, bytes);
+      final vision = combinedResult?['description'] ?? '¡Te verás increíble alcanzando tu meta!';
+      final imageBytes = combinedResult?['imageBytes'] as Uint8List?;
       
       // Upload original image to Firebase Storage
       debugPrint('Onboarding: Uploading original image to Firebase...');
@@ -229,6 +291,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         
         if (imageBytes == null) {
           debugPrint('Onboarding: FALLBACK - No se recibió imagen de la IA, usando la original.');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('La IA no pudo generar la imagen de transformación esta vez (Límite de cuota excedido). Mostrando descripción visual.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
         } else {
           debugPrint('Onboarding: EXITO - Se recibió imagen de transformación de la IA.');
         }
@@ -862,13 +932,55 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
         const SizedBox(height: 24),
+        Text(
+          'Selecciona tu meta visual:',
+          style: GoogleFonts.manrope(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _getSmartPrompts().map((prompt) {
+            bool isSelected = _motivationController.text == prompt;
+            return ChoiceChip(
+              label: Text(
+                prompt,
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                  color: isSelected ? Colors.white : AppTheme.primary,
+                ),
+              ),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _motivationController.text = selected ? prompt : '';
+                });
+              },
+              selectedColor: AppTheme.primary,
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isSelected ? AppTheme.primary : AppTheme.primary.withValues(alpha: 0.1),
+                ),
+              ),
+              showCheckmark: false,
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 24),
         TextField(
           controller: _motivationController,
-          maxLines: 3,
+          maxLines: 2,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _processMotivation(),
           decoration: InputDecoration(
-            hintText: '¿Cuánto quieres bajar? ¿Quieres músculo o estar delgado?',
+            hintText: 'O escribe tu propia meta detallada...',
             hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
             filled: true,
             fillColor: Colors.white,
@@ -876,8 +988,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide.none,
             ),
+            contentPadding: const EdgeInsets.all(20),
           ),
-          style: GoogleFonts.manrope(color: AppTheme.primary),
+          style: GoogleFonts.manrope(color: AppTheme.primary, fontSize: 14),
         ),
         const SizedBox(height: 32),
         SizedBox(
@@ -909,53 +1022,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildMetricTag(String text, IconData icon, Color color, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.8), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.3),
-            blurRadius: 8,
-          )
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.manrope(
-              fontSize: 7,
-              fontWeight: FontWeight.w900,
-              color: color,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 14),
-              const SizedBox(width: 6),
-              Text(
-                text,
-                style: GoogleFonts.manrope(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 

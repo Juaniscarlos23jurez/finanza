@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
+
 import '../theme/app_theme.dart';
 import '../services/nutrition_service.dart';
 import '../services/auth_service.dart';
@@ -25,15 +25,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
   String _userName = 'Tú';
   String _userEmoji = '🦊';
   List<Map<String, dynamic>> _ranking = [];
-  List<FlSpot> _weightSpots = [];
+  
+  bool _hasWeightData = false;
   
   StreamSubscription? _streakSubscription;
   StreamSubscription? _rankingSubscription;
   StreamSubscription? _weightSubscription;
-
-  double _currentWeight = 0;
-  double _weightDiff = 0;
-  bool _canRegisterToday = true;
 
   // Fitness data
   int _todaySteps = 0;
@@ -49,8 +46,23 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _loadProfile();
     _listenToStreak();
     _listenToRanking();
-    _listenToWeight();
+    _listenToWeightStatus();
     _initializeFitness();
+    _syncGamification();
+  }
+
+  void _listenToWeightStatus() {
+    _weightSubscription = _nutritionService.getWeightHistory().listen((event) {
+      if (mounted) {
+        setState(() {
+          _hasWeightData = event.snapshot.value != null;
+        });
+      }
+    });
+  }
+
+  Future<void> _syncGamification() async {
+    await _nutritionService.validateAndSyncGamification();
   }
 
   Future<void> _initializeFitness() async {
@@ -180,57 +192,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     });
   }
 
-  void _listenToWeight() {
-    _weightSubscription = _nutritionService.getWeightHistory().listen((event) {
-      if (mounted) {
-        final List<FlSpot> spots = [];
-        double current = 0;
-        double diff = 0;
-        bool canRegister = true;
 
-        if (event.snapshot.value != null) {
-          final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
-          final sortedKeys = data.keys.toList()..sort();
-          
-          final String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-          if (sortedKeys.contains(today)) {
-            canRegister = false;
-            final lastEntry = data[today];
-            if (lastEntry['timestamp'] != null) {
-              // Time check could be used here if needed, but removed to clear warning
-            }
-          }
-
-          if (sortedKeys.isNotEmpty) {
-            final latestKey = sortedKeys.last;
-            current = double.tryParse(data[latestKey]['weight']?.toString() ?? '0') ?? 0;
-            
-            if (sortedKeys.length >= 2) {
-              final previousKey = sortedKeys[sortedKeys.length - 2];
-              final prevWeight = double.tryParse(data[previousKey]['weight']?.toString() ?? '0') ?? 0;
-              diff = current - prevWeight;
-            }
-          }
-
-          final recentKeys = sortedKeys.length > 10 
-              ? sortedKeys.sublist(sortedKeys.length - 10) 
-              : sortedKeys;
-
-          for (int i = 0; i < recentKeys.length; i++) {
-            final key = recentKeys[i];
-            final double weight = double.tryParse(data[key]['weight']?.toString() ?? '0') ?? 0;
-            spots.add(FlSpot(i.toDouble(), weight));
-          }
-        }
-        setState(() {
-          _weightSpots = spots;
-          _currentWeight = current;
-          _weightDiff = diff;
-          _canRegisterToday = canRegister;
-        });
-      }
-    });
-  }
 
   @override
   void dispose() {
@@ -255,8 +217,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
               _buildAnimatedItem(1, _buildStreakCard()),
               const SizedBox(height: 32),
               _buildAnimatedItem(2, _buildFitnessSection()),
-              const SizedBox(height: 32),
-              _buildAnimatedItem(3, _buildWeightSection()),
               const SizedBox(height: 32),
               _buildAnimatedItem(4, _buildRankingSection()),
               const SizedBox(height: 32),
@@ -622,217 +582,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
 
-  Widget _buildWeightSection() {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.bodyWeight,
-              style: GoogleFonts.manrope(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.primary,
-              ),
-            ),
-            IconButton(
-              onPressed: _canRegisterToday ? _showLogWeightDialog : () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.weightLoggedToday),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-              },
-              icon: Icon(
-                _canRegisterToday ? Icons.add_circle_outline : Icons.check_circle, 
-                color: _canRegisterToday ? AppTheme.primary : Colors.green
-              ),
-            ),
-          ],
-        ),
-        if (!_canRegisterToday)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              l10n.weightNextLog,
-              style: GoogleFonts.manrope(
-                fontSize: 12,
-                color: AppTheme.secondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                   _buildWeightStat(l10n.current, '$_currentWeight', 'kg'),
-                   _buildWeightStat(
-                     l10n.trend, 
-                     '${_weightDiff > 0 ? '+' : ''}${_weightDiff.toStringAsFixed(1)}', 
-                     'kg',
-                     color: _weightDiff < 0 ? Colors.green : (_weightDiff > 0 ? Colors.red : AppTheme.secondary),
-                   ),
-                ],
-              ),
-              const Divider(height: 32),
-              SizedBox(
-                height: 180,
-                child: _weightSpots.isEmpty 
-                  ? const Center(child: Text('Sin datos suficientes'))
-                  : LineChart(
-                      LineChartData(
-                        gridData: const FlGridData(show: false),
-                        titlesData: const FlTitlesData(show: false),
-                        borderData: FlBorderData(show: false),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: _weightSpots,
-                            isCurved: true,
-                            color: AppTheme.primary,
-                            barWidth: 6,
-                            isStrokeCapRound: true,
-                            dotData: const FlDotData(show: true),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              gradient: LinearGradient(
-                                colors: [AppTheme.primary.withValues(alpha: 0.2), Colors.transparent],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildWeightStat(String label, String value, String unit, {Color? color}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.secondary,
-          ),
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              value,
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: color ?? AppTheme.primary,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              unit,
-              style: GoogleFonts.manrope(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.secondary,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
-  void _showLogWeightDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    final weightController = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.logWeight,
-              style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
-            ),
-            const SizedBox(height: 8),
-            Text(l10n.enterWeightHint, style: GoogleFonts.manrope(color: AppTheme.secondary)),
-            const SizedBox(height: 24),
-            TextField(
-              controller: weightController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: AppTheme.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                suffixText: 'kg',
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: () async {
-                  final double? weight = double.tryParse(weightController.text);
-                  if (weight != null) {
-                    await _nutritionService.saveWeight(weight);
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.weightSuccess)),
-                    );
-                  }
-                },
-                child: Text(l10n.save, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildRankingSection() {
     final l10n = AppLocalizations.of(context)!;
@@ -938,7 +689,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ),
         const SizedBox(height: 16),
         _buildMilestoneItem(l10n.milestoneStreakTitle, l10n.milestoneStreakDesc, Icons.workspace_premium, Colors.amber, _streak >= 3),
-        _buildMilestoneItem(l10n.milestoneWeightTitle, l10n.milestoneWeightDesc, Icons.monitor_weight, Colors.green, _weightSpots.isNotEmpty),
+        _buildMilestoneItem(l10n.milestoneWeightTitle, l10n.milestoneWeightDesc, Icons.monitor_weight, Colors.green, _hasWeightData),
         _buildMilestoneItem(l10n.milestoneRankingTitle, l10n.milestoneRankingDesc, Icons.auto_awesome, Colors.purple, _ranking.indexWhere((e) => e['name'] == _userName) < 5 && _ranking.isNotEmpty),
         if (_fitnessAuthorized) ...[
           _buildMilestoneItem(l10n.milestoneStepsTitle, l10n.milestoneStepsDesc, Icons.directions_walk, Colors.blue, _todaySteps >= 10000),

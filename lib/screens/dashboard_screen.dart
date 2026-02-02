@@ -42,16 +42,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'total_expense': 2000.0, // Used for daily calorie goal
     'total_cost': 0.0,
   };
-  final Map<String, double> _categoryStats = {
-    'Proteínas': 30,
-    'Carbohidratos': 45,
-    'Grasas': 25,
-  };
+
 
   List<dynamic> _goals = [];
   List<Map<String, dynamic>> _dailyMeals = [];
   List<FlSpot> _balanceHistory = [];
   String _userName = '';
+
+  // Weight Tracking States
+  double _currentWeight = 0;
+  double _weightDiff = 0;
+  List<FlSpot> _weightSpots = [];
+  Map<String, double> _weightHistory = {};
+  bool _canRegisterToday = true;
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -65,12 +68,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _listenToHistory();
     _listenToGoals();
     _listenToPlan();
-    _listenToWeightChallenge();
+    _listenToWeightData();
     _listenToVisualGoal();
     _requestNotificationPermissionAndSaveFCM();
     _updateSubscription = _financeService.onDataUpdated.listen((_) {
       _fetchInitialData();
     });
+    _syncGamification();
+  }
+
+  Future<void> _syncGamification() async {
+    final result = await _nutritionService.validateAndSyncGamification();
+    if (result.isNotEmpty && mounted) {
+      if (result['streak_lost'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Has perdido tu racha por falta de actividad y vidas.'),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   void _listenToStreak() {
@@ -116,8 +135,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (event.snapshot.value != null && mounted) {
         final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
         final List<dynamic> goalsList = [];
+        final String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
         data.forEach((key, value) {
-          goalsList.add(Map<String, dynamic>.from(value as Map));
+          final goal = Map<String, dynamic>.from(value as Map);
+          final String goalType = goal['goal_type']?.toString() ?? '';
+          
+          // Treat exercise and distance as daily by default if the flag is missing (backward compatibility)
+          final bool isDaily = goal['is_daily'] == true || 
+                             (goal['is_daily'] == null && (goalType == 'exercise_minutes' || goalType == 'distance_km'));
+
+          if (isDaily) {
+            final String lastUpdate = goal['last_update_date']?.toString() ?? '';
+            if (lastUpdate != today) {
+              // Trigger a background reset
+              _nutritionService.resetDailyGoal(key);
+              // Show as 0 in current view
+              goal['current_amount'] = 0;
+              goal['last_update_date'] = today;
+            }
+          }
+          
+          goalsList.add(goal);
         });
         setState(() {
           _goals = goalsList;
@@ -143,25 +182,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
         final List<Map<String, dynamic>> mealsList = [];
         double totalCaloriesConsumed = 0;
-        double totalProtein = 0;
-        double totalCarbs = 0;
-        double totalFat = 0;
-
         data.forEach((key, value) {
           final meal = Map<String, dynamic>.from(value as Map);
           mealsList.add(meal);
           if (meal['completed'] == true) {
             final double cals = double.tryParse(meal['calories']?.toString() ?? '0') ?? 0;
             totalCaloriesConsumed += cals;
-            
-            // Try to extract macros if they exist, otherwise estimate based on calorie distribution for demo
-            final double p = double.tryParse(meal['protein']?.toString() ?? (cals * 0.075).toStringAsFixed(1)) ?? 0;
-            final double c = double.tryParse(meal['carbs']?.toString() ?? (cals * 0.1).toStringAsFixed(1)) ?? 0;
-            final double f = double.tryParse(meal['fat']?.toString() ?? (cals * 0.04).toStringAsFixed(1)) ?? 0;
-            
-            totalProtein += p;
-            totalCarbs += c;
-            totalFat += f;
           }
         });
         
@@ -169,19 +195,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _dailyMeals = mealsList;
             _summary['total_income'] = totalCaloriesConsumed;
-            
-            // Update macros for the chart
-            final double totalMacros = totalProtein + totalCarbs + totalFat;
-            if (totalMacros > 0) {
-              _categoryStats['Proteínas'] = (totalProtein / totalMacros) * 100;
-              _categoryStats['Carbohidratos'] = (totalCarbs / totalMacros) * 100;
-              _categoryStats['Grasas'] = (totalFat / totalMacros) * 100;
-            } else {
-              _categoryStats['Proteínas'] = 0;
-              _categoryStats['Carbohidratos'] = 0;
-              _categoryStats['Grasas'] = 0;
-            }
-            
             _nutritionService.saveDailyTotal(totalCaloriesConsumed);
           });
         }
@@ -190,9 +203,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _dailyMeals = [];
             _summary['total_income'] = 0.0;
-            _categoryStats['Proteínas'] = 0;
-            _categoryStats['Carbohidratos'] = 0;
-            _categoryStats['Grasas'] = 0;
           });
         }
       }
@@ -215,16 +225,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _listenToWeightChallenge() {
+  void _listenToWeightData() {
     final String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     _weightSubscription = _nutritionService.getWeightHistory().listen((event) {
-      if (mounted) {
-        if (event.snapshot.value != null) {
-          final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+      if (mounted && event.snapshot.value != null) {
+        final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        
+        bool canRegister = !data.containsKey(today);
+        double current = 0;
+        double diff = 0;
+        List<FlSpot> spots = [];
+
+        if (data.isNotEmpty) {
+          final sortedKeys = data.keys.toList()..sort();
+          final latestKey = sortedKeys.last;
+          
+          if (data[latestKey] is Map) {
+            current = double.tryParse(data[latestKey]['weight']?.toString() ?? '0') ?? 0;
+            
+            if (sortedKeys.length >= 2) {
+              final previousKey = sortedKeys[sortedKeys.length - 2];
+              final prevWeight = double.tryParse(data[previousKey]['weight']?.toString() ?? '0') ?? 0;
+              diff = current - prevWeight;
+            }
+          }
+
+          final recentKeys = sortedKeys.length > 10 
+              ? sortedKeys.sublist(sortedKeys.length - 10) 
+              : sortedKeys;
+
+          for (int i = 0; i < recentKeys.length; i++) {
+            final key = recentKeys[i];
+            final double weight = double.tryParse(data[key]['weight']?.toString() ?? '0') ?? 0;
+            spots.add(FlSpot(i.toDouble(), weight));
+          }
+        }
+
+        if (mounted) {
           setState(() {
-            _challengeCompleted = data.containsKey(today);
+            _weightSpots = spots;
+            _currentWeight = current;
+            _weightDiff = diff;
+            _canRegisterToday = canRegister;
+            _challengeCompleted = !canRegister;
+            _weightHistory = data.map((key, value) => MapEntry(
+                  key.toString(),
+                  double.tryParse((value as Map)['weight']?.toString() ?? '0') ?? 0.0,
+                ));
           });
         }
+      } else if (mounted) {
+        setState(() {
+          _canRegisterToday = true;
+          _currentWeight = 0;
+          _weightDiff = 0;
+          _weightSpots = [];
+          _weightHistory = {};
+        });
       }
     });
   }
@@ -240,13 +297,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchVisualGoal() async {
+    debugPrint('DASHBOARD: Fetching user profile for visual goal...');
     final profile = await _nutritionService.getUserProfile();
+    debugPrint('DASHBOARD: Profile data: $profile');
     if (profile != null && profile.containsKey('visual_goal')) {
+      debugPrint('DASHBOARD: Visual goal found: ${profile['visual_goal']}');
       if (mounted) {
         setState(() {
           _visualGoal = Map<String, dynamic>.from(profile['visual_goal'] as Map);
         });
       }
+    } else {
+      debugPrint('DASHBOARD: No visual_goal key in profile.');
     }
   }
 
@@ -265,16 +327,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchInitialData() async {
     try {
-      // For now we still pull finance data if used, but prioritizing nutrition
-      await _financeService.getFinanceData();
+      debugPrint('DASHBOARD: Starting initial data fetch...');
+      // Prioritize visual goal
       await _fetchVisualGoal();
-      // ... rest of logic for finance if needed, but we focus on nutrition UI
+      
+      // Other services
+      await _financeService.getFinanceData();
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
+      debugPrint('DASHBOARD: Error in _fetchInitialData: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -356,9 +422,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 16),
                     _buildGoalsList(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle(l10n.macroDistribution),
+                    _buildSectionTitle(l10n.bodyWeight),
                     const SizedBox(height: 16),
-                    _buildCategoryChart(),
+                    _buildWeightSection(),
                     const SizedBox(height: 32),
                     _buildSectionTitle(l10n.todayPlan),
                     const SizedBox(height: 16),
@@ -375,7 +441,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ... (Previous methods) ...
 
   Widget _buildVisualGoalCard() {
-    if (_visualGoal == null) return const SizedBox.shrink();
+    debugPrint('DASHBOARD: Building visual goal card. _visualGoal: $_visualGoal');
+    if (_visualGoal == null) {
+       debugPrint('DASHBOARD: _visualGoal is null, skipping card.');
+       return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -493,23 +563,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppTheme.accent.withValues(alpha: 0.1)),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.lightbulb_outline, color: AppTheme.accent),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              l10n.motivationQuote1,
-              style: GoogleFonts.manrope(
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-                color: AppTheme.primary.withValues(alpha: 0.8),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -576,9 +629,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
                 }
                 if (allDone) {
-                  _nutritionService.updateStreak(1);
+                  final updated = await _nutritionService.updateStreak(1);
                   if (mounted) {
-                    GamificationService().checkAndShowModal(context, PandaTrigger.streakKeep);
+                    GamificationService().checkAndShowModal(
+                      context, 
+                      updated ? PandaTrigger.streakKeep : PandaTrigger.mealLogged
+                    );
                   }
                 } else {
                   if (mounted) {
@@ -1068,6 +1124,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isSaving = false;
     String selectedType = 'weight'; // weight, exercise_minutes, distance_km
 
+    bool isDaily = true;
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1187,6 +1245,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 style: GoogleFonts.manrope(),
               ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.background,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.replay_rounded, color: AppTheme.primary),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Objetivo Recurrente',
+                              style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            Text(
+                              'Se reinicia cada día',
+                              style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: isDaily,
+                      onChanged: (val) => setBottomSheetState(() => isDaily = val),
+                      activeTrackColor: AppTheme.primary,
+                    ),
+                  ],
+                ),
+              ),
               const Spacer(),
               SizedBox(
                 width: double.infinity,
@@ -1211,7 +1306,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         'current_amount': 0,
                         'goal_type': selectedType,
                         'unit': _getGoalUnit(selectedType),
-                        'deadline': DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0],
+                        'is_daily': isDaily,
+                        'deadline': DateTime.now().add(Duration(days: isDaily ? 365 : 30)).toIso8601String().split('T')[0],
                       });
                       if (!context.mounted) return;
                       Navigator.pop(context);
@@ -1352,12 +1448,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildGoalCard(Map<String, dynamic> goal) {
     final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
     final double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
-    final double progress = (current / target).clamp(0.0, 1.0);
+    final double realProgress = current / target;
+    final double progress = realProgress.clamp(0.0, 1.0);
     final String title = goal['title'] ?? 'Meta';
     final String? goalId = goal['id']?.toString();
     final String goalType = goal['goal_type'] ?? '';
     final String unit = goal['unit'] ?? '';
-    final int percentage = (progress * 100).round();
+    final int percentage = (realProgress * 100).round();
     
     // Color based on progress
     Color progressColor = percentage < 30 
@@ -1418,15 +1515,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            Text(
-              title,
-              style: GoogleFonts.manrope(
-                fontWeight: FontWeight.w900,
-                fontSize: 18,
-                color: AppTheme.primary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      color: AppTheme.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (goal['is_daily'] == true)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Día',
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -1806,9 +1926,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCategoryChart() {
-    final bool hasData = _categoryStats.values.any((v) => v > 0);
-
+  Widget _buildWeightSection() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -1830,100 +1948,122 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                l10n.nutrientBalanceTitle,
+                l10n.bodyWeight,
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primary,
                 ),
               ),
-              Icon(Icons.auto_awesome_rounded, color: Colors.amber.shade400, size: 20),
+              IconButton(
+                onPressed: _showLogWeightDialog,
+                icon: Icon(
+                  _canRegisterToday ? Icons.add_circle_outline : Icons.edit_note_rounded, 
+                  color: _canRegisterToday ? AppTheme.primary : AppTheme.secondary,
+                  size: 20,
+                ),
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+              ),
             ],
           ),
-          const SizedBox(height: 24),
-          if (!hasData)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Text(
-                  l10n.completeMealsMacrosMsg,
-                  style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13),
+          if (!_canRegisterToday)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 12),
+              child: Text(
+                l10n.weightNextLog,
+                style: GoogleFonts.manrope(
+                  fontSize: 11,
+                  color: AppTheme.secondary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            )
-          else ...[
-            _buildMacroRow(l10n.protein, _categoryStats['Proteínas'] ?? 0, Colors.blueAccent),
-            const SizedBox(height: 16),
-            _buildMacroRow(l10n.carbs, _categoryStats['Carbohidratos'] ?? 0, Colors.orangeAccent),
-            const SizedBox(height: 16),
-            _buildMacroRow(l10n.fats, _categoryStats['Grasas'] ?? 0, Colors.redAccent),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.background,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, size: 18, color: AppTheme.secondary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      l10n.balanceIdealMsg.replaceAll('{state}', (_categoryStats['Proteínas'] ?? 0) > 30 ? l10n.gainMuscle : l10n.maintainEnergy),
-                      style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ],
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+               _buildWeightStat(l10n.current, '$_currentWeight', 'kg'),
+               _buildWeightStat(
+                 l10n.trend, 
+                 '${_weightDiff > 0 ? '+' : ''}${_weightDiff.toStringAsFixed(1)}', 
+                 'kg',
+                 color: _weightDiff < 0 ? Colors.green : (_weightDiff > 0 ? Colors.red : AppTheme.secondary),
+               ),
+            ],
+          ),
+          const Divider(height: 48),
+          SizedBox(
+            height: 180,
+            child: _weightSpots.isEmpty 
+              ? Center(
+                  child: Text(
+                    'Registra tu peso para ver el progreso',
+                    style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13),
+                  ),
+                )
+              : LineChart(
+                  LineChartData(
+                    gridData: const FlGridData(show: false),
+                    titlesData: const FlTitlesData(show: false),
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: _weightSpots,
+                        isCurved: true,
+                        color: AppTheme.primary,
+                        barWidth: 6,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: true),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            colors: [AppTheme.primary.withValues(alpha: 0.2), Colors.transparent],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMacroRow(String label, double percentage, Color color) {
+  Widget _buildWeightStat(String label, String value, String unit, {Color? color}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.secondary)),
-            Text('${percentage.toStringAsFixed(0)}%', style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.w900, color: color)),
-          ],
+        Text(
+          label,
+          style: GoogleFonts.manrope(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondary,
+          ),
         ),
-        const SizedBox(height: 8),
-        Stack(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: [
-            Container(
-              height: 10,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppTheme.background,
-                borderRadius: BorderRadius.circular(10),
+            Text(
+              value,
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: color ?? AppTheme.primary,
               ),
             ),
-            FractionallySizedBox(
-              widthFactor: percentage / 100,
-              child: Container(
-                height: 10,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color.withValues(alpha: 0.6), color],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ],
-                ),
+            const SizedBox(width: 4),
+            Text(
+              unit,
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.secondary,
               ),
             ),
           ],
@@ -1931,4 +2071,184 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
+
+  void _showLogWeightDialog() {
+    final weightController = TextEditingController(
+      text: _currentWeight > 0 ? _currentWeight.toString() : ''
+    );
+    bool isSaving = false;
+    bool showHistory = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    showHistory ? 'Historial de Peso' : (_canRegisterToday ? l10n.logWeight : 'Actualizar Peso'),
+                    style: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => setModalState(() => showHistory = !showHistory),
+                    icon: Icon(showHistory ? Icons.edit_note : Icons.history, size: 20),
+                    label: Text(
+                      showHistory ? 'Registrar' : 'Historial',
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+                    ),
+                    style: TextButton.styleFrom(foregroundColor: AppTheme.secondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (showHistory) ...[
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+                  child: _weightHistory.isEmpty
+                      ? Center(child: Text('Sin registros aún', style: GoogleFonts.manrope(color: AppTheme.secondary)))
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _weightHistory.length,
+                          itemBuilder: (context, index) {
+                            final keys = _weightHistory.keys.toList()..sort((a, b) => b.compareTo(a));
+                            final dateStr = keys[index];
+                            final weight = _weightHistory[dateStr];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.background,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        dateStr,
+                                        style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
+                                      Text(
+                                        'Registro diario',
+                                        style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '${weight?.toStringAsFixed(1)} kg',
+                                    style: GoogleFonts.manrope(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 18,
+                                      color: AppTheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ] else ...[
+                if (!_canRegisterToday)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.orange, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ya registrado hoy. Al guardar se actualizará.',
+                          style: GoogleFonts.manrope(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                Text(l10n.enterWeightHint, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: weightController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppTheme.background,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    suffixText: 'kg',
+                    hintText: '0.0',
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    onPressed: isSaving ? null : () async {
+                      final String rawValue = weightController.text.replaceAll(',', '.').trim();
+                      final double? weight = double.tryParse(rawValue);
+                      
+                      if (weight == null || weight <= 0 || weight > 500) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Por favor ingresa un peso válido (ej. 70.5)'), backgroundColor: Colors.redAccent),
+                        );
+                        return;
+                      }
+
+                      setModalState(() => isSaving = true);
+                      
+                      try {
+                        await _nutritionService.saveWeight(weight);
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.weightSuccess), backgroundColor: Colors.green),
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        setModalState(() => isSaving = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.redAccent),
+                        );
+                      }
+                    },
+                    child: isSaving
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                      : Text(l10n.save, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
 }
