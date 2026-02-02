@@ -1818,6 +1818,24 @@ abstract class AppLocalizations {
     Object debt,
     Object income,
   );
+
+  /// No description provided for @skip.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar'**
+  String get skip;
+
+  /// No description provided for @skipOnboardingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Saltar configuración?'**
+  String get skipOnboardingTitle;
+
+  /// No description provided for @skipOnboardingMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.'**
+  String get skipOnboardingMessage;
 }
 
 class _AppLocalizationsDelegate

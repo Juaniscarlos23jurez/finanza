@@ -368,5 +368,53 @@
     "exportCsvSuggestion": "Exporter mes transactions vers CSV",
     "transactionAi": "Transaction IA",
     "goalAiDescription": "Objectif créé par l'IA",
-    "shareLinkAndCode": "Partager le lien et le code"
+    "shareLinkAndCode": "Partager le lien et le code",
+    "onboardingWelcome": "Bienvenue sur Finances IA",
+    "onboardingSubtitle": "Configuons votre profil financier en quelques étapes simples.",
+    "stepBudgetTitle": "3. Votre budget",
+    "stepBudgetSubtitle": "Combien prévoyez-vous dépenser par mois au total ?",
+    "stepBudgetHint": "ex. {amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "Argent disponible mensuel",
+    "incomeMinusDebts": "Vos revenus moins vos dettes.",
+    "howMuchToAssign": "Combien allez-vous allouer à vos dépenses ?",
+    "budgetLimitInfo": "Ce sera votre limite mensuelle pour les dépenses en dehors de vos dettes.",
+    "stepSourcesTitle": "1. Sources d'argent",
+    "stepSourcesSubtitle": "Ajoutez vos sources de revenus régulières.",
+    "stepDebtTitle": "2. Vos dettes",
+    "stepDebtSubtitle": "Enregistrez vos dettes actuelles pour nous aider à planifier.",
+    "debtsRequired": "Veuillez ajouter au moins une dette ou entrez 0 si vous n'en avez pas.",
+    "stepGoalTitle": "4. Vos objectifs",
+    "stepGoalSubtitle": "Pour quoi épargnez-vous ?",
+    "onboardingSummary": "Résumé financier",
+    "onboardingSummarySubtitle": "Voici à quoi ressemblent vos finances configurées.",
+    "totalMonthlyIncome": "Revenu mensuel total",
+    "monthlyBudgetLimit": "Limite du budget mensuel",
+    "realSavingCapacity": "Capacité d'épargne réelle",
+    "advisorContext": "En tant que votre conseiller financier, je suggère...",
+    "financialHealthGood": "Votre santé financière semble solide. Vous avez un surplus positif pour vos objectifs.",
+    "financialHealthWarning": "Attention : Vos engagements mensuels dépassent vos revenus. Vous devez ajuster votre budget.",
+    "savingCapacityFormulaRefined": "Revenus ({income}) - Dépenses ({budget}) - Paiements de dette ({debt}) = {balance} libres.",
+    "debtPaymentSummary": "{interest}% - Paiements : {amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "skip": "Passer",
+    "skipOnboardingTitle": "Passer la configuration ?",
+    "skipOnboardingMessage": "Si vous avez déjà configuré votre profil, vous pouvez passer cette étape. Sinon, nous vous recommandons de la terminer pour que l'IA puisse vous donner de meilleurs conseils.",
+    "cancel": "Annuler",
+    "confirm": "Confirmer"
 }

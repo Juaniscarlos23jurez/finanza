@@ -37,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_currentStep == 0) { // Sources
       return _incomeSources.isNotEmpty;
     } else if (_currentStep == 1) { // Debts
-      return _debts.isNotEmpty;
+      return true; // Debts are now optional
     } else if (_currentStep == 2) { // Budget
       final text = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
       return text.isNotEmpty && double.tryParse(text) != null;
@@ -80,10 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
     } else if (_currentStep == 1) { // Debts
-      if (_debts.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.debtsRequired)));
-        return;
-      }
+      // Debts are optional, no validation required here
     } else if (_currentStep == 2) { // Budget
       final budgetStr = _budgetController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
       if (budgetStr.isEmpty || double.tryParse(budgetStr) == null) {
@@ -129,27 +126,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Save Budget
-      await _authService.saveBudget(double.parse(budgetStr));
+      // Save all data in a single atomic-like operation
+      await _authService.saveFullOnboardingData(
+        budget: double.parse(budgetStr),
+        incomeSources: _incomeSources,
+        debts: _debts,
+      );
 
-      // (Step 2 First Sale removed as per user request)
-
-      // 3. Save Income Sources
-      await _authService.saveIncomeSources(_incomeSources);
-
-      // 4. Save Debts
-      await _authService.saveDebts(_debts);
-
-      // 5. Create Goals
+      // Create goals separately (as they use a different service/logic)
       for (var goal in _goals) {
         await _financeService.createGoal({
           'title': goal['name'],
           'target_amount': (goal['target'] as num).toDouble(),
         });
       }
-
-      // 6. Mark Onboarding as Complete
-      await _authService.setOnboardingComplete(true);
 
       if (!mounted) return;
 
@@ -216,6 +206,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  void _showSkipConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.skipOnboardingTitle),
+        content: Text(AppLocalizations.of(context)!.skipOnboardingMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _forceFinishOnboarding();
+            },
+            child: Text(AppLocalizations.of(context)!.confirm, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _forceFinishOnboarding() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.setOnboardingComplete(true);
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+        (route) => false,
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -243,6 +268,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(width: 12),
                   Text("${_currentStep + 1}/$_totalSteps", style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  if (_currentStep == 0) TextButton(
+                    onPressed: _showSkipConfirmation,
+                    child: Text(l10n.skip, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

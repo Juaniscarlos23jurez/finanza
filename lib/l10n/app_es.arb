@@ -457,5 +457,10 @@
     "financialHealthGood": "Tu salud financiera se ve sólida. Tienes un excedente positivo para tus metas.",
     "financialHealthWarning": "Atención: Tus compromisos mensuales superan tus ingresos. Necesitas ajustar tu presupuesto.",
     "netCashFlow": "Flujo de Caja Neto",
-    "savingCapacityFormulaRefined": "Ingresos ({income}) - Gastos ({budget}) - Pagos Deuda ({debt}) = {balance} libres."
+    "savingCapacityFormulaRefined": "Ingresos ({income}) - Gastos ({budget}) - Pagos Deuda ({debt}) = {balance} libres.",
+    "skip": "Saltar",
+    "skipOnboardingTitle": "¿Saltar configuración?",
+    "skipOnboardingMessage": "Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
 }

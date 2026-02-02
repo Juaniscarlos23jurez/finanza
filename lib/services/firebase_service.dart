@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 
 class FirebaseService {
   final FirebaseDatabase _db = FirebaseDatabase.instance;
@@ -77,19 +78,30 @@ class FirebaseService {
   /// Saves general user configuration (budget, sources, debts, onboarding status)
   Future<void> saveUserConfig(String email, Map<String, dynamic> config) async {
     final String safeEmail = _safeEmail(email);
-    await _db.ref('user_configs/$safeEmail').set({
-      ...config,
-      'updatedAt': ServerValue.timestamp,
-    });
+    final String path = 'user_configs/$safeEmail';
+    debugPrint('FirebaseService: Saving config to $path with data: ${config.keys.toList()}');
+    try {
+      await _db.ref(path).set({
+        ...config,
+        'updatedAt': ServerValue.timestamp,
+      });
+      debugPrint('FirebaseService: Config saved successfully to $path');
+    } catch (e) {
+      debugPrint('FirebaseService: ERROR saving config to $path: $e');
+      rethrow;
+    }
   }
 
   /// Retrieves user configuration
   Future<Map<String, dynamic>?> getUserConfig(String email) async {
     final String safeEmail = _safeEmail(email);
+    debugPrint('FirebaseService: Getting config for $safeEmail at paths: user_configs/$safeEmail');
     final snapshot = await _db.ref('user_configs/$safeEmail').get();
     if (snapshot.exists) {
+      debugPrint('FirebaseService: Config exists for $safeEmail');
       return Map<String, dynamic>.from(snapshot.value as Map);
     }
+    debugPrint('FirebaseService: Config NOT found for $safeEmail');
     return null;
   }
 }

@@ -693,36 +693,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shareLinkAndCode => 'リンクとコードを共有';
 
   @override
-  String get onboardingWelcome => 'Bienvenido a Finanzas AI';
+  String get onboardingWelcome => '財務AIへようこそ';
 
   @override
-  String get onboardingSubtitle =>
-      'Vamos a configurar tu perfil financiero en unos simples pasos.';
+  String get onboardingSubtitle => '数ステップで財務プロフィールを設定しましょう。';
 
   @override
-  String get stepBudgetTitle => '3. Tu Presupuesto';
+  String get stepBudgetTitle => '3. 予算';
 
   @override
-  String get stepBudgetSubtitle =>
-      '¿Cuánto planeas gastar mensualmente en total?';
+  String get stepBudgetSubtitle => '合計で毎月いくら使う予定ですか？';
 
   @override
   String stepBudgetHint(String amount) {
-    return 'Ej. $amount';
+    return '例：$amount';
   }
 
   @override
-  String get monthlyAvailableMoney => 'Dinero disponible mensual';
+  String get monthlyAvailableMoney => '毎月の利用可能金額';
 
   @override
-  String get incomeMinusDebts => 'Tus ingresos menos tus deudas.';
+  String get incomeMinusDebts => '収入から負債を引いた額。';
 
   @override
-  String get howMuchToAssign => '¿Cuánto asignarás a tus gastos?';
+  String get howMuchToAssign => '支出にいくら割り当てますか？';
 
   @override
-  String get budgetLimitInfo =>
-      'Este será tu límite mensual para gastos fuera de tus deudas.';
+  String get budgetLimitInfo => 'これが負債以外の支出の月間上限になります。';
 
   @override
   String get stepSaleTitle => '2. Primera Venta';
@@ -734,10 +731,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get stepSaleHint => 'Ej. Venta de producto';
 
   @override
-  String get stepSourcesTitle => '1. Fuentes de Dinero';
+  String get stepSourcesTitle => '1. 資金源';
 
   @override
-  String get stepSourcesSubtitle => 'Agrega tus fuentes de ingresos regulares.';
+  String get stepSourcesSubtitle => '定期的な収入源を追加してください。';
 
   @override
   String get addSource => 'Agregar Fuente';
@@ -783,15 +780,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'Por favor agrega al menos una fuente de ingresos';
 
   @override
-  String get stepDebtTitle => '2. Tus Deudas';
+  String get stepDebtTitle => '2. 負債';
 
   @override
-  String get stepDebtSubtitle =>
-      'Registra tus deudas actuales para ayudarte a planear.';
+  String get stepDebtSubtitle => '計画を立てるために現在の負債を記録してください。';
 
   @override
-  String get debtsRequired =>
-      'Por favor agrega al menos una deuda o ingresa 0 si no tienes.';
+  String get debtsRequired => '負債を少なくとも1つ追加するか、ない場合は0を入力してください。';
 
   @override
   String get addDebt => 'Agregar Deuda';
@@ -812,10 +807,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get debtDueDate => 'Fecha de pago';
 
   @override
-  String get stepGoalTitle => '4. Tus Metas';
+  String get stepGoalTitle => '4. 目標';
 
   @override
-  String get stepGoalSubtitle => '¿Para qué estás ahorrando?';
+  String get stepGoalSubtitle => '何のために貯金していますか？';
 
   @override
   String get addGoal => 'Agregar Meta';
@@ -830,11 +825,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalTarget => 'Monto objetivo';
 
   @override
-  String get onboardingSummary => 'Resumen Financiero';
+  String get onboardingSummary => '財務サマリー';
 
   @override
-  String get onboardingSummarySubtitle =>
-      'Así se ven tus finanzas configuradas.';
+  String get onboardingSummarySubtitle => '設定された財務状況は以下の通りです。';
 
   @override
   String get estimatedMonthlyBalance => 'Balance Mensual Estimado';
@@ -871,10 +865,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'Este resumen muestra la relación entre tus ingresos, gastos mensuales presupuestados y deudas. El \'Balance Mensual\' es el dinero disponible que tienes cada mes para ahorrar o invertir.';
 
   @override
-  String get totalMonthlyIncome => 'Ingreso Mensual Total';
+  String get totalMonthlyIncome => '合計月収';
 
   @override
-  String get monthlyBudgetLimit => 'Límite de Presupuesto';
+  String get monthlyBudgetLimit => '月間予算上限';
 
   @override
   String savingCapacityFormula(Object balance, Object budget, Object income) {
@@ -889,7 +883,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String debtPaymentSummary(String interest, String amount) {
-    return '$interest% - Pagos: $amount';
+    return '$interest% - 支払い額：$amount';
   }
 
   @override
@@ -899,18 +893,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get monthlyDebtCommitment => 'Compromiso Mensual de Deuda';
 
   @override
-  String get realSavingCapacity => 'Capacidad de Ahorro Real';
+  String get realSavingCapacity => '実際の貯蓄能力';
 
   @override
-  String get advisorContext => 'Como tu asesor financiero, te sugiero...';
+  String get advisorContext => '財務アドバイザーとして、以下の提案をします...';
 
   @override
-  String get financialHealthGood =>
-      'Tu salud financiera se ve sólida. Tienes un excedente positivo para tus metas.';
+  String get financialHealthGood => '財務状況は健全です。目標に対してプラスの余剰があります。';
 
   @override
-  String get financialHealthWarning =>
-      'Atención: Tus compromisos mensuales superan tus ingresos. Necesitas ajustar tu presupuesto.';
+  String get financialHealthWarning => '注意：毎月の支払いが収入を上回っています。予算を調整する必要があります。';
 
   @override
   String get netCashFlow => 'Flujo de Caja Neto';
@@ -922,6 +914,16 @@ class AppLocalizationsJa extends AppLocalizations {
     Object debt,
     Object income,
   ) {
-    return 'Ingresos ($income) - Gastos ($budget) - Pagos Deuda ($debt) = $balance libres.';
+    return '収入 ($income) - 支出 ($budget) - 負債支払い ($debt) = 自由な資金 $balance。';
   }
+
+  @override
+  String get skip => 'Saltar';
+
+  @override
+  String get skipOnboardingTitle => '¿Saltar configuración?';
+
+  @override
+  String get skipOnboardingMessage =>
+      'Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.';
 }

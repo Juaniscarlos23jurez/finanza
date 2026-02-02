@@ -705,36 +705,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shareLinkAndCode => 'Link und Code teilen';
 
   @override
-  String get onboardingWelcome => 'Bienvenido a Finanzas AI';
+  String get onboardingWelcome => 'Willkommen bei Finanzen KI';
 
   @override
   String get onboardingSubtitle =>
-      'Vamos a configurar tu perfil financiero en unos simples pasos.';
+      'Lassen Sie uns Ihr Finanzprofil in wenigen einfachen Schritten einrichten.';
 
   @override
-  String get stepBudgetTitle => '3. Tu Presupuesto';
+  String get stepBudgetTitle => '3. Ihr Budget';
 
   @override
   String get stepBudgetSubtitle =>
-      '¿Cuánto planeas gastar mensualmente en total?';
+      'Wie viel planen Sie monatlich insgesamt auszugeben?';
 
   @override
   String stepBudgetHint(String amount) {
-    return 'Ej. $amount';
+    return 'z.B. $amount';
   }
 
   @override
-  String get monthlyAvailableMoney => 'Dinero disponible mensual';
+  String get monthlyAvailableMoney => 'Verfügbares monatliches Geld';
 
   @override
-  String get incomeMinusDebts => 'Tus ingresos menos tus deudas.';
+  String get incomeMinusDebts => 'Ihr Einkommen abzüglich Ihrer Schulden.';
 
   @override
-  String get howMuchToAssign => '¿Cuánto asignarás a tus gastos?';
+  String get howMuchToAssign => 'Wie viel werden Sie Ihren Ausgaben zuweisen?';
 
   @override
   String get budgetLimitInfo =>
-      'Este será tu límite mensual para gastos fuera de tus deudas.';
+      'Dies wird Ihr monatliches Limit für Ausgaben außerhalb Ihrer Schulden sein.';
 
   @override
   String get stepSaleTitle => '2. Primera Venta';
@@ -746,10 +746,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get stepSaleHint => 'Ej. Venta de producto';
 
   @override
-  String get stepSourcesTitle => '1. Fuentes de Dinero';
+  String get stepSourcesTitle => '1. Geldquellen';
 
   @override
-  String get stepSourcesSubtitle => 'Agrega tus fuentes de ingresos regulares.';
+  String get stepSourcesSubtitle =>
+      'Fügen Sie Ihre regelmäßigen Einkommensquellen hinzu.';
 
   @override
   String get addSource => 'Agregar Fuente';
@@ -795,15 +796,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Por favor agrega al menos una fuente de ingresos';
 
   @override
-  String get stepDebtTitle => '2. Tus Deudas';
+  String get stepDebtTitle => '2. Ihre Schulden';
 
   @override
   String get stepDebtSubtitle =>
-      'Registra tus deudas actuales para ayudarte a planear.';
+      'Erfassen Sie Ihre aktuellen Schulden, um uns bei der Planung zu helfen.';
 
   @override
   String get debtsRequired =>
-      'Por favor agrega al menos una deuda o ingresa 0 si no tienes.';
+      'Bitte fügen Sie mindestens eine Schuld hinzu oder geben Sie 0 ein, wenn Sie keine haben.';
 
   @override
   String get addDebt => 'Agregar Deuda';
@@ -824,10 +825,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get debtDueDate => 'Fecha de pago';
 
   @override
-  String get stepGoalTitle => '4. Tus Metas';
+  String get stepGoalTitle => '4. Ihre Ziele';
 
   @override
-  String get stepGoalSubtitle => '¿Para qué estás ahorrando?';
+  String get stepGoalSubtitle => 'Wofür sparen Sie?';
 
   @override
   String get addGoal => 'Agregar Meta';
@@ -842,11 +843,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get goalTarget => 'Monto objetivo';
 
   @override
-  String get onboardingSummary => 'Resumen Financiero';
+  String get onboardingSummary => 'Finanzzusammenfassung';
 
   @override
   String get onboardingSummarySubtitle =>
-      'Así se ven tus finanzas configuradas.';
+      'So sehen Ihre konfigurierten Finanzen aus.';
 
   @override
   String get estimatedMonthlyBalance => 'Balance Mensual Estimado';
@@ -883,10 +884,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Este resumen muestra la relación entre tus ingresos, gastos mensuales presupuestados y deudas. El \'Balance Mensual\' es el dinero disponible que tienes cada mes para ahorrar o invertir.';
 
   @override
-  String get totalMonthlyIncome => 'Ingreso Mensual Total';
+  String get totalMonthlyIncome => 'Monatliches Gesamteinkommen';
 
   @override
-  String get monthlyBudgetLimit => 'Límite de Presupuesto';
+  String get monthlyBudgetLimit => 'Monatliches Budgetlimit';
 
   @override
   String savingCapacityFormula(Object balance, Object budget, Object income) {
@@ -901,7 +902,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String debtPaymentSummary(String interest, String amount) {
-    return '$interest% - Pagos: $amount';
+    return '$interest% - Zahlungen: $amount';
   }
 
   @override
@@ -911,18 +912,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get monthlyDebtCommitment => 'Compromiso Mensual de Deuda';
 
   @override
-  String get realSavingCapacity => 'Capacidad de Ahorro Real';
+  String get realSavingCapacity => 'Tatsächliche Sparkapazität';
 
   @override
-  String get advisorContext => 'Como tu asesor financiero, te sugiero...';
+  String get advisorContext => 'Als Ihr Finanzberater schlage ich vor...';
 
   @override
   String get financialHealthGood =>
-      'Tu salud financiera se ve sólida. Tienes un excedente positivo para tus metas.';
+      'Ihre finanzielle Gesundheit sieht solide aus. Sie haben einen positiven Überschuss für Ihre Ziele.';
 
   @override
   String get financialHealthWarning =>
-      'Atención: Tus compromisos mensuales superan tus ingresos. Necesitas ajustar tu presupuesto.';
+      'Achtung: Ihre monatlichen Verpflichtungen übersteigen Ihr Einkommen. Sie müssen Ihr Budget anpassen.';
 
   @override
   String get netCashFlow => 'Flujo de Caja Neto';
@@ -934,6 +935,16 @@ class AppLocalizationsDe extends AppLocalizations {
     Object debt,
     Object income,
   ) {
-    return 'Ingresos ($income) - Gastos ($budget) - Pagos Deuda ($debt) = $balance libres.';
+    return 'Einkommen ($income) - Ausgaben ($budget) - Schuldenzahlungen ($debt) = $balance frei.';
   }
+
+  @override
+  String get skip => 'Überspringen';
+
+  @override
+  String get skipOnboardingTitle => 'Einrichtung überspringen?';
+
+  @override
+  String get skipOnboardingMessage =>
+      'Wenn Sie Ihr Profil bereits konfiguriert haben, können Sie diesen Schritt überspringen. Andernfalls empfehlen wir den Abschluss, damit die KI Sie besser beraten kann.';
 }

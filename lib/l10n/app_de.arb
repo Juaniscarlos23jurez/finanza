@@ -368,5 +368,53 @@
     "exportCsvSuggestion": "Exportiere meine Transaktionen nach CSV",
     "transactionAi": "KI-Transaktion",
     "goalAiDescription": "Von KI erstelltes Ziel",
-    "shareLinkAndCode": "Link und Code teilen"
+    "shareLinkAndCode": "Link und Code teilen",
+    "onboardingWelcome": "Willkommen bei Finanzen KI",
+    "onboardingSubtitle": "Lassen Sie uns Ihr Finanzprofil in wenigen einfachen Schritten einrichten.",
+    "stepBudgetTitle": "3. Ihr Budget",
+    "stepBudgetSubtitle": "Wie viel planen Sie monatlich insgesamt auszugeben?",
+    "stepBudgetHint": "z.B. {amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "Verfügbares monatliches Geld",
+    "incomeMinusDebts": "Ihr Einkommen abzüglich Ihrer Schulden.",
+    "howMuchToAssign": "Wie viel werden Sie Ihren Ausgaben zuweisen?",
+    "budgetLimitInfo": "Dies wird Ihr monatliches Limit für Ausgaben außerhalb Ihrer Schulden sein.",
+    "stepSourcesTitle": "1. Geldquellen",
+    "stepSourcesSubtitle": "Fügen Sie Ihre regelmäßigen Einkommensquellen hinzu.",
+    "stepDebtTitle": "2. Ihre Schulden",
+    "stepDebtSubtitle": "Erfassen Sie Ihre aktuellen Schulden, um uns bei der Planung zu helfen.",
+    "debtsRequired": "Bitte fügen Sie mindestens eine Schuld hinzu oder geben Sie 0 ein, wenn Sie keine haben.",
+    "stepGoalTitle": "4. Ihre Ziele",
+    "stepGoalSubtitle": "Wofür sparen Sie?",
+    "onboardingSummary": "Finanzzusammenfassung",
+    "onboardingSummarySubtitle": "So sehen Ihre konfigurierten Finanzen aus.",
+    "totalMonthlyIncome": "Monatliches Gesamteinkommen",
+    "monthlyBudgetLimit": "Monatliches Budgetlimit",
+    "realSavingCapacity": "Tatsächliche Sparkapazität",
+    "advisorContext": "Als Ihr Finanzberater schlage ich vor...",
+    "financialHealthGood": "Ihre finanzielle Gesundheit sieht solide aus. Sie haben einen positiven Überschuss für Ihre Ziele.",
+    "financialHealthWarning": "Achtung: Ihre monatlichen Verpflichtungen übersteigen Ihr Einkommen. Sie müssen Ihr Budget anpassen.",
+    "savingCapacityFormulaRefined": "Einkommen ({income}) - Ausgaben ({budget}) - Schuldenzahlungen ({debt}) = {balance} frei.",
+    "debtPaymentSummary": "{interest}% - Zahlungen: {amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "skip": "Überspringen",
+    "skipOnboardingTitle": "Einrichtung überspringen?",
+    "skipOnboardingMessage": "Wenn Sie Ihr Profil bereits konfiguriert haben, können Sie diesen Schritt überspringen. Andernfalls empfehlen wir den Abschluss, damit die KI Sie besser beraten kann.",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen"
 }

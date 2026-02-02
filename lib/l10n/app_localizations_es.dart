@@ -933,4 +933,14 @@ class AppLocalizationsEs extends AppLocalizations {
   ) {
     return 'Ingresos ($income) - Gastos ($budget) - Pagos Deuda ($debt) = $balance libres.';
   }
+
+  @override
+  String get skip => 'Saltar';
+
+  @override
+  String get skipOnboardingTitle => '¿Saltar configuración?';
+
+  @override
+  String get skipOnboardingMessage =>
+      'Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.';
 }

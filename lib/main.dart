@@ -18,6 +18,9 @@ import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:geminifinanzas/services/ad_service.dart';
 import 'dart:io';
 
+import 'package:geminifinanzas/screens/onboarding_screen.dart';
+import 'package:geminifinanzas/services/auth_service.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -65,15 +68,36 @@ void main() async {
   final String? token = prefs.getString('auth_token');
   debugPrint('Startup Token Check: ${token != null ? "Token Found" : "No Token"}');
 
+  Widget initialScreen = const LoginScreen();
+  
+  if (token != null) {
+    debugPrint('Main: Token detected, checking onboarding...');
+    final authService = AuthService();
+    try {
+      final bool onboardingComplete = await authService.isOnboardingComplete();
+      debugPrint('Main: Onboarding status: $onboardingComplete');
+      if (onboardingComplete) {
+        debugPrint('Main: Navigating to MainScreen');
+        initialScreen = const MainScreen();
+      } else {
+        debugPrint('Main: Navigating to OnboardingScreen (incomplete)');
+        initialScreen = const OnboardingScreen();
+      }
+    } catch (e) {
+      debugPrint('Main: CRITICAL ERROR during startup onboarding check: $e');
+      initialScreen = const LoginScreen();
+    }
+  } else {
+    debugPrint('Main: No token found, showing LoginScreen');
+  }
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
       child: MyApp(
-        initialScreen: token != null 
-            ? const MainScreen() 
-            : const LoginScreen(),
+        initialScreen: initialScreen,
       ),
     ),
   );

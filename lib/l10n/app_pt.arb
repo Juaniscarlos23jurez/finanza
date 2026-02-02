@@ -367,5 +367,48 @@
     "exportCsvSuggestion": "Exportar minhas movimentações para CSV",
     "transactionAi": "Transação IA",
     "goalAiDescription": "Meta criada por IA",
-    "shareLinkAndCode": "Compartilhar Link e Código"
+    "shareLinkAndCode": "Compartilhar Link e Código",
+    "onboardingWelcome": "Bem-vindo ao Finanças IA",
+    "onboardingSubtitle": "Vamos configurar seu perfil financeiro em alguns passos simples.",
+    "stepBudgetTitle": "3. Seu Orçamento",
+    "stepBudgetSubtitle": "Quanto você planeja gastar mensalmente no total?",
+    "stepBudgetHint": "ex. {amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "Dinheiro disponível mensal",
+    "incomeMinusDebts": "Sua renda menos suas dívidas.",
+    "howMuchToAssign": "Quanto você vai atribuir às suas despesas?",
+    "budgetLimitInfo": "Este será o seu limite mensal para despesas fora de suas dívidas.",
+    "stepSourcesTitle": "1. Fontes de Dinero",
+    "stepSourcesSubtitle": "Adicione suas fontes de renda regulares.",
+    "stepDebtTitle": "2. Suas Dívidas",
+    "stepDebtSubtitle": "Registre suas dívidas atuais para nos ajudar a planejar.",
+    "debtsRequired": "Por favor, adicione pelo menos uma dívida ou insira 0 se não tiver nenhuma.",
+    "stepGoalTitle": "4. Suas Metas",
+    "stepGoalSubtitle": "Para que você está economizando?",
+    "onboardingSummary": "Resumo Financeiro",
+    "onboardingSummarySubtitle": "É assim que suas finanças configuradas se parecem.",
+    "totalMonthlyIncome": "Renda Mensal Total",
+    "monthlyBudgetLimit": "Limite de Orçamento Mensal",
+    "realSavingCapacity": "Capacidade de Poupança Real",
+    "advisorContext": "Como seu consultor financeiro, sugiro...",
+    "financialHealthGood": "Sua saúde financeira parece sólida. Você tem um excedente positivo para suas metas.",
+    "financialHealthWarning": "Atenção: Seus compromissos mensais excedem sua renda. Você precisa ajustar seu orçamento.",
+    "savingCapacityFormulaRefined": "Renda ({income}) - Despesas ({budget}) - Pagamentos de Dívida ({debt}) = {balance} livres.",
+    "debtPaymentSummary": "{interest}% - Pagamentos: {amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    }
 }

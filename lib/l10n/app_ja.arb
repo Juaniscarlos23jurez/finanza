@@ -367,5 +367,48 @@
     "exportCsvSuggestion": "取引履歴をCSVで書き出してください",
     "transactionAi": "AI取引",
     "goalAiDescription": "AIによって作成された目標",
-    "shareLinkAndCode": "リンクとコードを共有"
+    "shareLinkAndCode": "リンクとコードを共有",
+    "onboardingWelcome": "財務AIへようこそ",
+    "onboardingSubtitle": "数ステップで財務プロフィールを設定しましょう。",
+    "stepBudgetTitle": "3. 予算",
+    "stepBudgetSubtitle": "合計で毎月いくら使う予定ですか？",
+    "stepBudgetHint": "例：{amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "毎月の利用可能金額",
+    "incomeMinusDebts": "収入から負債を引いた額。",
+    "howMuchToAssign": "支出にいくら割り当てますか？",
+    "budgetLimitInfo": "これが負債以外の支出の月間上限になります。",
+    "stepSourcesTitle": "1. 資金源",
+    "stepSourcesSubtitle": "定期的な収入源を追加してください。",
+    "stepDebtTitle": "2. 負債",
+    "stepDebtSubtitle": "計画を立てるために現在の負債を記録してください。",
+    "debtsRequired": "負債を少なくとも1つ追加するか、ない場合は0を入力してください。",
+    "stepGoalTitle": "4. 目標",
+    "stepGoalSubtitle": "何のために貯金していますか？",
+    "onboardingSummary": "財務サマリー",
+    "onboardingSummarySubtitle": "設定された財務状況は以下の通りです。",
+    "totalMonthlyIncome": "合計月収",
+    "monthlyBudgetLimit": "月間予算上限",
+    "realSavingCapacity": "実際の貯蓄能力",
+    "advisorContext": "財務アドバイザーとして、以下の提案をします...",
+    "financialHealthGood": "財務状況は健全です。目標に対してプラスの余剰があります。",
+    "financialHealthWarning": "注意：毎月の支払いが収入を上回っています。予算を調整する必要があります。",
+    "savingCapacityFormulaRefined": "収入 ({income}) - 支出 ({budget}) - 負債支払い ({debt}) = 自由な資金 {balance}。",
+    "debtPaymentSummary": "{interest}% - 支払い額：{amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    }
 }

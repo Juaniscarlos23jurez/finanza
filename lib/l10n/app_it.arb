@@ -367,5 +367,48 @@
     "exportCsvSuggestion": "Esporta i miei movimenti in CSV",
     "transactionAi": "Movimento IA",
     "goalAiDescription": "Obiettivo creato dall'IA",
-    "shareLinkAndCode": "Condividi link e codice"
+    "shareLinkAndCode": "Condividi link e codice",
+    "onboardingWelcome": "Benvenuto in Finanze IA",
+    "onboardingSubtitle": "Configuriamo il tuo profilo finanziario in pochi semplici passaggi.",
+    "stepBudgetTitle": "3. Il tuo budget",
+    "stepBudgetSubtitle": "Quanto pensi di spendere mensilmente in totale?",
+    "stepBudgetHint": "es. {amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "Soldi mensili disponibili",
+    "incomeMinusDebts": "Il tuo reddito meno i tuoi debiti.",
+    "howMuchToAssign": "Quanto assegnerai alle tue spese?",
+    "budgetLimitInfo": "Questo sarà il tuo limite mensule per le spese al di fuori dei tuoi debiti.",
+    "stepSourcesTitle": "1. Fonti di denaro",
+    "stepSourcesSubtitle": "Aggiungi le tue fonti di reddito regolari.",
+    "stepDebtTitle": "2. I tuoi debiti",
+    "stepDebtSubtitle": "Registra i tuoi debiti attuali per aiutarci a pianificare.",
+    "debtsRequired": "Per favore aggiungi almeno un debito o inserisci 0 se non ne hai.",
+    "stepGoalTitle": "4. I tuoi obiettivi",
+    "stepGoalSubtitle": "Per cosa stai risparmiando?",
+    "onboardingSummary": "Riepilogo finanziario",
+    "onboardingSummarySubtitle": "Ecco come appaiono le tue finanze configurate.",
+    "totalMonthlyIncome": "Reddito mensile totale",
+    "monthlyBudgetLimit": "Limite budget mensile",
+    "realSavingCapacity": "Capacità di risparmio reale",
+    "advisorContext": "Come tuo consulente finanziario, ti suggerisco...",
+    "financialHealthGood": "La tua salute finanziaria sembra solida. Hai un surplus positivo per i tuoi obiettivi.",
+    "financialHealthWarning": "Attenzione: i tuoi impegni mensili superano il tuo reddito. Devi aggiustare il tuo budget.",
+    "savingCapacityFormulaRefined": "Reddito ({income}) - Spese ({budget}) - Pagamenti debito ({debt}) = {balance} liberi.",
+    "debtPaymentSummary": "{interest}% - Pagamenti: {amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    }
 }

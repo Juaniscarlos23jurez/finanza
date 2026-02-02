@@ -372,14 +372,25 @@
     "goalAiDescription": "Goal created by AI",
     "shareLinkAndCode": "Share Link and Code",
     "onboardingWelcome": "Welcome to Finance AI",
-    "onboardingSubtitle": "Let's set up your financial profile in 3 simple steps.",
-    "stepBudgetTitle": "1. Your Budget",
+    "onboardingSubtitle": "Let's set up your financial profile in a few simple steps.",
+    "stepBudgetTitle": "3. Your Budget",
     "stepBudgetSubtitle": "How much do you plan to spend monthly in total?",
-    "stepBudgetHint": "e.g. 5000",
+    "stepBudgetHint": "e.g. {amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "Monthly Available Money",
+    "incomeMinusDebts": "Your income minus your debts.",
+    "howMuchToAssign": "How much will you assign to your expenses?",
+    "budgetLimitInfo": "This will be your monthly limit for expenses outside of your debts.",
     "stepSaleTitle": "2. First Sale",
     "stepSaleSubtitle": "Record your first sale or income of the day.",
     "stepSaleHint": "e.g. Product sale",
-    "stepSourcesTitle": "2. Money Sources",
+    "stepSourcesTitle": "1. Money Sources",
     "stepSourcesSubtitle": "Add your regular income sources.",
     "addSource": "Add Source",
     "sourceName": "Source name",
@@ -395,8 +406,9 @@
     "budgetRequired": "Please enter a valid budget",
     "saleRequired": "Please record your first sale",
     "sourcesRequired": "Please add at least one income source",
-    "stepDebtTitle": "3. Your Debts",
+    "stepDebtTitle": "2. Your Debts",
     "stepDebtSubtitle": "Record your current debts to help us plan.",
+    "debtsRequired": "Please add at least one debt or enter 0 if you have none.",
     "addDebt": "Add Debt",
     "debtName": "Debt name",
     "debtNameHint": "Credit card, Loan, etc.",
@@ -427,6 +439,17 @@
     "savingCapacityFormula": "Income ({income}) - Expenses ({budget}) = {balance} free for goals and emergencies.",
     "savingCapacityTitle": "Your monthly saving capacity",
     "debtPayment": "Monthly payment",
+    "debtPaymentSummary": "{interest}% - Payments: {amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "debtPaymentHint": "e.g. 500",
     "monthlyDebtCommitment": "Monthly Debt Commitment",
     "realSavingCapacity": "Real Saving Capacity",
@@ -434,5 +457,10 @@
     "financialHealthGood": "Your financial health looks solid. You have a positive surplus for your goals.",
     "financialHealthWarning": "Attention: Your monthly commitments exceed your income. You need to adjust your budget.",
     "netCashFlow": "Net Cash Flow",
-    "savingCapacityFormulaRefined": "Income ({income}) - Expenses ({budget}) - Debt Payments ({debt}) = {balance} free."
+    "savingCapacityFormulaRefined": "Income ({income}) - Expenses ({budget}) - Debt Payments ({debt}) = {balance} free.",
+    "skip": "Skip",
+    "skipOnboardingTitle": "Skip Setup?",
+    "skipOnboardingMessage": "If you have already configured your profile before, you can skip this step. Otherwise, we recommend completing it so the AI can give you better advice.",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
 }

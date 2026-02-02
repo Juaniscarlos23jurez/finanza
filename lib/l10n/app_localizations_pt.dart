@@ -704,36 +704,36 @@ class AppLocalizationsPt extends AppLocalizations {
   String get shareLinkAndCode => 'Compartilhar Link e Código';
 
   @override
-  String get onboardingWelcome => 'Bienvenido a Finanzas AI';
+  String get onboardingWelcome => 'Bem-vindo ao Finanças IA';
 
   @override
   String get onboardingSubtitle =>
-      'Vamos a configurar tu perfil financiero en unos simples pasos.';
+      'Vamos configurar seu perfil financeiro em alguns passos simples.';
 
   @override
-  String get stepBudgetTitle => '3. Tu Presupuesto';
+  String get stepBudgetTitle => '3. Seu Orçamento';
 
   @override
   String get stepBudgetSubtitle =>
-      '¿Cuánto planeas gastar mensualmente en total?';
+      'Quanto você planeja gastar mensalmente no total?';
 
   @override
   String stepBudgetHint(String amount) {
-    return 'Ej. $amount';
+    return 'ex. $amount';
   }
 
   @override
-  String get monthlyAvailableMoney => 'Dinero disponible mensual';
+  String get monthlyAvailableMoney => 'Dinheiro disponível mensal';
 
   @override
-  String get incomeMinusDebts => 'Tus ingresos menos tus deudas.';
+  String get incomeMinusDebts => 'Sua renda menos suas dívidas.';
 
   @override
-  String get howMuchToAssign => '¿Cuánto asignarás a tus gastos?';
+  String get howMuchToAssign => 'Quanto você vai atribuir às suas despesas?';
 
   @override
   String get budgetLimitInfo =>
-      'Este será tu límite mensual para gastos fuera de tus deudas.';
+      'Este será o seu limite mensal para despesas fora de suas dívidas.';
 
   @override
   String get stepSaleTitle => '2. Primera Venta';
@@ -745,10 +745,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get stepSaleHint => 'Ej. Venta de producto';
 
   @override
-  String get stepSourcesTitle => '1. Fuentes de Dinero';
+  String get stepSourcesTitle => '1. Fontes de Dinero';
 
   @override
-  String get stepSourcesSubtitle => 'Agrega tus fuentes de ingresos regulares.';
+  String get stepSourcesSubtitle => 'Adicione suas fontes de renda regulares.';
 
   @override
   String get addSource => 'Agregar Fuente';
@@ -794,15 +794,15 @@ class AppLocalizationsPt extends AppLocalizations {
       'Por favor agrega al menos una fuente de ingresos';
 
   @override
-  String get stepDebtTitle => '2. Tus Deudas';
+  String get stepDebtTitle => '2. Suas Dívidas';
 
   @override
   String get stepDebtSubtitle =>
-      'Registra tus deudas actuales para ayudarte a planear.';
+      'Registre suas dívidas atuais para nos ajudar a planejar.';
 
   @override
   String get debtsRequired =>
-      'Por favor agrega al menos una deuda o ingresa 0 si no tienes.';
+      'Por favor, adicione pelo menos uma dívida ou insira 0 se não tiver nenhuma.';
 
   @override
   String get addDebt => 'Agregar Deuda';
@@ -823,10 +823,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get debtDueDate => 'Fecha de pago';
 
   @override
-  String get stepGoalTitle => '4. Tus Metas';
+  String get stepGoalTitle => '4. Suas Metas';
 
   @override
-  String get stepGoalSubtitle => '¿Para qué estás ahorrando?';
+  String get stepGoalSubtitle => 'Para que você está economizando?';
 
   @override
   String get addGoal => 'Agregar Meta';
@@ -841,11 +841,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get goalTarget => 'Monto objetivo';
 
   @override
-  String get onboardingSummary => 'Resumen Financiero';
+  String get onboardingSummary => 'Resumo Financeiro';
 
   @override
   String get onboardingSummarySubtitle =>
-      'Así se ven tus finanzas configuradas.';
+      'É assim que suas finanças configuradas se parecem.';
 
   @override
   String get estimatedMonthlyBalance => 'Balance Mensual Estimado';
@@ -882,10 +882,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este resumen muestra la relación entre tus ingresos, gastos mensuales presupuestados y deudas. El \'Balance Mensual\' es el dinero disponible que tienes cada mes para ahorrar o invertir.';
 
   @override
-  String get totalMonthlyIncome => 'Ingreso Mensual Total';
+  String get totalMonthlyIncome => 'Renda Mensal Total';
 
   @override
-  String get monthlyBudgetLimit => 'Límite de Presupuesto';
+  String get monthlyBudgetLimit => 'Limite de Orçamento Mensal';
 
   @override
   String savingCapacityFormula(Object balance, Object budget, Object income) {
@@ -900,7 +900,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String debtPaymentSummary(String interest, String amount) {
-    return '$interest% - Pagos: $amount';
+    return '$interest% - Pagamentos: $amount';
   }
 
   @override
@@ -910,18 +910,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get monthlyDebtCommitment => 'Compromiso Mensual de Deuda';
 
   @override
-  String get realSavingCapacity => 'Capacidad de Ahorro Real';
+  String get realSavingCapacity => 'Capacidade de Poupança Real';
 
   @override
-  String get advisorContext => 'Como tu asesor financiero, te sugiero...';
+  String get advisorContext => 'Como seu consultor financeiro, sugiro...';
 
   @override
   String get financialHealthGood =>
-      'Tu salud financiera se ve sólida. Tienes un excedente positivo para tus metas.';
+      'Sua saúde financeira parece sólida. Você tem um excedente positivo para suas metas.';
 
   @override
   String get financialHealthWarning =>
-      'Atención: Tus compromisos mensuales superan tus ingresos. Necesitas ajustar tu presupuesto.';
+      'Atenção: Seus compromissos mensais excedem sua renda. Você precisa ajustar seu orçamento.';
 
   @override
   String get netCashFlow => 'Flujo de Caja Neto';
@@ -933,6 +933,16 @@ class AppLocalizationsPt extends AppLocalizations {
     Object debt,
     Object income,
   ) {
-    return 'Ingresos ($income) - Gastos ($budget) - Pagos Deuda ($debt) = $balance libres.';
+    return 'Renda ($income) - Despesas ($budget) - Pagamentos de Dívida ($debt) = $balance livres.';
   }
+
+  @override
+  String get skip => 'Saltar';
+
+  @override
+  String get skipOnboardingTitle => '¿Saltar configuración?';
+
+  @override
+  String get skipOnboardingMessage =>
+      'Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.';
 }

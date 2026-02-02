@@ -367,5 +367,48 @@
     "exportCsvSuggestion": "将我的交易导出为 CSV",
     "transactionAi": "AI 交易",
     "goalAiDescription": "由 AI 创建的目标",
-    "shareLinkAndCode": "分享链接和代码"
+    "shareLinkAndCode": "分享链接和代码",
+    "onboardingWelcome": "欢迎使用金融AI",
+    "onboardingSubtitle": "让我们通过几个简单的步骤设置您的财务概况。",
+    "stepBudgetTitle": "3. 您的预算",
+    "stepBudgetSubtitle": "您计划每月总共支出多少？",
+    "stepBudgetHint": "例如：{amount}",
+    "@stepBudgetHint": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyAvailableMoney": "每月可用资金",
+    "incomeMinusDebts": "您的收入减去您的债务。",
+    "howMuchToAssign": "您将为支出分配多少？",
+    "budgetLimitInfo": "这将是您除债务外的每月支出限额。",
+    "stepSourcesTitle": "1. 资金来源",
+    "stepSourcesSubtitle": "添加您的定期收入来源。",
+    "stepDebtTitle": "2. 您的债务",
+    "stepDebtSubtitle": "记录您目前的债务，以帮助我们进行计划。",
+    "debtsRequired": "请至少添加一项债务，如果没有请填0。",
+    "stepGoalTitle": "4. 您的目标",
+    "stepGoalSubtitle": "您为什么而存钱？",
+    "onboardingSummary": "财务摘要",
+    "onboardingSummarySubtitle": "这是您配置好的财务状况。",
+    "totalMonthlyIncome": "每月总收入",
+    "monthlyBudgetLimit": "每月预算限额",
+    "realSavingCapacity": "实际储蓄能力",
+    "advisorContext": "作为您的财务顾问，我建议...",
+    "financialHealthGood": "您的财务状况看起来稳健。您有足够的余力实现目标。",
+    "financialHealthWarning": "注意：您的每月支出超过了收入。您需要调整预算。",
+    "savingCapacityFormulaRefined": "收入 ({income}) - 支出 ({budget}) - 债务偿还 ({debt}) = 剩余 {balance}。",
+    "debtPaymentSummary": "{interest}% - 支付：{amount}",
+    "@debtPaymentSummary": {
+        "placeholders": {
+            "interest": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    }
 }

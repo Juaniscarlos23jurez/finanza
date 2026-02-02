@@ -707,10 +707,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingSubtitle =>
-      'Let\'s set up your financial profile in 3 simple steps.';
+      'Let\'s set up your financial profile in a few simple steps.';
 
   @override
-  String get stepBudgetTitle => '1. Your Budget';
+  String get stepBudgetTitle => '3. Your Budget';
 
   @override
   String get stepBudgetSubtitle =>
@@ -718,21 +718,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String stepBudgetHint(String amount) {
-    return 'e.g. 5000';
+    return 'e.g. $amount';
   }
 
   @override
-  String get monthlyAvailableMoney => 'Dinero disponible mensual';
+  String get monthlyAvailableMoney => 'Monthly Available Money';
 
   @override
-  String get incomeMinusDebts => 'Tus ingresos menos tus deudas.';
+  String get incomeMinusDebts => 'Your income minus your debts.';
 
   @override
-  String get howMuchToAssign => '¿Cuánto asignarás a tus gastos?';
+  String get howMuchToAssign => 'How much will you assign to your expenses?';
 
   @override
   String get budgetLimitInfo =>
-      'Este será tu límite mensual para gastos fuera de tus deudas.';
+      'This will be your monthly limit for expenses outside of your debts.';
 
   @override
   String get stepSaleTitle => '2. First Sale';
@@ -744,7 +744,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepSaleHint => 'e.g. Product sale';
 
   @override
-  String get stepSourcesTitle => '2. Money Sources';
+  String get stepSourcesTitle => '1. Money Sources';
 
   @override
   String get stepSourcesSubtitle => 'Add your regular income sources.';
@@ -792,14 +792,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sourcesRequired => 'Please add at least one income source';
 
   @override
-  String get stepDebtTitle => '3. Your Debts';
+  String get stepDebtTitle => '2. Your Debts';
 
   @override
   String get stepDebtSubtitle => 'Record your current debts to help us plan.';
 
   @override
   String get debtsRequired =>
-      'Por favor agrega al menos una deuda o ingresa 0 si no tienes.';
+      'Please add at least one debt or enter 0 if you have none.';
 
   @override
   String get addDebt => 'Add Debt';
@@ -897,7 +897,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String debtPaymentSummary(String interest, String amount) {
-    return '$interest% - Pagos: $amount';
+    return '$interest% - Payments: $amount';
   }
 
   @override
@@ -932,4 +932,14 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'Income ($income) - Expenses ($budget) - Debt Payments ($debt) = $balance free.';
   }
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get skipOnboardingTitle => 'Skip Setup?';
+
+  @override
+  String get skipOnboardingMessage =>
+      'If you have already configured your profile before, you can skip this step. Otherwise, we recommend completing it so the AI can give you better advice.';
 }

@@ -161,7 +161,23 @@ class AuthService {
 
   Future<String?> getUserEmail() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_email');
+    String? email = prefs.getString('user_email');
+    debugPrint('AuthService: Local user_email: $email');
+    if (email == null) {
+      debugPrint('AuthService: Email is null localy, fetching profile...');
+      try {
+        final profile = await getProfile();
+        if (profile['success'] == true) {
+          email = profile['data']['email'];
+          debugPrint('AuthService: Email fetched from profile API: $email');
+        } else {
+          debugPrint('AuthService: Failed to fetch profile: ${profile['message']}');
+        }
+      } catch (e) {
+        debugPrint('AuthService: Error fetching profile for email: $e');
+      }
+    }
+    return email;
   }
 
   Future<String?> getOrCreateUserCode() async {
@@ -356,14 +372,74 @@ class AuthService {
 
   Future<bool> isOnboardingComplete() async {
     final email = await getUserEmail();
+    debugPrint('AuthService: isOnboardingComplete check for: $email');
+    
+    // Fallback 1: Local preferences (Fastest)
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('onboarding_complete') ?? false) {
+      debugPrint('AuthService: Result -> ONBOARDING COMPLETE (Local Flag)');
+      return true;
+    }
+
     if (email != null) {
+      // Fallback 2: Firebase config
       final config = await _firebaseService.getUserConfig(email);
       if (config != null) {
-        return config['onboarding_complete'] ?? false;
+        final bool hasBudget = config['user_monthly_budget'] != null;
+        final bool hasSources = config['user_income_sources'] != null && (config['user_income_sources'] as List).isNotEmpty;
+        final bool flagComplete = config['onboarding_complete'] ?? false;
+        
+        debugPrint('AuthService: Firebase data for $email: flag=$flagComplete, hasBudget=$hasBudget, hasSources=$hasSources');
+        
+        if (flagComplete || (hasBudget && hasSources)) {
+          debugPrint('AuthService: Result -> ONBOARDING COMPLETE (Firebase Config)');
+          // Cache it locally too
+          await prefs.setBool('onboarding_complete', true);
+          return true;
+        }
+      }
+
+      // Fallback 3: Check if they have goals in the backend (Definitive indicator they are using the app)
+      debugPrint('AuthService: Checking backend for existing goals...');
+      try {
+        final hasGoals = await checkIfUserHasGoals();
+        if (hasGoals) {
+          debugPrint('AuthService: Result -> ONBOARDING COMPLETE (Existing Goals found)');
+          await prefs.setBool('onboarding_complete', true);
+          return true;
+        }
+      } catch (e) {
+        debugPrint('AuthService: Error checking goals fallback: $e');
       }
     }
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('onboarding_complete') ?? false;
+    
+    debugPrint('AuthService: Result -> ONBOARDING INCOMPLETE');
+    return false;
+  }
+
+  Future<bool> checkIfUserHasGoals() async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final response = await _dio.get(
+        'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth/finance/goals',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data['data'] ?? response.data;
+        if (data is List && data.isNotEmpty) {
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
   }
 
   Future<void> setOnboardingComplete(bool complete) async {
@@ -473,6 +549,30 @@ class AuthService {
     if (found) {
       await saveDebts(currentDebts);
     }
+  }
+
+  Future<void> saveFullOnboardingData({
+    required double budget,
+    required List<Map<String, dynamic>> incomeSources,
+    required List<Map<String, dynamic>> debts,
+  }) async {
+    final email = await getUserEmail();
+    if (email != null) {
+      final config = {
+        'user_monthly_budget': budget,
+        'user_income_sources': incomeSources,
+        'user_debts': debts,
+        'onboarding_complete': true,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+      await _firebaseService.saveUserConfig(email, config);
+    }
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('user_monthly_budget', budget);
+    await prefs.setString('user_income_sources', json.encode(incomeSources));
+    await prefs.setString('user_debts', json.encode(debts));
+    await prefs.setBool('onboarding_complete', true);
   }
 
   String _handleError(dynamic e) {

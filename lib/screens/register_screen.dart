@@ -8,6 +8,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../services/auth_service.dart';
 import 'onboarding_screen.dart';
+import 'main_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -161,14 +162,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void _processAuthResult(Map<String, dynamic> result) {
+  void _processAuthResult(Map<String, dynamic> result) async {
     if (result['success']) {
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-        (route) => false,
-      );
+      
+      final bool onboardingComplete = await _authService.isOnboardingComplete();
+      if (!mounted) return;
+
+      if (onboardingComplete) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+          (route) => false,
+        );
+      }
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
