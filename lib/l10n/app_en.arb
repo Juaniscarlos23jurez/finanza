@@ -462,5 +462,9 @@
     "skipOnboardingTitle": "Skip Setup?",
     "skipOnboardingMessage": "If you have already configured your profile before, you can skip this step. Otherwise, we recommend completing it so the AI can give you better advice.",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "monthlyBudgetLabel": "Monthly Budget",
+    "addDebtTitle": "New Debt",
+    "debtMonthlyPayment": "Monthly Payment",
+    "saveChanges": "Save Changes"
 }

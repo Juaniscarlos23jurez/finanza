@@ -462,5 +462,9 @@
     "skipOnboardingTitle": "¿Saltar configuración?",
     "skipOnboardingMessage": "Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.",
     "cancel": "Cancelar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "monthlyBudgetLabel": "Presupuesto Mensual",
+    "addDebtTitle": "Nueva Deuda",
+    "debtMonthlyPayment": "Pago Mensual",
+    "saveChanges": "Guardar Cambios"
 }

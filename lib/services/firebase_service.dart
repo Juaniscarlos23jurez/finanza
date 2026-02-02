@@ -104,4 +104,30 @@ class FirebaseService {
     debugPrint('FirebaseService: Config NOT found for $safeEmail');
     return null;
   }
+  /// Saves user configuration using ID (more reliable than email)
+  Future<void> saveUserConfigById(String userId, Map<String, dynamic> config) async {
+    final String path = 'user_configs_id/$userId';
+    debugPrint('FirebaseService: Saving config to $path');
+    try {
+      await _db.ref(path).set({
+        ...config,
+        'updatedAt': ServerValue.timestamp,
+      });
+      debugPrint('FirebaseService: Config saved successfully to $path');
+    } catch (e) {
+      debugPrint('FirebaseService: ERROR saving to $path: $e');
+      rethrow;
+    }
+  }
+
+  /// Retrieves user configuration using ID
+  Future<Map<String, dynamic>?> getUserConfigById(String userId) async {
+    final String path = 'user_configs_id/$userId';
+    debugPrint('FirebaseService: Getting config for ID $userId');
+    final snapshot = await _db.ref(path).get();
+    if (snapshot.exists) {
+      return Map<String, dynamic>.from(snapshot.value as Map);
+    }
+    return null;
+  }
 }

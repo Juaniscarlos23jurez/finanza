@@ -1836,6 +1836,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.'**
   String get skipOnboardingMessage;
+
+  /// No description provided for @monthlyBudgetLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto Mensual'**
+  String get monthlyBudgetLabel;
+
+  /// No description provided for @addDebtTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Deuda'**
+  String get addDebtTitle;
+
+  /// No description provided for @debtMonthlyPayment.
+  ///
+  /// In es, this message translates to:
+  /// **'Pago Mensual'**
+  String get debtMonthlyPayment;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar Cambios'**
+  String get saveChanges;
 }
 
 class _AppLocalizationsDelegate

@@ -951,4 +951,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get skipOnboardingMessage =>
       'Si ya configuraste tu perfil anteriormente, puedes saltar este paso. De lo contrario, te recomendamos completarlo para que la IA pueda darte mejores consejos.';
+
+  @override
+  String get monthlyBudgetLabel => 'Monthly Budget';
+
+  @override
+  String get addDebtTitle => 'New Debt';
+
+  @override
+  String get debtMonthlyPayment => 'Monthly Payment';
+
+  @override
+  String get saveChanges => 'Save Changes';
 }

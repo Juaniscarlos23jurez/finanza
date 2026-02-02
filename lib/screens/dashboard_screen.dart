@@ -451,7 +451,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(l10n.myBudget),
+        _buildSectionTitle(l10n.myBudget, onEdit: _showEditBudgetDialog),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(24),
@@ -534,7 +534,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(l10n.debtsTitle),
+        _buildSectionTitle(l10n.debtsTitle, onEdit: _showEditDebtsDialog),
         const SizedBox(height: 16),
         Container(
           width: double.infinity,
@@ -601,6 +601,239 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ... (Header and BalanceCard remain the same) ...
   // ... (Previous methods) ...
+
+  void _showEditBudgetDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(text: _userBudget.toStringAsFixed(0));
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: EdgeInsets.only(
+            left: 24, right: 24, top: 12,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              Text(l10n.myBudget, style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 24),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: l10n.monthlyBudgetLabel,
+                  prefixText: "\$ ",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isSaving ? null : () async {
+                    final budget = double.tryParse(controller.text);
+                    if (budget == null) return;
+                    setDialogState(() => isSaving = true);
+                    try {
+                      await _authService.saveBudget(budget);
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      _fetchFinanceData();
+                    } catch (e) {
+                      setDialogState(() => isSaving = false);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: isSaving 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(l10n.save, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditDebtsDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    List<Map<String, dynamic>> tempDebts = List.from(_userDebts);
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l10n.debtsTitle, style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w800)),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: Text(l10n.add),
+                    onPressed: () => _showAddDebtForm(tempDebts, setDialogState),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                      foregroundColor: AppTheme.primary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: tempDebts.isEmpty 
+                  ? Center(child: Text(l10n.noDescription, style: TextStyle(color: AppTheme.secondary)))
+                  : ListView.builder(
+                      itemCount: tempDebts.length,
+                      itemBuilder: (context, index) {
+                        final debt = tempDebts[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.background,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: ListTile(
+                            title: Text(debt['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text("${l10n.debtAmount}: ${_formatCurrency(double.tryParse(debt['amount'].toString()) ?? 0.0)}"),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              onPressed: () => setDialogState(() => tempDebts.removeAt(index)),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isSaving ? null : () async {
+                    setDialogState(() => isSaving = true);
+                    try {
+                      await _authService.saveDebts(tempDebts);
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      _fetchFinanceData();
+                    } catch (e) {
+                      setDialogState(() => isSaving = false);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: isSaving 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(l10n.saveChanges, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAddDebtForm(List<Map<String, dynamic>> tempDebts, StateSetter setDialogState) {
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController();
+    final amountController = TextEditingController();
+    final paymentController = TextEditingController();
+    final interestController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.addDebtTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController, 
+                decoration: InputDecoration(labelText: l10n.debtName, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amountController, 
+                decoration: InputDecoration(labelText: l10n.debtAmount, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), 
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: paymentController, 
+                decoration: InputDecoration(labelText: l10n.debtMonthlyPayment, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), 
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: interestController, 
+                decoration: InputDecoration(labelText: l10n.debtInterest, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), 
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.isEmpty || amountController.text.isEmpty) return;
+              setDialogState(() {
+                tempDebts.add({
+                  'name': nameController.text,
+                  'amount': double.tryParse(amountController.text) ?? 0.0,
+                  'monthly_payment': double.tryParse(paymentController.text) ?? 0.0,
+                  'interest': double.tryParse(interestController.text) ?? 0.0,
+                });
+              });
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(l10n.add),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showPayDebtDialog(Map<String, dynamic> debt) {
     final l10n = AppLocalizations.of(context)!;
@@ -1061,7 +1294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, {VoidCallback? onAdd}) {
+  Widget _buildSectionTitle(String title, {VoidCallback? onAdd, VoidCallback? onEdit}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1087,6 +1320,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.add, size: 20, color: AppTheme.primary),
+                ),
+              ),
+            ],
+            if (onEdit != null) ...[
+              const SizedBox(width: 12),
+              InkWell(
+                onTap: onEdit,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit_rounded, size: 16, color: AppTheme.primary),
                 ),
               ),
             ],

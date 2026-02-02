@@ -947,4 +947,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get skipOnboardingMessage =>
       'Wenn Sie Ihr Profil bereits konfiguriert haben, können Sie diesen Schritt überspringen. Andernfalls empfehlen wir den Abschluss, damit die KI Sie besser beraten kann.';
+
+  @override
+  String get monthlyBudgetLabel => 'Monthly Budget';
+
+  @override
+  String get addDebtTitle => 'New Debt';
+
+  @override
+  String get debtMonthlyPayment => 'Monthly Payment';
+
+  @override
+  String get saveChanges => 'Save Changes';
 }
