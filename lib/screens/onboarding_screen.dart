@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'main_screen.dart';
 import '../services/nutrition_service.dart';
 import '../services/ai_service.dart';
+import '../l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -384,6 +385,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: CallbackShortcuts(
@@ -443,6 +445,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildStep(int index) {
+    final l10n = AppLocalizations.of(context)!;
     final step = _steps[index];
     return SingleChildScrollView(
       child: Padding(

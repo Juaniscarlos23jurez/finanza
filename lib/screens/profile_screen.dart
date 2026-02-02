@@ -536,6 +536,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEmojiSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final animalEmojis = [
       '🦊', '🐼', '🐨', '🦁', '🐯', '🐻', '🐰', '🐱', 
       '🐶', '🐺', '🦝', '🦌', '🐮', '🐷', '🐸', '🐵',

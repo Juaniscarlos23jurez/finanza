@@ -1630,6 +1630,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final amountController = TextEditingController();
     bool isSaving = false;
     bool isWithdrawMode = false;
+    bool showHistory = false;
     
     final double target = double.tryParse(goal['target_amount'].toString()) ?? 1.0;
     double current = double.tryParse(goal['current_amount'].toString()) ?? 0.0;
@@ -1709,16 +1710,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      isWithdrawMode ? Icons.trending_down : Icons.trending_up,
-                      color: AppTheme.primary,
-                    ),
+                  Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          isWithdrawMode ? Icons.trending_down : Icons.trending_up,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () => setBottomSheetState(() => showHistory = !showHistory),
+                        icon: Icon(showHistory ? Icons.edit_note : Icons.history, size: 16),
+                        label: Text(
+                          showHistory ? l10n.register_action : l10n.history_action,
+                          style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.secondary,
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 30),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1747,96 +1766,187 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              // Mode Toggle
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildModeButton(
-                      l10n.addLabel, 
-                      Icons.add_circle_outline, 
-                      !isWithdrawMode, 
-                      () => setBottomSheetState(() => isWithdrawMode = false)
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildModeButton(
-                      l10n.subtractLabel, 
-                      Icons.remove_circle_outline, 
-                      isWithdrawMode, 
-                      () => setBottomSheetState(() => isWithdrawMode = true)
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: amountController,
-                decoration: InputDecoration(
-                  labelText: l10n.amountToLog,
-                  prefixIcon: const Icon(Icons.edit_note),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                  filled: true,
-                  fillColor: AppTheme.background,
-                ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                autofocus: true,
-                style: GoogleFonts.manrope(),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isWithdrawMode ? Colors.orangeAccent : AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    elevation: 0,
-                  ),
-                  onPressed: isSaving ? null : () async {
-                    final double? amount = double.tryParse(amountController.text);
-                    if (amount == null || amount <= 0) return;
-
-                    setBottomSheetState(() => isSaving = true);
-                    
-                    try {
-                      // Calculate new current value
-                      final double newCurrent = isWithdrawMode ? current - amount : current + amount;
-                      final bool wasIncomplete = current < target;
-                      final bool isNowComplete = newCurrent >= target;
+              if (showHistory)
+                Expanded(
+                  child: StreamBuilder<DatabaseEvent>(
+                    stream: _nutritionService.getGoalHistory(goalId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
                       
-                      await _nutritionService.updateGoalProgress(
-                        goalId, 
-                        amount, 
-                        isWithdrawal: isWithdrawMode
-                      );
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      
-                      // Check if goal was just completed
-                      if (wasIncomplete && isNowComplete && !isWithdrawMode) {
-                        // Show Panda Modal for goal completion!
-                        GamificationService().checkAndShowModal(context, PandaTrigger.goalMet);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.progressUpdatedSuccess),
-                            backgroundColor: isWithdrawMode ? Colors.orange : Colors.green,
+                      final data = snapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
+                      if (data == null || data.isEmpty) {
+                        return Center(
+                          child: Text(
+                            l10n.noRecordsYet,
+                            style: GoogleFonts.manrope(color: AppTheme.secondary),
                           ),
                         );
                       }
-                    } catch (e) {
-                      if (!context.mounted) return;
-                      setBottomSheetState(() => isSaving = false);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
-                  },
-                  child: isSaving 
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)) 
-                    : Text(l10n.confirmBtn, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
+                      
+                      final sortedHistory = data.entries.toList()
+                        ..sort((a, b) => b.value['timestamp'].compareTo(a.value['timestamp']));
+                      
+                      return ListView.builder(
+                        padding: const EdgeInsets.only(top: 16),
+                        itemCount: sortedHistory.length,
+                        itemBuilder: (context, index) {
+                          final item = sortedHistory[index].value;
+                          final bool isW = item['type'] == 'withdrawal';
+                          final double hAmount = double.tryParse(item['amount'].toString()) ?? 0.0;
+                          final date = DateTime.fromMillisecondsSinceEpoch(item['timestamp'] ?? 0);
+                          
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.background,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: (isW ? Colors.orange : Colors.green).withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isW ? Icons.remove : Icons.add,
+                                    color: isW ? Colors.orange : Colors.green,
+                                    size: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isW ? l10n.withdrawnLabel : l10n.contributedLabel,
+                                        style: GoogleFonts.manrope(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        DateFormat('dd/MM/yyyy HH:mm').format(date),
+                                        style: GoogleFonts.manrope(
+                                          fontSize: 12,
+                                          color: AppTheme.secondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  '${isW ? "-" : "+"}${hAmount.toStringAsFixed(1)} $unit',
+                                  style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.w900,
+                                    color: isW ? Colors.orange : Colors.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                )
+              else ...[
+                // Mode Toggle
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildModeButton(
+                        l10n.addLabel, 
+                        Icons.add_circle_outline, 
+                        !isWithdrawMode, 
+                        () => setBottomSheetState(() => isWithdrawMode = false)
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildModeButton(
+                        l10n.subtractLabel, 
+                        Icons.remove_circle_outline, 
+                        isWithdrawMode, 
+                        () => setBottomSheetState(() => isWithdrawMode = true)
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: amountController,
+                  decoration: InputDecoration(
+                    labelText: l10n.amountToLog,
+                    prefixIcon: const Icon(Icons.edit_note),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    filled: true,
+                    fillColor: AppTheme.background,
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  style: GoogleFonts.manrope(),
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isWithdrawMode ? Colors.orangeAccent : AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      elevation: 0,
+                    ),
+                    onPressed: isSaving ? null : () async {
+                      final double? amount = double.tryParse(amountController.text);
+                      if (amount == null || amount <= 0) return;
+
+                      setBottomSheetState(() => isSaving = true);
+                      
+                      try {
+                        // Calculate new current value
+                        final double newCurrent = isWithdrawMode ? current - amount : current + amount;
+                        final bool wasIncomplete = current < target;
+                        final bool isNowComplete = newCurrent >= target;
+                        
+                        await _nutritionService.updateGoalProgress(
+                          goalId, 
+                          amount, 
+                          isWithdrawal: isWithdrawMode
+                        );
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        
+                        // Check if goal was just completed
+                        if (wasIncomplete && isNowComplete && !isWithdrawMode) {
+                          // Show Panda Modal for goal completion!
+                          GamificationService().checkAndShowModal(context, PandaTrigger.goalMet);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.progressUpdatedSuccess),
+                              backgroundColor: isWithdrawMode ? Colors.orange : Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        setBottomSheetState(() => isSaving = false);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    },
+                    child: isSaving 
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)) 
+                      : Text(l10n.confirmBtn, style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

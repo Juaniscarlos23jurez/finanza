@@ -478,6 +478,17 @@ class NutritionService {
       'current_amount': newAmount,
       'last_update_date': today,
     });
+
+    // Save contribution to history
+    final historyRef = _database.ref('users/$userId/goals_history/$goalId').push();
+    await historyRef.set({
+      'amount': amount,
+      'type': isWithdrawal ? 'withdrawal' : 'contribution',
+      'timestamp': ServerValue.timestamp,
+      'date': today,
+      'previous_amount': current,
+      'new_amount': newAmount,
+    });
   }
 
   Future<void> deleteGoal(String goalId) async {
@@ -485,6 +496,8 @@ class NutritionService {
     if (userId == null) throw Exception('No user logged in');
 
     await _database.ref('users/$userId/goals/$goalId').remove();
+    // Also remove history
+    await _database.ref('users/$userId/goals_history/$goalId').remove();
   }
 
   Stream<DatabaseEvent> getGoals() async* {
@@ -492,6 +505,13 @@ class NutritionService {
     if (userId == null) yield* const Stream.empty();
 
     yield* _database.ref('users/$userId/goals').onValue;
+  }
+
+  Stream<DatabaseEvent> getGoalHistory(String goalId) async* {
+    final userId = await _authService.getUserId();
+    if (userId == null) yield* const Stream.empty();
+
+    yield* _database.ref('users/$userId/goals_history/$goalId').orderByChild('timestamp').onValue;
   }
 
   Future<void> clearShoppingList() async {

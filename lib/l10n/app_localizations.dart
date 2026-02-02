@@ -254,6 +254,9 @@ class AppLocalizations {
       'daily_log': 'Registro diario',
       'invalid_weight_error': 'Por favor ingresa un peso válido (ej. 70.5)',
       'log_weight_to_see_progress': 'Registra tu peso para ver el progreso',
+      'goal_history_title': 'Historial de Meta',
+      'contributed_label': 'Contribución',
+      'withdrawn_label': 'Retiro',
       'name_label_profile': 'Nombre',
       'email_label_profile': 'Email',
       'close_btn': 'Cerrar',
@@ -596,6 +599,9 @@ class AppLocalizations {
       'daily_log': 'Daily log',
       'invalid_weight_error': 'Please enter a valid weight (e.g. 70.5)',
       'log_weight_to_see_progress': 'Log your weight to see progress',
+      'goal_history_title': 'Goal History',
+      'contributed_label': 'Contribution',
+      'withdrawn_label': 'Withdrawal',
       'name_label_profile': 'Name',
       'email_label_profile': 'Email',
       'close_btn': 'Close',
@@ -1379,6 +1385,9 @@ class AppLocalizations {
       'daily_log': '日報',
       'invalid_weight_error': '有効な体重を入力してください（例：70.5）',
       'log_weight_to_see_progress': '進捗を確認するために体重を記録してください',
+      'goal_history_title': '目標の履歴',
+      'contributed_label': '貢献',
+      'withdrawn_label': '引き出し',
       'name_label_profile': '名前',
       'email_label_profile': 'メール',
       'close_btn': '閉じる',
@@ -1640,6 +1649,9 @@ class AppLocalizations {
       'daily_log': 'Registro giornaliero',
       'invalid_weight_error': 'Inserisci un peso valido (es. 70.5)',
       'log_weight_to_see_progress': 'Registra il tuo peso per vedere i progressi',
+      'goal_history_title': 'Cronologia dell\'obiettivo',
+      'contributed_label': 'Contributo',
+      'withdrawn_label': 'Prelievo',
       'name_label_profile': 'Nome',
       'email_label_profile': 'Email',
       'close_btn': 'Chiudi',
@@ -2245,6 +2257,9 @@ class AppLocalizations {
   String get dailyLog => get('daily_log');
   String get invalidWeightError => get('invalid_weight_error');
   String get logWeightToSeeProgress => get('log_weight_to_see_progress');
+  String get goalHistoryTitle => get('goal_history_title');
+  String get contributedLabel => get('contributed_label');
+  String get withdrawnLabel => get('withdrawn_label');
 
   // Profile
   String get nameLabelProfile => get('name_label_profile');
