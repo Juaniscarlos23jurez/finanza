@@ -954,4 +954,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveChanges => 'Save Changes';
+
+  @override
+  String get noBudgetSet => 'You haven\'t set a budget yet';
+
+  @override
+  String get noDebtsSet => 'No debts registered';
+
+  @override
+  String get setupBudget => 'Set Up Budget';
+
+  @override
+  String get setupDebts => 'Register Debts';
 }

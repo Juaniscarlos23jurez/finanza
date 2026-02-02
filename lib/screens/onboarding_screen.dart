@@ -206,40 +206,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _showSkipConfirmation() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.skipOnboardingTitle),
-        content: Text(AppLocalizations.of(context)!.skipOnboardingMessage),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.cancel)),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _forceFinishOnboarding();
-            },
-            child: Text(AppLocalizations.of(context)!.confirm, style: const TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _forceFinishOnboarding() async {
-    setState(() => _isLoading = true);
-    try {
-      await _authService.setOnboardingComplete(true);
-      if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-        (route) => false,
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -269,10 +235,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(width: 12),
                   Text("${_currentStep + 1}/$_totalSteps", style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
                   const Spacer(),
-                  if (_currentStep == 0) TextButton(
-                    onPressed: _showSkipConfirmation,
-                    child: Text(l10n.skip, style: GoogleFonts.manrope(color: AppTheme.secondary)),
-                  ),
                 ],
               ),
               const SizedBox(height: 24),

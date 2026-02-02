@@ -441,7 +441,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBudgetSection() {
     final l10n = AppLocalizations.of(context)!;
-    if (_userBudget <= 0) return const SizedBox.shrink();
+    
+    if (_userBudget <= 0) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(l10n.myBudget, onAdd: _showEditBudgetDialog),
+          const SizedBox(height: 16),
+          _buildEmptyStateCard(
+            message: l10n.noBudgetSet,
+            buttonText: l10n.setupBudget,
+            onPressed: _showEditBudgetDialog,
+          ),
+        ],
+      );
+    }
 
     final double totalExpense = double.tryParse((_summary['total_expense'] ?? 0).toString()) ?? 0.0;
     final double progress = (totalExpense / _userBudget).clamp(0.0, 1.0);
@@ -527,7 +541,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildDebtsSection() {
     final l10n = AppLocalizations.of(context)!;
-    if (_userDebts.isEmpty) return const SizedBox.shrink();
+    
+    if (_userDebts.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(l10n.debtsTitle, onAdd: _showEditDebtsDialog),
+          const SizedBox(height: 16),
+          _buildEmptyStateCard(
+            message: l10n.noDebtsSet,
+            buttonText: l10n.setupDebts,
+            onPressed: _showEditDebtsDialog,
+            color: Colors.redAccent,
+          ),
+        ],
+      );
+    }
 
     double totalDebt = _userDebts.fold(0.0, (sum, item) => sum + (double.tryParse(item['amount'].toString()) ?? 0.0));
 
@@ -1341,6 +1370,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyStateCard({
+    required String message,
+    required String buttonText,
+    required VoidCallback onPressed,
+    Color? color,
+  }) {
+    final themeColor = color ?? AppTheme.primary;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: themeColor.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              color: AppTheme.secondary,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: themeColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: Text(
+              buttonText,
+              style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -959,4 +959,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get saveChanges => 'Save Changes';
+
+  @override
+  String get noBudgetSet => 'Aún no tienes un presupuesto configurado';
+
+  @override
+  String get noDebtsSet => 'No has registrado deudas';
+
+  @override
+  String get setupBudget => 'Configurar Presupuesto';
+
+  @override
+  String get setupDebts => 'Registrar Deudas';
 }

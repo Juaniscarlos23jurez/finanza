@@ -466,5 +466,9 @@
     "monthlyBudgetLabel": "Presupuesto Mensual",
     "addDebtTitle": "Nueva Deuda",
     "debtMonthlyPayment": "Pago Mensual",
-    "saveChanges": "Guardar Cambios"
+    "saveChanges": "Guardar Cambios",
+    "noBudgetSet": "Aún no tienes un presupuesto configurado",
+    "noDebtsSet": "No has registrado deudas",
+    "setupBudget": "Configurar Presupuesto",
+    "setupDebts": "Registrar Deudas"
 }

@@ -466,5 +466,9 @@
     "monthlyBudgetLabel": "Monthly Budget",
     "addDebtTitle": "New Debt",
     "debtMonthlyPayment": "Monthly Payment",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "noBudgetSet": "You haven't set a budget yet",
+    "noDebtsSet": "No debts registered",
+    "setupBudget": "Set Up Budget",
+    "setupDebts": "Register Debts"
 }

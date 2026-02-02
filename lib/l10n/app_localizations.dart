@@ -1860,6 +1860,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Guardar Cambios'**
   String get saveChanges;
+
+  /// No description provided for @noBudgetSet.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no tienes un presupuesto configurado'**
+  String get noBudgetSet;
+
+  /// No description provided for @noDebtsSet.
+  ///
+  /// In es, this message translates to:
+  /// **'No has registrado deudas'**
+  String get noDebtsSet;
+
+  /// No description provided for @setupBudget.
+  ///
+  /// In es, this message translates to:
+  /// **'Configurar Presupuesto'**
+  String get setupBudget;
+
+  /// No description provided for @setupDebts.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar Deudas'**
+  String get setupDebts;
 }
 
 class _AppLocalizationsDelegate
