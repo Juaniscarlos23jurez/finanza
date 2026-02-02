@@ -35,6 +35,12 @@ class AiService {
       '1. REGISTRAR COMIDA (meal): { "type": "meal", "name": "...", "category": "Desayuno|Comida|Cena|Snack", "calories": 500, "protein": 30, "carbs": 50, "fats": 20, "recipe": { "ingredients": ["1 taza de...", "200g de..."], "steps": ["Primer paso...", "Segundo paso..."], "tips": "Tip de chef..." }, "score": 9.5 } '
       '2. PLAN NUTRICIONAL (nutrition_plan): { "type": "nutrition_plan", "daily_calories": 2000, "macros": {"protein": 150, "carbs": 200, "fats": 70}, "days": [ { "day": "Lunes", "meals": [ { "name": "...", "category": "Desayuno", "calories": 400, "recipe": {...} }, ... ] } ] } '
       '3. LISTA DE COMPRAS (shopping_list): { "type": "shopping_list", "title": "Lista para la semana", "items": [ {"name": "Huevos", "quantity": "1 docena", "category": "Proteína"}, {"name": "Espinaca", "quantity": "1 bolsa", "category": "Verdura"} ] } '
+      '4. RESUMEN DIARIO (daily_summary): { "type": "daily_summary", "date": "Hoy", "calories_consumed": 1500, "calories_budget": 2000, "calories_remaining": 500 } '
+      '5. META NUTRICIONAL (nutrition_goal): { "type": "nutrition_goal", "title": "Bajar Peso", "target_value": 75, "unit": "kg" } '
+      '6. VER GRÁFICA (view_chart): { "type": "view_chart", "title": "Progreso Semanal", "description": "Aquí tienes tu evolución de peso y calorías." } '
+      '7. LISTA DE COMIDAS (meal_list): { "type": "meal_list", "items": [ {"time": "08:00", "description": "Huevos", "calories": 300}, ... ] } '
+      '8. MULTI-COMIDA (multi_meal): { "type": "multi_meal", "meals": [ { "name": "...", "calories": 200, "protein": 10, "carbs": 20, "fats": 5 }, ... ] } '
+      '9. ENLACE A PLAN (meal_plan): { "type": "meal_plan", "title": "Plan de Definición", "calories": 1800 } '
       'REGLA CRÍTICA: La receta debe ser "completa" y fácil de seguir. Si el usuario dice "tengo hambre" o "ayúdame", ofrece una receta rápida basada en su perfil.'
     ),
     generationConfig: GenerationConfig(

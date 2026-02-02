@@ -276,34 +276,45 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildExampleQuestion(String question, String description) {
+    // Extract actual text from localized string in case it has emojis/formatting we don't want in the text input
+    // But usually the user wants the exact text.
+    final String cleanQuestion = question.replaceFirst('📋 ', '').replaceFirst('🍽️ ', '').replaceFirst('📊 ', '').replaceFirst('🎯 ', '').replaceAll('"', '');
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              question,
-              style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primary),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
-            ),
-          ],
+      child: InkWell(
+        onTap: () {
+          _messageController.text = cleanQuestion;
+          // Focus the input field if possible, or just let the user edit
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                question,
+                style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
+              ),
+            ],
+          ),
         ),
       ),
     );
