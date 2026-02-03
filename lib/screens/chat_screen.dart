@@ -43,35 +43,45 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _currentConversationId = widget.conversationId;
-    _initSpeech();
   }
 
   Future<void> _initSpeech() async {
-    _speechAvailable = await _speech.initialize(
-      onStatus: (status) {
-        debugPrint('Speech-to-text status: $status');
-        if (status == 'done' || status == 'notListening') {
-          if (mounted) setState(() => _isListening = false);
-        }
-      },
-      onError: (error) {
-        debugPrint('Speech-to-text error: ${error.errorMsg}');
-        if (mounted) {
-          setState(() => _isListening = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.voiceError(error.errorMsg))),
-          );
-        }
-      },
-    );
-    if (mounted) setState(() {});
+    try {
+      _speechAvailable = await _speech.initialize(
+        onStatus: (status) {
+          debugPrint('Speech-to-text status: $status');
+          if (status == 'done' || status == 'notListening') {
+            if (mounted) setState(() => _isListening = false);
+          }
+        },
+        onError: (error) {
+          debugPrint('Speech-to-text error: ${error.errorMsg}');
+          if (mounted) {
+            setState(() => _isListening = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.voiceError(error.errorMsg))),
+            );
+          }
+        },
+      );
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('Error initializing speech: $e');
+      _speechAvailable = false;
+    }
   }
 
   Future<void> _toggleListening() async {
     if (!_speechAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.voiceUnavailable)),
-      );
+      await _initSpeech();
+    }
+
+    if (!_speechAvailable) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.voiceUnavailable)),
+        );
+      }
       return;
     }
 
@@ -348,12 +358,15 @@ class _ChatScreenState extends State<ChatScreen> {
               color: AppTheme.primary,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add_rounded, color: AppTheme.primary),
-            onPressed: () {
-               setState(() => _currentConversationId = null);
-            },
-          ),
+          if (_currentConversationId != null)
+            IconButton(
+              icon: const Icon(Icons.add_rounded, color: AppTheme.primary),
+              onPressed: () {
+                 setState(() => _currentConversationId = null);
+              },
+            )
+          else
+            const SizedBox(width: 48), // Maintain spacing for title alignment
         ],
       ),
     );

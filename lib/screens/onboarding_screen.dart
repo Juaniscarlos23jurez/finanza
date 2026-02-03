@@ -411,19 +411,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         minHeight: 6,
                       ),
                     ),
-              if (_currentPage < _steps.length - 1) ...[
-                const SizedBox(width: 16),
-                TextButton(
-                  onPressed: _completeOnboarding,
-                  child: Text(
-                    l10n.onboardingSkip,
-                    style: GoogleFonts.manrope(
-                      color: AppTheme.secondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
                   ],
                 ),
               ),

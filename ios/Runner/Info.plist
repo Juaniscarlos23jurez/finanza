@@ -67,16 +67,16 @@
 		<string>pt</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Esta app necesita acceso al micrófono para convertir tu voz en texto.</string>
+	<string>This app needs microphone access to convert your voice to text.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Esta app necesita acceso a tus datos de salud para mostrarte tu actividad física y ayudarte a alcanzar tus metas de nutrición.</string>
+	<string>This app needs access to your health data to show your physical activity and help you reach your nutrition goals.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Esta app puede actualizar tus datos de salud para registrar tu progreso.</string>
+	<string>This app can update your health data to record your progress.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Necesitamos acceso a tu galería para que puedas subir fotos de tu progreso.</string>
+	<string>We need gallery access for you to upload progress photos.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Necesitamos acceso a la cámara para que puedas tomar fotos de tu progreso.</string>
+	<string>We need camera access for you to take progress photos.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Esta app usa reconocimiento de voz para registrar tus datos hablando.</string>
+	<string>This app uses speech recognition to log your data by speaking.</string>
 </dict>
 </plist>
