@@ -27,6 +27,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  static const int _maxMessageLength = 1000;
+  
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
   String? _currentConversationId;
@@ -118,6 +120,18 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _handleSend() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
+
+    // Validate message length
+    if (text.length > _maxMessageLength) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.messageTooLong(_maxMessageLength)),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
 
     _messageController.clear();
     setState(() => _isTyping = true);
@@ -494,6 +508,13 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          counterText: '${_messageController.text.length}/$_maxMessageLength',
+                          counterStyle: GoogleFonts.manrope(
+                            fontSize: 10,
+                            color: _messageController.text.length > _maxMessageLength
+                                ? Colors.red
+                                : AppTheme.secondary.withValues(alpha: 0.6),
+                          ),
                           suffixIcon: _showClearBtn
                               ? IconButton(
                                   icon: const Icon(Icons.close_rounded, color: AppTheme.secondary, size: 18),

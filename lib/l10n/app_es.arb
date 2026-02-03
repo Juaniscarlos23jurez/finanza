@@ -470,5 +470,13 @@
     "noBudgetSet": "Aún no tienes un presupuesto configurado",
     "noDebtsSet": "No has registrado deudas",
     "setupBudget": "Configurar Presupuesto",
-    "setupDebts": "Registrar Deudas"
+    "setupDebts": "Registrar Deudas",
+    "messageTooLong": "El mensaje es demasiado largo. Máximo {maxLength} caracteres.",
+    "@messageTooLong": {
+        "placeholders": {
+            "maxLength": {
+                "type": "int"
+            }
+        }
+    }
 }

@@ -1884,6 +1884,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Registrar Deudas'**
   String get setupDebts;
+
+  /// No description provided for @messageTooLong.
+  ///
+  /// In es, this message translates to:
+  /// **'El mensaje es demasiado largo. Máximo {maxLength} caracteres.'**
+  String messageTooLong(int maxLength);
 }
 
 class _AppLocalizationsDelegate

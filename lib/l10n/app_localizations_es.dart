@@ -967,4 +967,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setupDebts => 'Registrar Deudas';
+
+  @override
+  String messageTooLong(int maxLength) {
+    return 'El mensaje es demasiado largo. Máximo $maxLength caracteres.';
+  }
 }

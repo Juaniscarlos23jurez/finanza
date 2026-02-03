@@ -470,5 +470,13 @@
     "noBudgetSet": "You haven't set a budget yet",
     "noDebtsSet": "No debts registered",
     "setupBudget": "Set Up Budget",
-    "setupDebts": "Register Debts"
+    "setupDebts": "Register Debts",
+    "messageTooLong": "Message is too long. Maximum {maxLength} characters.",
+    "@messageTooLong": {
+        "placeholders": {
+            "maxLength": {
+                "type": "int"
+            }
+        }
+    }
 }
