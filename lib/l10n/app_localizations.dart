@@ -37,6 +37,19 @@ class AppLocalizations {
       'macro_progress': 'Progreso de Macros',
       'today': 'HOY',
       'smart_menu': 'Menú Inteligente',
+      'search_hint': 'Buscar recetas...',
+      'repeat_on_days': 'Repetir los {day}s',
+      'remove_recurring': 'Quitar repetición',
+      'repeat_on_days_btn': 'Repetir los días...',
+      'monday': 'Lunes',
+      'tuesday': 'Martes',
+      'wednesday': 'Miércoles',
+      'thursday': 'Jueves',
+      'friday': 'Viernes',
+      'saturday': 'Sábado',
+      'sunday': 'Domingo',
+      'select_recurring_days': 'Selecciona los días de repetición',
+      'copy_to_specific_date': 'Copiar a una fecha específica',
       'tap_dish_start': 'Toca un platillo para empezar el día',
       'ingredients': 'Ingredientes',
       'instructions': 'Instrucciones',
@@ -360,6 +373,7 @@ class AppLocalizations {
       'video_url_hint': 'Pega el link de YouTube o TikTok',
       'processing_video': 'Extrayendo receta del video...',
       'invalid_url': 'URL no válida. Usa YouTube o TikTok.',
+      'view_original_video': 'Ver video original 🎥',
     },
     'en': {
       'profile': 'Profile',
@@ -389,6 +403,19 @@ class AppLocalizations {
       'macro_progress': 'Macro Progress',
       'today': 'TODAY',
       'smart_menu': 'Smart Menu',
+      'search_hint': 'Search recipes...',
+      'repeat_on_days': 'Repeat on {day}s',
+      'remove_recurring': 'Remove recurring',
+      'repeat_on_days_btn': 'Repeat on days...',
+      'monday': 'Monday',
+      'tuesday': 'Tuesday',
+      'wednesday': 'Wednesday',
+      'thursday': 'Thursday',
+      'friday': 'Friday',
+      'saturday': 'Saturday',
+      'sunday': 'Sunday',
+      'select_recurring_days': 'Select recurring days',
+      'copy_to_specific_date': 'Copy to a specific date',
       'tap_dish_start': 'Tap a dish to start the day',
       'ingredients': 'Ingredients',
       'instructions': 'Instructions',
@@ -712,6 +739,7 @@ class AppLocalizations {
       'video_url_hint': 'Paste YouTube or TikTok link',
       'processing_video': 'Extracting recipe from video...',
       'invalid_url': 'Invalid URL. Use YouTube or TikTok.',
+      'view_original_video': 'View original video 🎥',
     },
     'de': {
       'profile': 'Profil',
@@ -741,6 +769,7 @@ class AppLocalizations {
       'macro_progress': 'Makro-Fortschritt',
       'today': 'HEUTE',
       'smart_menu': 'Smartes Menü',
+      'search_hint': 'Rezepte suchen...',
       'tap_dish_start': 'Tippen Sie auf ein Gericht, um den Tag zu beginnen',
       'ingredients': 'Zutaten',
       'instructions': 'Anweisungen',
@@ -1007,6 +1036,7 @@ class AppLocalizations {
       'macro_progress': 'Progrès des macros',
       'today': 'AUJOURD\'HUI',
       'smart_menu': 'Menu intelligent',
+      'search_hint': 'Chercher des recettes...',
       'tap_dish_start': 'Appuyez sur un plat pour commencer la journée',
       'ingredients': 'Ingrédients',
       'instructions': 'Instructions',
@@ -1273,6 +1303,7 @@ class AppLocalizations {
       'macro_progress': 'マクロ栄養素の進捗',
       'today': '今日',
       'smart_menu': 'スマートメニュー',
+      'search_hint': 'レシピを検索...',
       'tap_dish_start': '料理をタップして一日を始めましょう',
       'ingredients': '材料',
       'instructions': '手順',
@@ -1539,6 +1570,7 @@ class AppLocalizations {
       'macro_progress': 'Progresso Macro',
       'today': 'OGGI',
       'smart_menu': 'Menu Intelligente',
+      'search_hint': 'Cerca ricette...',
       'tap_dish_start': 'Tocca un piatto per iniziare la giornata',
       'ingredients': 'Ingredienti',
       'instructions': 'Istruzioni',
@@ -1805,6 +1837,7 @@ class AppLocalizations {
       'macro_progress': 'Progresso de Macros',
       'today': 'HOJE',
       'smart_menu': 'Menu Inteligente',
+      'search_hint': 'Buscar receitas...',
       'tap_dish_start': 'Toque em um prato para começar o dia',
       'ingredients': 'Ingredientes',
       'instructions': 'Instruções',
@@ -2077,6 +2110,19 @@ class AppLocalizations {
   String get macroProgress => get('macro_progress');
   String get todayLabel => get('today');
   String get smartMenu => get('smart_menu');
+  String get searchHint => get('search_hint');
+  String repeatOnDays(String day) => get('repeat_on_days').replaceAll('{day}', day);
+  String get removeRecurring => get('remove_recurring');
+  String get repeatOnDaysBtn => get('repeat_on_days_btn');
+  String get selectRecurringDays => get('select_recurring_days');
+  String get copyToSpecificDate => get('copy_to_specific_date');
+  String get monday => get('monday');
+  String get tuesday => get('tuesday');
+  String get wednesday => get('wednesday');
+  String get thursday => get('thursday');
+  String get friday => get('friday');
+  String get saturday => get('saturday');
+  String get sunday => get('sunday');
   String get tapDishStart => get('tap_dish_start');
   String get ingredients => get('ingredients');
   String get instructions => get('instructions');
@@ -2403,6 +2449,7 @@ class AppLocalizations {
   String get videoUrlHint => get('video_url_hint');
   String get processingVideo => get('processing_video');
   String get invalidUrl => get('invalid_url');
+  String get viewOriginalVideo => get('view_original_video');
 
   String errorSaving(String error) => get('error_saving').replaceAll('{error}', error);
   String transactionsCount(int count) => get('transactions_count').replaceAll('{count}', count.toString());

@@ -6,6 +6,8 @@ import '../services/nutrition_service.dart';
 import '../services/gamification_service.dart';
 import '../services/ai_service.dart';
 import '../l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 class NutritionPlanScreen extends StatefulWidget {
   const NutritionPlanScreen({super.key});
@@ -17,10 +19,12 @@ class NutritionPlanScreen extends StatefulWidget {
 class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   final NutritionService _nutritionService = NutritionService();
   final AiService _aiService = AiService();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  DateTime _selectedDate = DateTime.now();
   
   // Need to listen to two streams: Plan (for targets) and Daily Meals (for execution)
   late Stream<DatabaseEvent> _planStream;
-  late Stream<DatabaseEvent> _dailyMealsStream;
   
   // Track which macro goals have been celebrated today to avoid duplicates
   final Set<String> _celebratedMacros = {};
@@ -31,7 +35,6 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
   void initState() {
     super.initState();
     _planStream = _nutritionService.getPlan();
-    _dailyMealsStream = _nutritionService.getDailyMeals();
     _statsStream = _nutritionService.getGamificationStats();
   }
 
@@ -45,46 +48,69 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
         child: Column(
           children: [
             _buildHeader(),
+            _buildDateSelector(),
             Expanded(
               child: StreamBuilder<DatabaseEvent>(
                 stream: _planStream,
                 builder: (context, planSnapshot) {
                   return StreamBuilder<DatabaseEvent>(
-                    stream: _dailyMealsStream,
+                    stream: _nutritionService.getMealsForDate(_selectedDate),
                     builder: (context, mealsSnapshot) {
-                      if (planSnapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
-                      }
+                      return StreamBuilder<DatabaseEvent>(
+                        stream: _nutritionService.getRecurringMealsForDay(_selectedDate.weekday),
+                        builder: (context, recurringSnapshot) {
+                          if (planSnapshot.connectionState == ConnectionState.waiting && 
+                              mealsSnapshot.connectionState == ConnectionState.waiting &&
+                              recurringSnapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+                          }
 
-                      // Parse Plan Data
-                      Map<String, dynamic>? planData;
-                      if (planSnapshot.hasData && planSnapshot.data!.snapshot.value != null) {
-                        planData = Map<String, dynamic>.from(planSnapshot.data!.snapshot.value as Map);
-                      }
+                          // Parse Plan Data
+                          Map<String, dynamic>? planData;
+                          if (planSnapshot.hasData && planSnapshot.data!.snapshot.value != null) {
+                            planData = Map<String, dynamic>.from(planSnapshot.data!.snapshot.value as Map);
+                          }
 
-                      // Parse Daily Meals Data
-                      List<Map<String, dynamic>> dailyMeals = [];
-                      if (mealsSnapshot.hasData && mealsSnapshot.data!.snapshot.value != null) {
-                         final Map<dynamic, dynamic> data = mealsSnapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-                         // Sort by ID to maintain order
-                         final sortedKeys = data.keys.toList()..sort((a, b) {
-                           // Assuming keys are meal_0, meal_1...
-                           int idA = int.tryParse(a.toString().split('_').last) ?? 0;
-                           int idB = int.tryParse(b.toString().split('_').last) ?? 0;
-                           return idA.compareTo(idB); 
-                         });
-                         
-                         for (var key in sortedKeys) {
-                           dailyMeals.add(Map<String, dynamic>.from(data[key] as Map));
-                         }
-                      }
+                          // Parse Daily/Specific Meals Data
+                          Map<String, Map<String, dynamic>> finalMealsMap = {};
+                          
+                          if (mealsSnapshot.hasData && mealsSnapshot.data!.snapshot.value != null) {
+                            final Map<dynamic, dynamic> data = mealsSnapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                            data.forEach((key, value) {
+                               finalMealsMap[key.toString()] = Map<String, dynamic>.from(value as Map);
+                            });
+                          }
 
-                      if (planData == null && dailyMeals.isEmpty) {
-                        return _buildEmptyState(context);
-                      }
+                          // Merge with Recurring Meals
+                          if (recurringSnapshot.hasData && recurringSnapshot.data!.snapshot.value != null) {
+                            final Map<dynamic, dynamic> recData = recurringSnapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                            recData.forEach((key, value) {
+                              final String id = key.toString();
+                              // Only add if not already in finalMealsMap (which contains overrides like 'completed')
+                              if (!finalMealsMap.containsKey(id)) {
+                                final meal = Map<String, dynamic>.from(value as Map);
+                                meal['completed'] = false; // Default for templates not yet interacted with
+                                finalMealsMap[id] = meal;
+                              }
+                            });
+                          }
 
-                      // Main Content
-                      return _buildContent(context, planData, dailyMeals);
+                          List<Map<String, dynamic>> mergedMeals = finalMealsMap.values.toList();
+                          // Sort by ID or time to maintain order
+                          mergedMeals.sort((a, b) {
+                            int idA = int.tryParse(a['id']?.toString().split('_').last ?? '0') ?? 0;
+                            int idB = int.tryParse(b['id']?.toString().split('_').last ?? '0') ?? 0;
+                            return idA.compareTo(idB);
+                          });
+
+                          if (planData == null && mergedMeals.isEmpty) {
+                            return _buildEmptyState(context);
+                          }
+
+                          // Main Content
+                          return _buildContent(context, planData, mergedMeals);
+                        },
+                      );
                     },
                   );
                 },
@@ -125,6 +151,69 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDateSelector() {
+    return Container(
+      height: 100,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 14, // Show 2 weeks: last week and next week
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemBuilder: (context, index) {
+          final date = DateTime.now().subtract(const Duration(days: 3)).add(Duration(days: index));
+          final bool isSelected = DateUtils.isSameDay(date, _selectedDate);
+          final bool isToday = DateUtils.isSameDay(date, DateTime.now());
+
+          return GestureDetector(
+            onTap: () => setState(() => _selectedDate = date),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 60,
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primary : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                ],
+                border: isToday && !isSelected
+                    ? Border.all(color: AppTheme.primary, width: 2)
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Text(
+                    DateFormat('E').format(date).toUpperCase(),
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected ? Colors.white70 : AppTheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    date.day.toString(),
+                    style: GoogleFonts.manrope(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: isSelected ? Colors.white : AppTheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -205,11 +294,6 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                  child: Row(
                    children: [
                      const Icon(Icons.check_circle_outline, size: 14, color: Colors.green),
-                     const SizedBox(width: 4),
-                     Text(
-                       l10n.tapToEat, 
-                       style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)
-                     )
                    ],
                  ),
               )
@@ -317,7 +401,17 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     // If dailyMeals exists, show it (IT IS THE TRUTH)
     // If not, show Plan meals (TEMPLATE)
     final bool usingDailyMeals = dailyMeals.isNotEmpty;
-    final List mealsToShow = usingDailyMeals ? dailyMeals : (plan?['meals'] ?? []);
+    List mealsToShow = usingDailyMeals ? dailyMeals : (plan?['meals'] ?? []);
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      mealsToShow = mealsToShow.where((meal) {
+        final title = (meal['name'] ?? '').toString().toLowerCase();
+        final details = (meal['details'] ?? '').toString().toLowerCase();
+        return title.contains(_searchQuery.toLowerCase()) || 
+               details.contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -356,6 +450,41 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          // Search Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
+                hintText: l10n.searchHint,
+                hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
+                border: InputBorder.none,
+                icon: const Icon(Icons.search, color: AppTheme.secondary),
+                suffixIcon: _searchQuery.isNotEmpty 
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18), 
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      }
+                    )
+                  : null,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           ...mealsToShow.asMap().entries.map((entry) {
             return _buildInteractiveMealItem(context, entry.value, entry.key, usingDailyMeals, mealsToShow);
           }),
@@ -711,7 +840,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     );
   }
 
-  Widget _buildInteractiveMealItem(BuildContext context, Map meal, int index, bool isLive, List allExisitingMeals) {
+  Widget _buildInteractiveMealItem(BuildContext context, Map meal, int index, bool usingDailyMeals, List allExisitingMeals) {
     final bool isCompleted = meal['completed'] ?? false;
     final String title = meal['name'] ?? 'Comida';
     final String details = meal['details'] ?? '';
@@ -739,19 +868,22 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
           // Checkbox Area (Tap here to complete)
           GestureDetector(
             onTap: () async {
-              if (isLive) {
+              final bool isToday = DateUtils.isSameDay(_selectedDate, DateTime.now());
+              if (usingDailyMeals) {
                 final bool newStatus = !isCompleted;
-                await _nutritionService.toggleMealCompletion(id, newStatus);
+                await _nutritionService.toggleMealCompletionForDate(_selectedDate, id, newStatus);
                 if (!context.mounted) return;
-                if (newStatus) {
+                if (newStatus && isToday) {
                    GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
                    _checkMacroGoals(meal);
                 }
               } else {
-                await _nutritionService.initializeTodayMeals(allExisitingMeals, index);
+                await _nutritionService.initializeMealsForDate(_selectedDate, allExisitingMeals, index);
                 if (!context.mounted) return;
-                GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
-                _checkMacroGoals(meal);
+                if (isToday) {
+                  GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+                  _checkMacroGoals(meal);
+                }
               }
             },
             child: AnimatedContainer(
@@ -795,6 +927,51 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        Builder(
+                          builder: (context) {
+                            final String? videoUrl = meal['original_video_url']?.toString().toLowerCase();
+                            String label = 'IA';
+                            Color color = AppTheme.accent;
+                            IconData icon = Icons.auto_awesome;
+
+                            if (videoUrl != null) {
+                              if (videoUrl.contains('youtube.com') || videoUrl.contains('youtu.be')) {
+                                label = 'YouTube';
+                                color = Colors.redAccent;
+                                icon = Icons.play_circle_fill;
+                              } else if (videoUrl.contains('tiktok.com')) {
+                                label = 'TikTok';
+                                color = Colors.black87;
+                                icon = Icons.music_note;
+                              }
+                            }
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(icon, size: 10, color: color),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    label,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: color,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
                         if (meal['calories'] != null)
                           Text(
                             '${meal['calories']} kcal',
@@ -804,6 +981,34 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                        const SizedBox(width: 8),
+                        const SizedBox(width: 8),
+                        // Flexible Repetition Button
+                        GestureDetector(
+                          onTap: () => _showRepeatOptionsModal(context, meal),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.calendar_month_outlined, size: 14, color: AppTheme.accent),
+                                const SizedBox(width: 4),
+                                Text(
+                                  l10n.repeatOnDaysBtn,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -960,28 +1165,84 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                     ],
                     const SizedBox(height: 32),
                     
-                    // Buttons
                     Row(
                       children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('¿Eliminar plato?'),
+                                  content: const Text('Esta receta se quitará de este día.'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar', style: TextStyle(color: Colors.red))),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                if (!context.mounted) return;
+                                Navigator.pop(context);
+                                final sm = ScaffoldMessenger.of(context);
+                                await _nutritionService.deleteMealFromDate(_selectedDate, meal['id']?.toString() ?? '');
+                                sm.showSnackBar(
+                                  const SnackBar(content: Text('Plato eliminado'), behavior: SnackBarBehavior.floating)
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            label: const Text('Eliminar del día', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                              foregroundColor: Colors.redAccent,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: Container()), // Placeholder for balance
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    
+                     // Buttons
+                    Row(
+                      children: [
+                         if (meal['original_video_url'] != null) ...[
+                           Expanded(
+                             child: ElevatedButton.icon(
+                                onPressed: () => launchUrl(Uri.parse(meal['original_video_url'])),
+                                icon: const Icon(Icons.play_circle_outline, color: Colors.white),
+                                label: Text(l10n.viewOriginalVideo, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                             ),
+                           ),
+                           const SizedBox(width: 12),
+                         ],
                          Expanded(
                            child: ElevatedButton.icon(
                               onPressed: () async {
                                 Navigator.pop(context);
                                 final sm = ScaffoldMessenger.of(context);
-                                await _nutritionService.addExtraMeal(Map<String, dynamic>.from(meal));
+                                await _nutritionService.addMealToDate(_selectedDate, Map<String, dynamic>.from(meal));
                                 sm.showSnackBar(
-                                  SnackBar(
-                                    content: Text('Meal Added Again! 🍲'),
-                                    backgroundColor: Colors.green,
-                                    behavior: SnackBarBehavior.floating,
-                                  )
+                                   const SnackBar(content: Text('Plato duplicado hoy'), behavior: SnackBarBehavior.floating,)
                                 );
                               },
-                              icon: const Icon(Icons.control_point_duplicate_outlined, color: AppTheme.primary),
-                              label: Text('Repetir Comida', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                              icon: const Icon(Icons.copy, color: Colors.white),
+                              label: Text('Copiar hoy', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                                foregroundColor: AppTheme.primary,
+                                backgroundColor: AppTheme.accent,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -1132,7 +1393,8 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
 
                   if (message.isGenUI && message.data?['type'] == 'meal') {
                     final meal = Map<String, dynamic>.from(message.data!);
-                    await _nutritionService.addMealToToday(meal);
+                    meal['original_video_url'] = url; // Save the source URL
+                    await _nutritionService.addMealToDate(_selectedDate, meal);
                     
                     if (!mounted) return;
                     navigator.pop();
@@ -1153,7 +1415,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                     );
                     
                     // Show the recipe modal for the newly added meal
-                    if (mounted) {
+                    if (context.mounted) {
                       _showRecipeModal(context, meal);
                     }
                   } else {
@@ -1185,6 +1447,116 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                 style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRepeatOptionsModal(BuildContext context, Map meal) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            Text(
+              l10n.selectRecurringDays,
+              style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.primary),
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(7, (index) {
+                final dayNum = index + 1;
+                final List<String> dayNames = [
+                  l10n.monday, l10n.tuesday, l10n.wednesday, 
+                  l10n.thursday, l10n.friday, l10n.saturday, l10n.sunday
+                ];
+                return FilterChip(
+                  label: Text(dayNames[index], style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold)),
+                  selected: false,
+                  onSelected: (bool selected) async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    Navigator.pop(context);
+                    await _nutritionService.setRecurringMeal(dayNum, Map<String, dynamic>.from(meal));
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.repeatOnDays(dayNames[index])),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppTheme.accent,
+                      )
+                    );
+                  },
+                  selectedColor: AppTheme.accent.withValues(alpha: 0.2),
+                  checkmarkColor: AppTheme.accent,
+                  backgroundColor: AppTheme.background,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: BorderSide.none,
+                );
+              }),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              l10n.copyToSpecificDate,
+              style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primary),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate,
+                  firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                  lastDate: DateTime.now().add(const Duration(days: 30)),
+                  builder: (context, child) => Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.light(primary: AppTheme.primary),
+                    ),
+                    child: child!,
+                  ),
+                );
+                if (picked != null) {
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  await _nutritionService.addMealToDate(picked, Map<String, dynamic>.from(meal));
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Copiado al ${DateFormat('dd/MM').format(picked)}'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppTheme.accent,
+                    )
+                  );
+                }
+              },
+              icon: const Icon(Icons.calendar_today_outlined),
+              label: const Text('Calendario'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary.withValues(alpha: 0.05),
+                foregroundColor: AppTheme.primary,
+                elevation: 0,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

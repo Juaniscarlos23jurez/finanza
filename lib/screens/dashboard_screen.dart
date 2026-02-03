@@ -404,7 +404,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    _buildMotivationQuote(),
                     const SizedBox(height: 24),
                     if (!_challengeCompleted) ...[
                       _buildDailyChallenge(l10n),
@@ -555,16 +554,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMotivationQuote() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.1)),
-      ),
-    );
-  }
 
   Widget _buildDailyTimeline(AppLocalizations l10n) {
     if (_dailyMeals.isEmpty) {

@@ -112,53 +112,80 @@ class NutritionService {
   }
 
   Future<void> saveDailyMeals(List<dynamic> meals) async {
+    await saveMealsForDate(DateTime.now(), meals);
+  }
+
+  Future<void> saveMealsForDate(DateTime date, List<dynamic> meals) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
-    // Convert meals to a map where keys are unique identifiers
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
     final Map<String, dynamic> mealsMap = {};
     for (var i = 0; i < meals.length; i++) {
       final meal = meals[i];
       final id = 'meal_$i';
       mealsMap[id] = {
         ...meal,
-        'completed': false,
+        'completed': meal['completed'] ?? false,
         'id': id,
         'timestamp': ServerValue.timestamp,
       };
     }
 
-    await _database.ref('users/$userId/daily_meals').set(mealsMap);
+    await _database.ref('users/$userId/meal_planner/$dateStr').set(mealsMap);
+    // Backward compatibility for today
+    if (dateStr == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
+      await _database.ref('users/$userId/daily_meals').set(mealsMap);
+    }
   }
 
   Future<void> initializeTodayMeals(List<dynamic> planMeals, [int? completedIndex]) async {
+    await initializeMealsForDate(DateTime.now(), planMeals, completedIndex);
+  }
+
+  Future<void> initializeMealsForDate(DateTime date, List<dynamic> planMeals, [int? completedIndex]) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
     final Map<String, dynamic> mealsMap = {};
     for (var i = 0; i < planMeals.length; i++) {
       final meal = planMeals[i];
       final id = 'meal_$i';
       mealsMap[id] = {
         ...meal,
-        'completed': i == completedIndex, // Mark specific meal as completed if requested
+        'completed': i == completedIndex, 
         'id': id,
         'timestamp': ServerValue.timestamp,
       };
     }
-    await _database.ref('users/$userId/daily_meals').set(mealsMap);
+    await _database.ref('users/$userId/meal_planner/$dateStr').set(mealsMap);
     
-    // If we completed a meal during initialization, check streak update
+    // Backward compatibility for today
+    if (dateStr == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
+      await _database.ref('users/$userId/daily_meals').set(mealsMap);
+    }
+
     if (completedIndex != null) {
       await addXp(50);
     }
   }
 
   Future<void> toggleMealCompletion(String mealId, bool completed) async {
+    await toggleMealCompletionForDate(DateTime.now(), mealId, completed);
+  }
+
+  Future<void> toggleMealCompletionForDate(DateTime date, String mealId, bool completed) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
-    await _database.ref('users/$userId/daily_meals/$mealId/completed').set(completed);
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    await _database.ref('users/$userId/meal_planner/$dateStr/$mealId/completed').set(completed);
+
+    // Backward compatibility for today
+    if (dateStr == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
+      await _database.ref('users/$userId/daily_meals/$mealId/completed').set(completed);
+    }
 
     if (completed) {
       await addXp(50);
@@ -170,28 +197,40 @@ class NutritionService {
     if (userId == null) throw Exception('No user logged in');
 
     final String newId = 'extra_${DateTime.now().millisecondsSinceEpoch}';
-    
-    // Create a copy of the meal
+    final DateTime now = DateTime.now();
+    final String dateStr = DateFormat('yyyy-MM-dd').format(now);
+
     final Map<String, dynamic> newMeal = Map<String, dynamic>.from(originalMeal);
     newMeal['id'] = newId;
-    newMeal['completed'] = false; // Reset completion status
-    newMeal['name'] = '${newMeal['name']} (Extra)'; // Mark as extra/copy
+    newMeal['completed'] = false;
+    newMeal['name'] = '${newMeal['name']} (Extra)';
     newMeal['timestamp'] = ServerValue.timestamp;
 
+    await _database.ref('users/$userId/meal_planner/$dateStr/$newId').set(newMeal);
     await _database.ref('users/$userId/daily_meals/$newId').set(newMeal);
   }
 
   Future<void> addMealToToday(Map<String, dynamic> meal) async {
+    await addMealToDate(DateTime.now(), meal);
+  }
+
+  Future<void> addMealToDate(DateTime date, Map<String, dynamic> meal) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
     final String newId = 'meal_${DateTime.now().millisecondsSinceEpoch}';
     final Map<String, dynamic> mealData = Map<String, dynamic>.from(meal);
     mealData['id'] = newId;
     mealData['completed'] = false;
     mealData['timestamp'] = ServerValue.timestamp;
 
-    await _database.ref('users/$userId/daily_meals/$newId').set(mealData);
+    await _database.ref('users/$userId/meal_planner/$dateStr/$newId').set(mealData);
+    
+    // Backward compatibility for today
+    if (dateStr == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
+      await _database.ref('users/$userId/daily_meals/$newId').set(mealData);
+    }
   }
 
   Stream<DatabaseEvent> getPlan() async* {
@@ -201,11 +240,61 @@ class NutritionService {
     yield* _database.ref('users/$userId/nutrition_plan').onValue;
   }
 
+  Future<void> deleteMealFromDate(DateTime date, String mealId) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    await _database.ref('users/$userId/meal_planner/$dateStr/$mealId').remove();
+
+    // Backward compatibility for today
+    if (dateStr == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
+      await _database.ref('users/$userId/daily_meals/$mealId').remove();
+    }
+  }
+
   Stream<DatabaseEvent> getDailyMeals() async* {
+    yield* getMealsForDate(DateTime.now());
+  }
+
+  Future<void> setRecurringMeal(int dayOfWeek, Map<String, dynamic> meal) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    final String templateId = meal['id'] ?? 'rect_${DateTime.now().millisecondsSinceEpoch}';
+    final Map<String, dynamic> templateData = Map<String, dynamic>.from(meal);
+    templateData['id'] = templateId;
+    templateData['is_recurring'] = true;
+    templateData.remove('completed'); // Completion is date-specific
+
+    await _database.ref('users/$userId/meal_recurring/$dayOfWeek/$templateId').set(templateData);
+  }
+
+  Future<void> removeRecurringMeal(int dayOfWeek, String templateId) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    await _database.ref('users/$userId/meal_recurring/$dayOfWeek/$templateId').remove();
+  }
+
+  Stream<DatabaseEvent> getMealsForDate(DateTime date) async* {
     final userId = await _authService.getUserId();
     if (userId == null) yield* const Stream.empty();
 
-    yield* _database.ref('users/$userId/daily_meals').onValue;
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+
+    // We merge specifically planned meals with recurring ones
+    // For simplicity in the stream, we listen to the parent node or use a combined stream
+    // but here we just return the most specific one or a merge
+    // Let's use getMealsForDate but inside the UI we will handle the merging logic if needed
+    // Actually, let's make a dedicated stream that handles the merge
+    yield* _database.ref('users/$userId/meal_planner/$dateStr').onValue;
+  }
+
+  Stream<DatabaseEvent> getRecurringMealsForDay(int dayOfWeek) async* {
+    final userId = await _authService.getUserId();
+    if (userId == null) yield* const Stream.empty();
+    yield* _database.ref('users/$userId/meal_recurring/$dayOfWeek').onValue;
   }
 
   Stream<DatabaseEvent> getStreak() async* {
