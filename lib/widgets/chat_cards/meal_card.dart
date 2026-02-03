@@ -3,11 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/nutrition_service.dart';
+import '../../services/chat_service.dart';
+import '../../services/gamification_service.dart';
 
 class MealCard extends StatefulWidget {
   final Map<String, dynamic> data;
+  final String? conversationId;
+  final String? messageId;
 
-  const MealCard({super.key, required this.data});
+  const MealCard({
+    super.key, 
+    required this.data,
+    this.conversationId,
+    this.messageId,
+  });
 
   @override
   State<MealCard> createState() => _MealCardState();
@@ -15,20 +24,45 @@ class MealCard extends StatefulWidget {
 
 class _MealCardState extends State<MealCard> {
   bool _isSaving = false;
-  bool _isSaved = false;
+  late bool _isSaved;
   final NutritionService _nutritionService = NutritionService();
+  final ChatService _chatService = ChatService();
+
+  @override
+  void initState() {
+    super.initState();
+    _isSaved = widget.data['is_saved'] == true;
+  }
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   Future<void> _saveMeal() async {
     setState(() => _isSaving = true);
     try {
-      await _nutritionService.saveDailyMeals([widget.data]);
+      // Register meal as completed for today
+      await _nutritionService.addMealToToday(widget.data, isCompleted: true);
+      
       if (mounted) {
         setState(() {
           _isSaving = false;
           _isSaved = true;
         });
+
+        // Persist state in RTDB (for the chat message itself)
+        if (widget.conversationId != null && widget.messageId != null) {
+          final newData = Map<String, dynamic>.from(widget.data);
+          newData['is_saved'] = true;
+          _chatService.updateMessageData(
+            conversationId: widget.conversationId!,
+            messageId: widget.messageId!,
+            newData: newData,
+          ).catchError((e) => debugPrint('Error updating message data: $e'));
+        }
+
+        // Trigger Gamification & Macro Checks (The "Menu" experience)
+        GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+        GamificationService().checkAndTriggerMacroCelebrations(context);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.mealRegistered),

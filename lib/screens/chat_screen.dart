@@ -75,16 +75,16 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!_speechAvailable) {
       await _initSpeech();
     }
+    if (!mounted) return;
 
     if (!_speechAvailable) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.voiceUnavailable)),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.voiceUnavailable)),
+      );
       return;
     }
 
+    final locale = Localizations.localeOf(context).toLanguageTag();
     if (_isListening) {
       await _speech.stop();
       setState(() => _isListening = false);
@@ -100,7 +100,7 @@ class _ChatScreenState extends State<ChatScreen> {
             _handleSend();
           }
         },
-        localeId: Localizations.localeOf(context).toLanguageTag(),
+        localeId: locale,
         listenOptions: stt.SpeechListenOptions(
           listenMode: stt.ListenMode.confirmation,
           cancelOnError: true,
@@ -185,17 +185,18 @@ class _ChatScreenState extends State<ChatScreen> {
                             data.forEach((key, value) {
                               if (value is Map) {
                                 try {
-                                  messages.add(_chatService.fromRealtimeDB(value));
+                                  messages.add(_chatService.fromRealtimeDB(value, key.toString()));
                                 } catch (e) {
                                   debugPrint('Error parsing message from Map: $e');
                                 }
                               }
                             });
                           } else if (data is List) {
-                            for (var item in data) {
+                            for (int i = 0; i < data.length; i++) {
+                              var item = data[i];
                               if (item != null && item is Map) {
                                 try {
-                                  messages.add(_chatService.fromRealtimeDB(item));
+                                  messages.add(_chatService.fromRealtimeDB(item, i.toString()));
                                 } catch (e) {
                                   debugPrint('Error parsing message from List: $e');
                                 }
@@ -226,7 +227,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   child: Text(l10n.savingIndicator, style: const TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
                                 );
                               }
-                              return ChatMessageWidget(message: messages[index]);
+                              return ChatMessageWidget(
+                                message: messages[index],
+                                conversationId: _currentConversationId,
+                              );
                             },
                           );
                         },
@@ -451,8 +455,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
 class ChatMessageWidget extends StatefulWidget {
   final Message message;
+  final String? conversationId;
 
-  const ChatMessageWidget({super.key, required this.message});
+  const ChatMessageWidget({
+    super.key, 
+    required this.message,
+    this.conversationId,
+  });
 
   @override
   State<ChatMessageWidget> createState() => _ChatMessageWidgetState();
@@ -553,23 +562,61 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Widget _buildGenUIPlaceholder() {
     final Map<String, dynamic> data = _deepConvertMap(widget.message.data!);
     final String type = data['type'] ?? 'unknown';
+    final String? conversationId = widget.conversationId;
+    final String? messageId = widget.message.id;
 
     try {
-      if (type == 'meal') return MealCard(data: data);
-      if (type == 'multi_meal') return MultiMealCard(data: data);
+      if (type == 'meal') {
+        return MealCard(
+          data: data,
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+      }
+      if (type == 'multi_meal') {
+        return MultiMealCard(
+          data: data,
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+      }
       if (type == 'daily_summary') return DailySummaryCard(data: data);
-      if (type == 'nutrition_goal') return NutritionGoalCard(data: data);
+      if (type == 'nutrition_goal') {
+        return NutritionGoalCard(
+          data: data,
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+      }
       if (type == 'meal_list') return MealListCard(data: data);
       if (type == 'meal_plan') return MealPlanCard(data: data);
-      if (type == 'nutrition_plan') return NutritionPlanCard(data: data);
+      if (type == 'nutrition_plan') {
+        return NutritionPlanCard(
+          data: data,
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+      }
       if (type == 'view_chart') return ChartTriggerCard(data: data);
-      if (type == 'shopping_list') return ShoppingListCard(data: data);
+      if (type == 'shopping_list') {
+        return ShoppingListCard(
+          data: data,
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+      }
       
       // Legacy finance types
       if (type == 'transaction') return TransactionCard(data: data);
       if (type == 'multi_transaction') return MultiTransactionCard(data: data);
       if (type == 'balance') return BalanceCard(data: data);
-      if (type == 'goal_suggestion') return GoalSuggestionCard(data: data);
+      if (type == 'goal_suggestion') {
+        return GoalSuggestionCard(
+          data: data,
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+      }
       if (type == 'transaction_list') return TransactionListCard(data: data);
     } catch (e) {
       debugPrint('CRASH rendering card type $type: $e');

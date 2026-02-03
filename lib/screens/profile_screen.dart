@@ -103,6 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(builder: (context) => const OnboardingScreen()),
                           );
                         }),
+                        _buildMenuItem(Icons.restart_alt_rounded, l10n.resetMemoryTitle, onTap: () => _showResetAIModal(context)),
                        ]),
                       const SizedBox(height: 32),
                       _buildMenuSection(l10n.transparency, [

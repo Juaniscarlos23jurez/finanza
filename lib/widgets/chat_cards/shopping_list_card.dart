@@ -3,11 +3,19 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/nutrition_service.dart';
+import '../../services/chat_service.dart';
 
 class ShoppingListCard extends StatefulWidget {
   final Map<String, dynamic> data;
+  final String? conversationId;
+  final String? messageId;
 
-  const ShoppingListCard({super.key, required this.data});
+  const ShoppingListCard({
+    super.key, 
+    required this.data,
+    this.conversationId,
+    this.messageId,
+  });
 
   @override
   State<ShoppingListCard> createState() => _ShoppingListCardState();
@@ -15,8 +23,15 @@ class ShoppingListCard extends StatefulWidget {
 
 class _ShoppingListCardState extends State<ShoppingListCard> {
   bool _isSaving = false;
-  bool _isSaved = false;
+  late bool _isSaved;
   final NutritionService _nutritionService = NutritionService();
+  final ChatService _chatService = ChatService();
+
+  @override
+  void initState() {
+    super.initState();
+    _isSaved = widget.data['is_saved'] == true;
+  }
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -29,6 +44,18 @@ class _ShoppingListCardState extends State<ShoppingListCard> {
           _isSaving = false;
           _isSaved = true;
         });
+
+        // Persist state in RTDB
+        if (widget.conversationId != null && widget.messageId != null) {
+          final newData = Map<String, dynamic>.from(widget.data);
+          newData['is_saved'] = true;
+          _chatService.updateMessageData(
+            conversationId: widget.conversationId!,
+            messageId: widget.messageId!,
+            newData: newData,
+          ).catchError((e) => debugPrint('Error updating message data: $e'));
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.addedToPantry),

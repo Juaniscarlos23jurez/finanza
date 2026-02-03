@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 import '../theme/app_theme.dart';
+import 'nutrition_service.dart';
 
 enum PandaTrigger {
   mealLogged,
@@ -16,11 +17,81 @@ class GamificationService {
   GamificationService._internal();
 
   final Random _random = Random();
+  final Set<String> _celebratedMacros = {};
+  String _lastCelebrationDate = '';
+
+  void _checkResetCelebrations() {
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    if (_lastCelebrationDate != today) {
+      _celebratedMacros.clear();
+      _lastCelebrationDate = today;
+    }
+  }
 
   void checkAndShowModal(BuildContext context, PandaTrigger trigger) {
     // We can add probability logic here if needed, e.g., if (_random.nextDouble() > 0.7) return;
     // For now, always show for immediate feedback/demo.
     _showPandaModal(context, trigger);
+  }
+
+  Future<void> checkAndTriggerMacroCelebrations(BuildContext context) async {
+    _checkResetCelebrations();
+    final nutritionService = NutritionService();
+    // Get current plan to check targets
+    final planSnapshot = await nutritionService.getPlan().first;
+    if (!planSnapshot.snapshot.exists) return;
+    
+    final planData = Map<String, dynamic>.from(planSnapshot.snapshot.value as Map);
+    final Map macroTargets = planData['macros'] ?? {};
+    
+    // Get all daily meals to calculate totals
+    final mealsSnapshot = await nutritionService.getDailyMeals().first;
+    if (!mealsSnapshot.snapshot.exists) return;
+    
+    final Map<dynamic, dynamic> mealsData = mealsSnapshot.snapshot.value as Map<dynamic, dynamic>;
+    
+    double totalProtein = 0;
+    double totalCarbs = 0;
+    double totalFats = 0;
+    
+    mealsData.forEach((key, value) {
+      final mealData = Map<String, dynamic>.from(value as Map);
+      if (mealData['completed'] == true) {
+        totalProtein += double.tryParse(mealData['protein']?.toString() ?? '0') ?? 0;
+        totalCarbs += double.tryParse(mealData['carbs']?.toString() ?? '0') ?? 0;
+        totalFats += double.tryParse(mealData['fats']?.toString() ?? '0') ?? 0;
+      }
+    });
+
+    final targetProtein = macroTargets['protein'] ?? 0;
+    final targetCarbs = macroTargets['carbs'] ?? 0;
+    final targetFats = macroTargets['fats'] ?? 0;
+
+    bool triggered = false;
+    
+    if (totalProtein >= targetProtein && !_celebratedMacros.contains('protein')) {
+      _celebratedMacros.add('protein');
+      if (context.mounted) {
+        checkAndShowModal(context, PandaTrigger.goalMet);
+        triggered = true;
+      }
+    }
+    
+    if (!triggered && totalCarbs >= targetCarbs && !_celebratedMacros.contains('carbs')) {
+      _celebratedMacros.add('carbs');
+      if (context.mounted) {
+        checkAndShowModal(context, PandaTrigger.goalMet);
+        triggered = true;
+      }
+    }
+    
+    if (!triggered && totalFats >= targetFats && !_celebratedMacros.contains('fats')) {
+      _celebratedMacros.add('fats');
+      if (context.mounted) {
+        checkAndShowModal(context, PandaTrigger.goalMet);
+        triggered = true;
+      }
+    }
   }
 
   void _showPandaModal(BuildContext context, PandaTrigger trigger) {

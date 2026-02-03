@@ -113,10 +113,27 @@ class ChatService {
       debugPrint('Error getting AI response: $e');
     }
   }
+  // Update a message's data in the database
+  Future<void> updateMessageData({
+    required String conversationId,
+    required String messageId,
+    required Map<String, dynamic> newData,
+  }) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    debugPrint('Updating message data for message: $messageId in conversation: $conversationId');
+    await _database
+        .ref('users/$userId/conversations/$conversationId/messages/$messageId')
+        .update({
+          'data': newData,
+        });
+  }
   
   // Create a message object from Realtime DB DataSnapshot value (Map)
-  Message fromRealtimeDB(Map<dynamic, dynamic> data) {
+  Message fromRealtimeDB(Map<dynamic, dynamic> data, [String? key]) {
     return Message(
+      id: key,
       text: data['text']?.toString() ?? '',
       isAi: data['is_ai'] == true,
       timestamp: data['timestamp'] != null 

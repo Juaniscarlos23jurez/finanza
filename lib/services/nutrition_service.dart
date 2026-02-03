@@ -227,11 +227,11 @@ class NutritionService {
     await _database.ref('users/$userId/daily_meals/$newId').set(newMeal);
   }
 
-  Future<void> addMealToToday(Map<String, dynamic> meal) async {
-    await addMealToDate(DateTime.now(), meal);
+  Future<void> addMealToToday(Map<String, dynamic> meal, {bool isCompleted = false}) async {
+    await addMealToDate(DateTime.now(), meal, isCompleted: isCompleted);
   }
 
-  Future<void> addMealToDate(DateTime date, Map<String, dynamic> meal) async {
+  Future<void> addMealToDate(DateTime date, Map<String, dynamic> meal, {bool isCompleted = false}) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');
 
@@ -239,7 +239,7 @@ class NutritionService {
     final String newId = 'meal_${DateTime.now().millisecondsSinceEpoch}';
     final Map<String, dynamic> mealData = Map<String, dynamic>.from(meal);
     mealData['id'] = newId;
-    mealData['completed'] = false;
+    mealData['completed'] = isCompleted;
     mealData['timestamp'] = ServerValue.timestamp;
 
     await _database.ref('users/$userId/meal_planner/$dateStr/$newId').set(mealData);
@@ -247,6 +247,10 @@ class NutritionService {
     // Backward compatibility for today
     if (dateStr == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
       await _database.ref('users/$userId/daily_meals/$newId').set(mealData);
+    }
+
+    if (isCompleted) {
+      await addXp(50);
     }
   }
 

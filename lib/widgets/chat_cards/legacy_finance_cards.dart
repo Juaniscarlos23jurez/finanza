@@ -3,11 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/nutrition_service.dart';
+import '../../services/chat_service.dart';
+import '../../services/gamification_service.dart';
 
 class TransactionCard extends StatefulWidget {
   final Map<String, dynamic> data;
+  final String? conversationId;
+  final String? messageId;
 
-  const TransactionCard({super.key, required this.data});
+  const TransactionCard({
+    super.key, 
+    required this.data,
+    this.conversationId,
+    this.messageId,
+  });
 
   @override
   State<TransactionCard> createState() => _TransactionCardState();
@@ -15,26 +24,48 @@ class TransactionCard extends StatefulWidget {
 
 class _TransactionCardState extends State<TransactionCard> {
   bool _isSaving = false;
-  bool _isSaved = false;
+  late bool _isSaved;
   final NutritionService _nutritionService = NutritionService();
+  final ChatService _chatService = ChatService();
+
+  @override
+  void initState() {
+    super.initState();
+    _isSaved = widget.data['is_saved'] == true;
+  }
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   Future<void> _saveTransaction() async {
     setState(() => _isSaving = true);
     try {
-      await _nutritionService.saveDailyMeals([{
+      await _nutritionService.addMealToToday({
         'name': widget.data['description'] ?? 'Registro AI',
         'calories': double.tryParse(widget.data['amount'].toString()) ?? 0.0,
         'category': widget.data['category'] ?? 'General',
-        'date': DateTime.now().toIso8601String().split('T')[0],
-      }]);
+      }, isCompleted: true);
 
       if (mounted) {
         setState(() {
           _isSaving = false;
           _isSaved = true;
         });
+
+        // Persist state in RTDB
+        if (widget.conversationId != null && widget.messageId != null) {
+          final newData = Map<String, dynamic>.from(widget.data);
+          newData['is_saved'] = true;
+          _chatService.updateMessageData(
+            conversationId: widget.conversationId!,
+            messageId: widget.messageId!,
+            newData: newData,
+          ).catchError((e) => debugPrint('Error updating message data: $e'));
+        }
+
+        // Trigger Gamification & Macro Checks
+        GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+        GamificationService().checkAndTriggerMacroCelebrations(context);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.mealRegistered)),
         );
@@ -157,8 +188,15 @@ class _TransactionCardState extends State<TransactionCard> {
 
 class MultiTransactionCard extends StatefulWidget {
   final Map<String, dynamic> data;
+  final String? conversationId;
+  final String? messageId;
 
-  const MultiTransactionCard({super.key, required this.data});
+  const MultiTransactionCard({
+    super.key, 
+    required this.data,
+    this.conversationId,
+    this.messageId,
+  });
 
   @override
   State<MultiTransactionCard> createState() => _MultiTransactionCardState();
@@ -166,8 +204,15 @@ class MultiTransactionCard extends StatefulWidget {
 
 class _MultiTransactionCardState extends State<MultiTransactionCard> {
   bool _isSaving = false;
-  bool _isSaved = false;
+  late bool _isSaved;
   final NutritionService _nutritionService = NutritionService();
+  final ChatService _chatService = ChatService();
+
+  @override
+  void initState() {
+    super.initState();
+    _isSaved = widget.data['is_saved'] == true;
+  }
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -178,15 +223,32 @@ class _MultiTransactionCardState extends State<MultiTransactionCard> {
         'name': t['description'] ?? 'Registro AI',
         'calories': double.tryParse(t['amount'].toString()) ?? 0.0,
         'category': t['category'] ?? 'General',
-        'date': DateTime.now().toIso8601String().split('T')[0],
       }).toList();
 
-      await _nutritionService.saveDailyMeals(meals);
+      for (var meal in meals) {
+        await _nutritionService.addMealToToday(meal, isCompleted: true);
+      }
       if (mounted) {
         setState(() {
           _isSaving = false;
           _isSaved = true;
         });
+
+        // Persist state in RTDB
+        if (widget.conversationId != null && widget.messageId != null) {
+          final newData = Map<String, dynamic>.from(widget.data);
+          newData['is_saved'] = true;
+          _chatService.updateMessageData(
+            conversationId: widget.conversationId!,
+            messageId: widget.messageId!,
+            newData: newData,
+          ).catchError((e) => debugPrint('Error updating message data: $e'));
+        }
+
+        // Trigger Gamification & Macro Checks
+        GamificationService().checkAndShowModal(context, PandaTrigger.mealLogged);
+        GamificationService().checkAndTriggerMacroCelebrations(context);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${transactions.length} registros guardados')),
         );
