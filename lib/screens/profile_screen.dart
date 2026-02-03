@@ -9,6 +9,7 @@ import 'package:geminifinanzas/providers/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/finance_service.dart';
+import '../widgets/feedback_modal.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -347,163 +348,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showFeedbackModal(BuildContext context) {
-    final TextEditingController feedbackController = TextEditingController();
-    String selectedType = AppLocalizations.of(context)!.typeSuggestion;
-    final List<String> types = [
-      AppLocalizations.of(context)!.typeError, 
-      AppLocalizations.of(context)!.typeSuggestion, 
-      AppLocalizations.of(context)!.typeCompliment
-    ];
-    bool isSending = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: EdgeInsets.only(
-            top: 32,
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.feedbackTitle,
-                    style: GoogleFonts.manrope(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.primary,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                AppLocalizations.of(context)!.feedbackSubtitle,
-                style: GoogleFonts.manrope(
-                  fontSize: 14,
-                  color: AppTheme.secondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                AppLocalizations.of(context)!.feedbackTypeQuestion,
-                style: GoogleFonts.manrope(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.secondary,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                children: types.map((type) {
-                  final isSelected = selectedType == type;
-                  return ChoiceChip(
-                    label: Text(type),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setModalState(() => selectedType = type);
-                      }
-                    },
-                    selectedColor: AppTheme.primary,
-                    labelStyle: GoogleFonts.manrope(
-                      color: isSelected ? Colors.white : AppTheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: feedbackController,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context)!.feedbackHint,
-                  hintStyle: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary.withValues(alpha: 0.5)),
-                  filled: true,
-                  fillColor: AppTheme.background,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: isSending
-                      ? null
-                      : () async {
-                          if (feedbackController.text.trim().isEmpty) return;
-
-                          setModalState(() => isSending = true);
-                          
-                          final result = await _authService.sendFeedback(
-                            type: selectedType,
-                            message: feedbackController.text.trim(),
-                          );
-                          
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(result['success'] 
-                                  ? AppLocalizations.of(context)!.feedbackSuccess 
-                                  : 'Error: ${result['message']}'),
-                                backgroundColor: result['success'] ? Colors.green : Colors.redAccent,
-                              ),
-                            );
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
-                  child: isSending
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text(
-                          AppLocalizations.of(context)!.sendFeedback,
-                          style: GoogleFonts.manrope(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    FeedbackModal.show(context, _authService);
   }
+
 
   void _showLanguageModal(BuildContext context) {
     showModalBottomSheet(
