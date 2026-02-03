@@ -869,6 +869,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: _nextPage,
+            child: Text(
+              l10n.onboardingSkip.toUpperCase(),
+              style: GoogleFonts.manrope(
+                color: AppTheme.secondary,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
         ],
       );
     }
@@ -1019,6 +1031,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     l10n.onboardingGenerateVision.toUpperCase(),
                     style: GoogleFonts.manrope(fontWeight: FontWeight.w900, color: Colors.white),
                   ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: _nextPage,
+          child: Text(
+            l10n.onboardingSkip.toUpperCase(),
+            style: GoogleFonts.manrope(
+              color: AppTheme.secondary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
           ),
         ),
       ],

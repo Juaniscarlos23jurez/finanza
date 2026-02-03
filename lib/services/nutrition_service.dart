@@ -21,6 +21,23 @@ class NutritionService {
     await _database.ref('users/$userId/nutrition_plan').set(planData);
   }
 
+  Future<void> updatePlanMacros({
+    required int protein,
+    required int carbs,
+    required int fats,
+    required int calories,
+  }) async {
+    final userId = await _authService.getUserId();
+    if (userId == null) throw Exception('No user logged in');
+
+    await _database.ref('users/$userId/nutrition_plan/macros').update({
+      'protein': protein,
+      'carbs': carbs,
+      'fats': fats,
+    });
+    await _database.ref('users/$userId/nutrition_plan/daily_calories').set(calories);
+  }
+
   Future<void> saveUserProfile(Map<String, dynamic> profileData) async {
     final userId = await _authService.getUserId();
     if (userId == null) throw Exception('No user logged in');

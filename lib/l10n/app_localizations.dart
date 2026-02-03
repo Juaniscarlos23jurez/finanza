@@ -19,8 +19,11 @@ class AppLocalizations {
       'data_control': 'Control de Datos',
       'export_data': 'Exportar mis Datos (JSON)',
       'other': 'OTRO',
+      'otherSection': 'OTRO',
       'feedback': 'Feedback',
       'terms': 'Términos y Condiciones',
+      'termsConditions': 'Términos y Condiciones',
+      'privacyPolicy': 'Política de Privacidad',
       'logout': 'Cerrar Sesión',
       'delete_account': 'Eliminar cuenta',
       'language': 'Cambiar Idioma',
@@ -385,8 +388,11 @@ class AppLocalizations {
       'data_control': 'Data Control',
       'export_data': 'Export My Data (JSON)',
       'other': 'OTHER',
+      'otherSection': 'OTHER',
       'feedback': 'Feedback',
       'terms': 'Terms and Conditions',
+      'termsConditions': 'Terms and Conditions',
+      'privacyPolicy': 'Privacy Policy',
       'logout': 'Log Out',
       'delete_account': 'Delete account',
       'language': 'Change Language',
@@ -2092,8 +2098,11 @@ class AppLocalizations {
   String get dataControl => get('data_control');
   String get exportData => get('export_data');
   String get other => get('other');
+  String get otherSection => get('otherSection');
   String get feedback => get('feedback');
   String get terms => get('terms');
+  String get termsConditions => get('termsConditions');
+  String get privacyPolicy => get('privacyPolicy');
   String get logout => get('logout');
   String get deleteAccount => get('delete_account');
   String get language => get('language');

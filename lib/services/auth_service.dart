@@ -25,7 +25,7 @@ class AuthService {
           'idToken': idToken,
           'provider': provider,
           'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
-          'app_name': 'finanzas',
+          'app_name': 'nutrigpt',
         },
       );
       
@@ -61,7 +61,7 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
-          'app_name': 'finanzas',
+          'app_name': 'nutrigpt',
         },
       );
       
@@ -95,7 +95,7 @@ class AuthService {
           'name': name,
           'email': email,
           'password': password,
-          'app_name': 'finanzas',
+          'app_name': 'nutrigpt',
         },
       );
       
@@ -298,7 +298,7 @@ class AuthService {
         data: {
           if (fcmToken != null) 'fcm_token': fcmToken,
           if (devicePlatform != null) 'device_platform': devicePlatform,
-          'app_name': 'finanzas',
+          'app_name': 'nutrigpt',
         },
         options: Options(
           headers: {

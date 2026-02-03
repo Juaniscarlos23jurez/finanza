@@ -591,31 +591,134 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildMacroStat(
-                l10n.protein, 
-                '${consumedProtein.toInt()}/${macros['protein']}g', 
-                Colors.red.shade200,
-                consumedProtein >= (macros['protein'] ?? 0)
-              ),
-              _buildMacroStat(
-                l10n.carbs, 
-                '${consumedCarbs.toInt()}/${macros['carbs']}g', 
-                Colors.orange.shade200,
-                consumedCarbs >= (macros['carbs'] ?? 0)
-              ),
-              _buildMacroStat(
-                l10n.fats, 
-                '${consumedFats.toInt()}/${macros['fats']}g', 
-                Colors.amber.shade200,
-                consumedFats >= (macros['fats'] ?? 0)
-              ),
-            ],
+          GestureDetector(
+            onTap: () => _showEditMacrosDialog(context, targetCalories, macros),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMacroStat(
+                  l10n.protein, 
+                  '${consumedProtein.toInt()}/${macros['protein']}g', 
+                  Colors.red.shade200,
+                  consumedProtein >= (macros['protein'] ?? 0)
+                ),
+                _buildMacroStat(
+                  l10n.carbs, 
+                  '${consumedCarbs.toInt()}/${macros['carbs']}g', 
+                  Colors.orange.shade200,
+                  consumedCarbs >= (macros['carbs'] ?? 0)
+                ),
+                _buildMacroStat(
+                  l10n.fats, 
+                  '${consumedFats.toInt()}/${macros['fats']}g', 
+                  Colors.amber.shade200,
+                  consumedFats >= (macros['fats'] ?? 0)
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditMacrosDialog(BuildContext context, int currentCalories, Map macros) {
+    final proteinController = TextEditingController(text: '${macros['protein'] ?? 0}');
+    final carbsController = TextEditingController(text: '${macros['carbs'] ?? 0}');
+    final fatsController = TextEditingController(text: '${macros['fats'] ?? 0}');
+    final calsController = TextEditingController(text: '$currentCalories');
+
+    void updateCals() {
+      final p = int.tryParse(proteinController.text) ?? 0;
+      final c = int.tryParse(carbsController.text) ?? 0;
+      final f = int.tryParse(fatsController.text) ?? 0;
+      final total = (p * 4) + (c * 4) + (f * 9);
+      calsController.text = total.toString();
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 32, left: 32, right: 32,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.macroDistribution,
+              style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary),
+            ),
+            const SizedBox(height: 24),
+            _buildEditField(l10n.protein, '🥩', proteinController, Colors.red, onChanged: (_) => updateCals()),
+            const SizedBox(height: 16),
+            _buildEditField(l10n.carbs, '🍞', carbsController, Colors.orange, onChanged: (_) => updateCals()),
+            const SizedBox(height: 16),
+            _buildEditField(l10n.fats, '🥑', fatsController, Colors.amber, onChanged: (_) => updateCals()),
+            const SizedBox(height: 16),
+            _buildEditField(l10n.totalCaloriesLabel, '🔥', calsController, AppTheme.primary),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () async {
+                final p = int.tryParse(proteinController.text) ?? 0;
+                final c = int.tryParse(carbsController.text) ?? 0;
+                final f = int.tryParse(fatsController.text) ?? 0;
+                final cal = int.tryParse(calsController.text) ?? 0;
+
+                await _nutritionService.updatePlanMacros(
+                  protein: p,
+                  carbs: c,
+                  fats: f,
+                  calories: cal,
+                );
+                if (context.mounted) Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(l10n.save.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditField(String label, String emoji, TextEditingController controller, Color color, {Function(String)? onChanged}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          onChanged: onChanged,
+          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18),
+          decoration: InputDecoration(
+            prefixIcon: Center(widthFactor: 1, child: Text(emoji, style: const TextStyle(fontSize: 20))),
+            suffixText: label.contains('Cal') ? 'kcal' : 'g',
+            suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color.withValues(alpha: 0.2))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color, width: 2)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -667,76 +770,85 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
     final targetCarbs = (macros['carbs'] ?? 0).toDouble();
     final targetFats = (macros['fats'] ?? 0).toDouble();
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.macroProgress,
-                style: GoogleFonts.manrope(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.primary,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  l10n.todayLabel,
+    return GestureDetector(
+      onTap: () => _showEditMacrosDialog(context, targetProtein.toInt() * 4 + targetCarbs.toInt() * 4 + targetFats.toInt() * 9, macros),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.macroProgress,
                   style: GoogleFonts.manrope(
-                    fontSize: 10,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.accent,
-                    letterSpacing: 1.0,
+                    color: AppTheme.primary,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildMacroProgressBar(
-            l10n.protein,
-            consumedProtein,
-            targetProtein,
-            Colors.red,
-            '🥩',
-          ),
-          const SizedBox(height: 20),
-          _buildMacroProgressBar(
-            l10n.carbs,
-            consumedCarbs,
-            targetCarbs,
-            Colors.orange,
-            '🍞',
-          ),
-          const SizedBox(height: 20),
-          _buildMacroProgressBar(
-            l10n.fats,
-            consumedFats,
-            targetFats,
-            Colors.amber,
-            '🥑',
-          ),
-        ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_rounded, size: 10, color: AppTheme.accent),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.todayLabel,
+                        style: GoogleFonts.manrope(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.accent,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildMacroProgressBar(
+              l10n.protein,
+              consumedProtein,
+              targetProtein,
+              Colors.red,
+              '🥩',
+            ),
+            const SizedBox(height: 20),
+            _buildMacroProgressBar(
+              l10n.carbs,
+              consumedCarbs,
+              targetCarbs,
+              Colors.orange,
+              '🍞',
+            ),
+            const SizedBox(height: 20),
+            _buildMacroProgressBar(
+              l10n.fats,
+              consumedFats,
+              targetFats,
+              Colors.amber,
+              '🥑',
+            ),
+          ],
+        ),
       ),
     );
   }

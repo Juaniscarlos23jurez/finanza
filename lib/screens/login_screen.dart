@@ -99,6 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       debugPrint('Step 2: Starting Apple Auth Provider Flow');
       final appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      
       final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
       
       debugPrint('Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}');

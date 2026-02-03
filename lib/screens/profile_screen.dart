@@ -103,21 +103,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(builder: (context) => const OnboardingScreen()),
                           );
                         }),
-                        _buildMenuItem(Icons.history_rounded, l10n.resetAi, onTap: () => _showResetAIModal(context)),
-                      ]),
+                       ]),
                       const SizedBox(height: 32),
                       _buildMenuSection(l10n.transparency, [
                         _buildMenuItem(Icons.security_outlined, l10n.dataControl, onTap: () => _showPrivacyInfo(context)),
-                        _buildMenuItem(Icons.download_outlined, l10n.exportData),
-                      ]),
+                       ]),
                       const SizedBox(height: 32),
-                      _buildMenuSection(l10n.other, [
+                      _buildMenuSection(l10n.otherSection, [
                         _buildMenuItem(Icons.feedback_outlined, l10n.feedback, onTap: () => _showFeedbackModal(context)),
                         _buildMenuItem(
                           Icons.info_outline_rounded, 
-                          l10n.terms,
+                          l10n.termsConditions,
                           onTap: () async {
                             final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                        ),
+                        _buildMenuItem(
+                          Icons.privacy_tip_outlined, 
+                          l10n.privacyPolicy,
+                          onTap: () async {
+                            final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri, mode: LaunchMode.externalApplication);
                             }
