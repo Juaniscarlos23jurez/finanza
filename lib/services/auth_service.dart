@@ -189,8 +189,8 @@ class AuthService {
     try {
       final token = await getToken();
       if (token != null) {
-        await _dio.post(
-          '$baseUrl/delete',
+        await _dio.delete(
+          '$baseUrl/profile',
           options: Options(
             headers: {'Authorization': 'Bearer $token'},
           ),
@@ -199,7 +199,7 @@ class AuthService {
       
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      return {'success': true};
+      return {'success': true, 'message': 'Cuenta eliminada correctamente'};
     } catch (e) {
       // Even if API fails, we clear local session for safety
       final prefs = await SharedPreferences.getInstance();

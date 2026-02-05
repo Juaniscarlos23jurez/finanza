@@ -26,6 +26,7 @@ class AppLocalizations {
       'privacyPolicy': 'Política de Privacidad',
       'logout': 'Cerrar Sesión',
       'delete_account': 'Eliminar cuenta',
+      'delete_account_confirmation': '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.',
       'language': 'Cambiar Idioma',
       'select_language': 'Seleccionar Idioma',
       'no_active_plan': 'No tienes un plan activo',
@@ -395,6 +396,7 @@ class AppLocalizations {
       'privacyPolicy': 'Privacy Policy',
       'logout': 'Log Out',
       'delete_account': 'Delete account',
+      'delete_account_confirmation': 'Are you sure you want to delete your account? This action cannot be undone.',
       'language': 'Change Language',
       'select_language': 'Select Language',
       'no_active_plan': 'No active plan',
@@ -2105,6 +2107,7 @@ class AppLocalizations {
   String get privacyPolicy => get('privacyPolicy');
   String get logout => get('logout');
   String get deleteAccount => get('delete_account');
+  String get deleteAccountConfirmation => get('delete_account_confirmation');
   String get language => get('language');
   String get selectLanguage => get('select_language');
   String get noActivePlan => get('no_active_plan');
