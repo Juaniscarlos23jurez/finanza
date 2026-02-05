@@ -661,46 +661,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showDeleteAccountConfirmation(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+  void _showDeleteAccountConfirmation(BuildContext parentContext) {
+    final l10n = AppLocalizations.of(parentContext)!;
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.deleteAccount, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
         content: Text(l10n.deleteAccountConfirmation),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(l10n.cancelLabel),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // Close confirmation dialog
+              Navigator.pop(dialogContext); // Close confirmation dialog
               
+              if (!mounted) return;
+
               // Show loading
-              if (context.mounted) {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
-                );
-              }
+              showDialog(
+                context: parentContext,
+                barrierDismissible: false,
+                builder: (loadingContext) => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+              );
               
               final result = await _authService.deleteAccount();
               
-              if (!context.mounted) return;
-              Navigator.pop(context); // Close loading
+              if (!mounted) return;
+              Navigator.of(parentContext).pop(); // Close loading
               
               if (result['success']) {
                 Navigator.pushReplacement(
-                  context,
+                  parentContext,
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                 );
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(parentContext).showSnackBar(
                   SnackBar(content: Text(result['message'] ?? "Cuenta eliminada correctamente")),
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(parentContext).showSnackBar(
                   SnackBar(content: Text(result['message'] ?? "Error al eliminar la cuenta")),
                 );
               }

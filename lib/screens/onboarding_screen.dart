@@ -105,11 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           {'label': l10n.onboardingCookingElaborate, 'icon': Icons.outdoor_grill, 'value': 'elaborate'},
         ]
       },
-      {
-        'title': l10n.onboardingMotivationTitle,
-        'subtitle': l10n.onboardingMotivationSubtitle,
-        'type': 'motivation',
-      },
+
       {
         'title': l10n.onboardingFinalTitle,
         'subtitle': l10n.onboardingFinalSubtitle,
