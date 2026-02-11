@@ -955,4 +955,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String messageTooLong(int maxLength) {
     return 'El mensaje es demasiado largo. Máximo $maxLength caracteres.';
   }
+
+  @override
+  String get aiErrorTitle => 'Error de Procesamiento';
+
+  @override
+  String get aiErrorMessage =>
+      'La respuesta de la IA llegó con un formato incorrecto. Por favor intenta preguntar de nuevo.';
 }

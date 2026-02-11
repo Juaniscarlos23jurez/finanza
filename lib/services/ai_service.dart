@@ -25,7 +25,12 @@ class AiService {
       '1. SOLO responde preguntas relacionadas con finanzas, economía personal, presupuesto, ahorros o el uso de esta app. '
       '2. Si el usuario pregunta sobre otros temas (deportes, noticias, clima, chistes), rechaza amablemente responder y redirige al tema financiero. Ejemplo: "Lo siento, solo puedo ayudarte con temas financieros." '
       '3. Tienes acceso a los datos del usuario (Contexto). Úsalos para personalizar la respuesta. '
-      '4. FORMATO JSON ESTRICTO: USA SOLO COMILLAS DOBLES ESTÁNDAR ("). NO USES COMILLAS INTELIGENTES (“”). NO USES PARÉNTESIS () PARA ENVOLVER JSON. SOLO LLAVES {}. '
+      '4. FORMATO JSON ESTRICTO: '
+      '   - USA SOLO COMILLAS DOBLES ESTÁNDAR ("). '
+      '   - NO USES COMILLAS INTELIGENTES (“”). '
+      '   - ¡PROHIBIDO USAR PARÉNTESIS () PARA ENVOLVER OBJETOS JSON! USA SIEMPRE LLAVES {}. '
+      '   - Ejemplo CORRECTO: {"clave": "valor"} '
+      '   - Ejemplo INCORRECTO: ("clave": "valor") '
       'GENUI (INTERFAZ GENERATIVA): '
       'Cuando sea útil, incluye un bloque JSON al final para generar UI interactiva. '
       'Formatos soportados: '
@@ -145,6 +150,14 @@ class AiService {
         if (matches.isNotEmpty) {
            jsonMatch = matches.last;
         }
+        // Fallback for ( ... ) format if the model ignores the prompt
+        if (jsonMatch == null) {
+          jsonRegex = RegExp(r'(\(.*"type"\s*:\s*".*?\).*)', dotAll: true);
+          final pMatches = jsonRegex.allMatches(responseText);
+          if (pMatches.isNotEmpty) {
+            jsonMatch = pMatches.last;
+          }
+        }
       }
       
       if (jsonMatch != null) {
@@ -163,16 +176,51 @@ class AiService {
               .replaceAll('multi_ transaction', 'multi_transaction')
               .trim();
           
+          // Fix parentheses used instead of braces
           if (jsonString.startsWith('(') && jsonString.endsWith(')')) {
             jsonString = jsonString.substring(1, jsonString.length - 1);
+            // If it was wrapped in (), check if we need to wrap it in {} now
+            if (!jsonString.trim().startsWith('{')) {
+               jsonString = '{$jsonString}';
+            }
           }
+
+          // Aggressive cleanup for internal structure (lists of objects in parentheses)
+          // Transforms: [ ( ... ), ( ... ) ] to [ { ... }, { ... } ]
+          if (jsonString.contains('[') && jsonString.contains(']')) {
+             // 1. Normalize line endings to space (using the result directly effectively)
+             jsonString = jsonString.replaceAll('\n', ' ');
+             // 2. Replace ( with { and ) with } inside brackets IF they seem to be objects
+             // Heuristic: looks for ( "key": value ... )
+             // We can just bluntly replace all ( and ) if they are not inside strings? No.
+             // Let's stick to the previous aggressive replace for now as it catches the user's specific case.
+             jsonString = jsonString.replaceAll('(\n', '{\n')
+                                    .replaceAll('\n)', '\n}')
+                                    .replaceAll(', (', ', {')
+                                    .replaceAll(') ,', '} ,')
+                                    .replaceAll('),', '},')
+                                    .replaceAll('( ', '{ ')
+                                    .replaceAll(' )', ' }');
+          }
+
+          // Ensure strict JSON format for keys if missing quotes (simple heuristic)
+          // Note: This is hard to do safely with regex in one go, relying mostly on prompt fix.
            
+          // Attempt decode
           genUiData = json.decode(jsonString);
           isGenUI = true;
           
           responseText = responseText.replaceRange(jsonMatch.start, jsonMatch.end, '').trim();
         } catch (e) {
           debugPrint('Error parsing GenUI JSON: $e');
+          // FALLBACK: Return error UI instead of silent fail
+          isGenUI = true;
+          genUiData = {
+            'type': 'parsing_error',
+            'raw_content': responseText, // Optional: for debug if needed, but not shown to user
+            'message': 'La IA generó una respuesta que no pude entender. Por favor intenta de nuevo.'
+          };
+          responseText = ''; // clear text so we only show the card
         }
       }
 

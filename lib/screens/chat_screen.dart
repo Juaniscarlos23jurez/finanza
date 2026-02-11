@@ -884,9 +884,66 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         return _buildDebtPaymentCard(data);
       case 'contribute_goal':
         return _buildGoalContributionCard(data);
+      case 'parsing_error':
+        return _buildParsingErrorCard(data);
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildParsingErrorCard(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.redAccent.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 48, color: Colors.redAccent.withValues(alpha: 0.8)),
+          const SizedBox(height: 16),
+          Text(
+            l10n.aiErrorTitle,
+            style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.aiErrorMessage,
+            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                // Retry last message logic could go here, for now just clear input or let user retry
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Por favor intenta enviar tu mensaje nuevamente.")));
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text("Reintentar", style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.redAccent,
+                side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _buildPremiumAnalysisCard(Map<String, dynamic> data) {

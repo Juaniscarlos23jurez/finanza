@@ -1890,6 +1890,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El mensaje es demasiado largo. Máximo {maxLength} caracteres.'**
   String messageTooLong(int maxLength);
+
+  /// No description provided for @aiErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Error de Procesamiento'**
+  String get aiErrorTitle;
+
+  /// No description provided for @aiErrorMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'La respuesta de la IA llegó con un formato incorrecto. Por favor intenta preguntar de nuevo.'**
+  String get aiErrorMessage;
 }
 
 class _AppLocalizationsDelegate
