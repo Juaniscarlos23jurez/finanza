@@ -20,6 +20,8 @@ import 'dart:io';
 
 import 'package:geminifinanzas/screens/onboarding_screen.dart';
 import 'package:geminifinanzas/services/auth_service.dart';
+import 'package:geminifinanzas/services/app_version_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -103,9 +105,77 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final Widget initialScreen;
   const MyApp({super.key, required this.initialScreen});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUpdate();
+    });
+  }
+
+  Future<void> _checkUpdate() async {
+    final service = AppVersionService();
+    final status = await service.checkAppVersion();
+
+    if (status.state != UpdateState.noUpdate) {
+      final context = navigatorKey.currentContext; // Use navigatorKey context
+      if (context != null && mounted) {
+        _showUpdateDialog(context, status);
+      }
+    }
+  }
+
+  void _showUpdateDialog(BuildContext context, AppUpdateStatus status) {
+    final bool isForce = status.state == UpdateState.forceUpdate;
+    showDialog(
+      context: context,
+      barrierDismissible: !isForce,
+      builder: (context) => PopScope(
+        canPop: !isForce,
+        child: AlertDialog(
+          title: const Text('Actualización disponible'),
+          content: Text(
+            isForce
+                ? 'Es necesario actualizar la aplicación para continuar. Nueva versión: ${status.latestVersion ?? "Desconocida"}'
+                : 'Hay una nueva versión disponible (${status.latestVersion ?? "Desconocida"}). ¿Deseas actualizar?',
+          ),
+          actions: [
+            if (!isForce)
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Más tarde'),
+              ),
+            TextButton(
+              onPressed: () {
+                if (status.storeUrl != null) {
+                  _launchURL(status.storeUrl!);
+                }
+              },
+              child: const Text('Actualizar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +194,7 @@ class MyApp extends StatelessWidget {
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           locale: localeProvider.locale,
-          home: initialScreen,
+          home: widget.initialScreen,
           builder: (context, child) {
             return ConnectivityWrapper(child: child!);
           },
