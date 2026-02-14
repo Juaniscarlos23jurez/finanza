@@ -136,31 +136,39 @@ class _MyAppState extends State<MyApp> {
 
   void _showUpdateDialog(BuildContext context, AppUpdateStatus status) {
     final bool isForce = status.state == UpdateState.forceUpdate;
+    final l10n = AppLocalizations.of(context)!;
+    String storeUrl = status.storeUrl ?? '';
+
+    // Override iOS URL as requested
+    if (Platform.isIOS) {
+      storeUrl = 'https://apps.apple.com/us/app/fingenius/id6757898883';
+    }
+
     showDialog(
       context: context,
       barrierDismissible: !isForce,
       builder: (context) => PopScope(
         canPop: !isForce,
         child: AlertDialog(
-          title: const Text('Actualización disponible'),
+          title: Text(isForce ? l10n.mandatoryUpdate : l10n.updateAvailable),
           content: Text(
             isForce
-                ? 'Es necesario actualizar la aplicación para continuar. Nueva versión: ${status.latestVersion ?? "Desconocida"}'
-                : 'Hay una nueva versión disponible (${status.latestVersion ?? "Desconocida"}). ¿Deseas actualizar?',
+                ? l10n.updateMessageMandatory(status.latestVersion ?? "latest")
+                : l10n.updateMessageOptional(status.latestVersion ?? "latest"),
           ),
           actions: [
             if (!isForce)
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Más tarde'),
+                child: Text(l10n.later),
               ),
             TextButton(
               onPressed: () {
-                if (status.storeUrl != null) {
-                  _launchURL(status.storeUrl!);
+                if (storeUrl.isNotEmpty) {
+                  _launchURL(storeUrl);
                 }
               },
-              child: const Text('Actualizar'),
+              child: Text(l10n.update),
             ),
           ],
         ),

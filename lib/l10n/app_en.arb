@@ -478,5 +478,26 @@
                 "type": "int"
             }
         }
-    }
+    },
+    "aiErrorMessage": "The AI response came with an incorrect format. Please try asking again.",
+    "updateAvailable": "Update Available",
+    "mandatoryUpdate": "Mandatory Update",
+    "updateMessageOptional": "A new version ({version}) is available. Do you want to update?",
+    "@updateMessageOptional": {
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
+    "updateMessageMandatory": "You cannot continue using the app with this version. Please update to version {version}.",
+    "@updateMessageMandatory": {
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
+    "later": "Later",
+    "update": "Update"
 }

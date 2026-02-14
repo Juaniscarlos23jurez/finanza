@@ -1902,6 +1902,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'La respuesta de la IA llegó con un formato incorrecto. Por favor intenta preguntar de nuevo.'**
   String get aiErrorMessage;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualización disponible'**
+  String get updateAvailable;
+
+  /// No description provided for @mandatoryUpdate.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualización obligatoria'**
+  String get mandatoryUpdate;
+
+  /// No description provided for @updateMessageOptional.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay una nueva versión disponible ({version}). ¿Deseas actualizar ahora?'**
+  String updateMessageOptional(String version);
+
+  /// No description provided for @updateMessageMandatory.
+  ///
+  /// In es, this message translates to:
+  /// **'No puedes continuar utilizando la aplicación con esta versión. Debes actualizar a la versión {version}.'**
+  String updateMessageMandatory(String version);
+
+  /// No description provided for @later.
+  ///
+  /// In es, this message translates to:
+  /// **'Más tarde'**
+  String get later;
+
+  /// No description provided for @update.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizar'**
+  String get update;
 }
 
 class _AppLocalizationsDelegate

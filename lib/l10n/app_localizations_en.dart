@@ -977,5 +977,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiErrorMessage =>
-      'La respuesta de la IA llegó con un formato incorrecto. Por favor intenta preguntar de nuevo.';
+      'The AI response came with an incorrect format. Please try asking again.';
+
+  @override
+  String get updateAvailable => 'Update Available';
+
+  @override
+  String get mandatoryUpdate => 'Mandatory Update';
+
+  @override
+  String updateMessageOptional(String version) {
+    return 'A new version ($version) is available. Do you want to update?';
+  }
+
+  @override
+  String updateMessageMandatory(String version) {
+    return 'You cannot continue using the app with this version. Please update to version $version.';
+  }
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get update => 'Update';
 }

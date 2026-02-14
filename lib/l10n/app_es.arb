@@ -480,5 +480,25 @@
         }
     },
     "aiErrorTitle": "Error de Procesamiento",
-    "aiErrorMessage": "La respuesta de la IA llegó con un formato incorrecto. Por favor intenta preguntar de nuevo."
+    "aiErrorMessage": "La respuesta de la IA llegó con un formato incorrecto. Por favor intenta preguntar de nuevo.",
+    "updateAvailable": "Actualización disponible",
+    "mandatoryUpdate": "Actualización obligatoria",
+    "updateMessageOptional": "Hay una nueva versión disponible ({version}). ¿Deseas actualizar ahora?",
+    "@updateMessageOptional": {
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
+    "updateMessageMandatory": "No puedes continuar utilizando la aplicación con esta versión. Debes actualizar a la versión {version}.",
+    "@updateMessageMandatory": {
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
+    "later": "Más tarde",
+    "update": "Actualizar"
 }
