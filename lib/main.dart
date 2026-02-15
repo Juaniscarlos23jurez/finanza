@@ -19,6 +19,7 @@ import 'package:geminifinanzas/services/ad_service.dart';
 import 'dart:io';
 
 import 'package:geminifinanzas/screens/onboarding_screen.dart';
+import 'package:geminifinanzas/screens/update_screen.dart';
 import 'package:geminifinanzas/services/auth_service.dart';
 import 'package:geminifinanzas/services/app_version_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -123,55 +124,33 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _checkUpdate() async {
+    debugPrint('Main: Starting app version check...');
     final service = AppVersionService();
     final status = await service.checkAppVersion();
 
+    debugPrint('Main: Update check finished. State: ${status.state}');
+
     if (status.state != UpdateState.noUpdate) {
       final context = navigatorKey.currentContext; // Use navigatorKey context
+      debugPrint('Main: Context found for dialog: ${context != null}');
       if (context != null && mounted) {
+        debugPrint('Main: Triggering _showUpdateDialog');
         _showUpdateDialog(context, status);
+      } else {
+         debugPrint('Main: Could not show dialog - Context is null or widget not mounted (mounted: $mounted)');
       }
+    } else {
+      debugPrint('Main: No update required according to service.');
     }
   }
 
   void _showUpdateDialog(BuildContext context, AppUpdateStatus status) {
-    final bool isForce = status.state == UpdateState.forceUpdate;
-    final l10n = AppLocalizations.of(context)!;
-    String storeUrl = status.storeUrl ?? '';
-
-    // Override iOS URL as requested
-    if (Platform.isIOS) {
-      storeUrl = 'https://apps.apple.com/us/app/fingenius/id6757898883';
-    }
-
-    showDialog(
-      context: context,
-      barrierDismissible: !isForce,
-      builder: (context) => PopScope(
-        canPop: !isForce,
-        child: AlertDialog(
-          title: Text(isForce ? l10n.mandatoryUpdate : l10n.updateAvailable),
-          content: Text(
-            isForce
-                ? l10n.updateMessageMandatory(status.latestVersion ?? "latest")
-                : l10n.updateMessageOptional(status.latestVersion ?? "latest"),
-          ),
-          actions: [
-            if (!isForce)
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.later),
-              ),
-            TextButton(
-              onPressed: () {
-                if (storeUrl.isNotEmpty) {
-                  _launchURL(storeUrl);
-                }
-              },
-              child: Text(l10n.update),
-            ),
-          ],
-        ),
+    debugPrint('Main: Navigating to full-screen UpdateScreen (Force: ${status.state == UpdateState.forceUpdate})');
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true, // This makes it feel like a meaningful overlay
+        builder: (context) => UpdateScreen(status: status),
       ),
     );
   }

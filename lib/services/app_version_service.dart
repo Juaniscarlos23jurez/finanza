@@ -41,6 +41,7 @@ class AppVersionService {
         return AppUpdateStatus(state: UpdateState.noUpdate);
       }
 
+      debugPrint('AppVersionService: Fetching remote version info...');
       final response = await _dio.get(
         '$baseUrl/app-versions',
         queryParameters: {
@@ -55,9 +56,13 @@ class AppVersionService {
         ),
       );
 
+      debugPrint('AppVersionService: Response Status: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = response.data;
+        debugPrint('AppVersionService: Raw Data: $data');
+        
         String platformKey = Platform.isIOS ? 'ios' : 'android';
+        debugPrint('AppVersionService: Filtering for platform: $platformKey');
         
         if (data != null && data[platformKey] != null) {
           final platformData = data[platformKey];
@@ -68,9 +73,11 @@ class AppVersionService {
           final Version? minVersion = _tryParseVersion(minVersionStr);
           final Version? latestVersion = _tryParseVersion(latestVersionStr);
 
-          debugPrint('AppVersionService: Remote - Min: $minVersionStr, Latest: $latestVersionStr');
+          debugPrint('AppVersionService: Parsed Remote Versions - Min: $minVersion, Latest: $latestVersion');
+          debugPrint('AppVersionService: Comparing Current ($currentVersion) vs Min ($minVersion) and Latest ($latestVersion)');
 
           if (minVersion != null && currentVersion < minVersion) {
+            debugPrint('AppVersionService: RESULT -> FORCE UPDATE REQUIRED');
             return AppUpdateStatus(
                state: UpdateState.forceUpdate, 
                storeUrl: storeUrl,
@@ -78,17 +85,24 @@ class AppVersionService {
                minVersion: minVersionStr,
             );
           } else if (latestVersion != null && currentVersion < latestVersion) {
+            debugPrint('AppVersionService: RESULT -> OPTIONAL UPDATE AVAILABLE');
             return AppUpdateStatus(
                state: UpdateState.optionalUpdate, 
                storeUrl: storeUrl,
                latestVersion: latestVersionStr,
                minVersion: minVersionStr,
             );
+          } else {
+            debugPrint('AppVersionService: RESULT -> UP TO DATE');
           }
+        } else {
+          debugPrint('AppVersionService: No data found for platform $platformKey in response');
         }
+      } else {
+        debugPrint('AppVersionService: Non-200 response from server');
       }
     } catch (e) {
-      debugPrint('AppVersionService: Error checking version: $e');
+      debugPrint('AppVersionService: ERROR in checkAppVersion: $e');
     }
     
     return AppUpdateStatus(state: UpdateState.noUpdate);
