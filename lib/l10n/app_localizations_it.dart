@@ -1009,4 +1009,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get update => 'Actualizar';
+
+  @override
+  String get supportProject => 'Apoyar el proyecto (Ver anuncio)';
+
+  @override
+  String get supportThanks => '¡Gracias por tu apoyo!';
 }

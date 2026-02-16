@@ -151,7 +151,8 @@ class AdService {
     // Release Mode
     if (Platform.isIOS)
       return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Rewarded Interstitial iOS
-    if (Platform.isAndroid) return '';
+    if (Platform.isAndroid)
+      return 'ca-app-pub-8583703891478819/6880437101'; // Confirmado: Rewarded Interstitial Android
     return '';
   }
 
@@ -170,6 +171,49 @@ class AdService {
     );
   }
 
+  /// Load and show a Rewarded Interstitial Ad
+  void showRewardedInterstitialAd(
+    BuildContext context, {
+    required VoidCallback onAdDismissed,
+  }) {
+    if (!adsEnabled.value) {
+      onAdDismissed();
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    loadRewardedInterstitialAd(
+      onAdLoaded: (ad) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ad.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            onAdDismissed();
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            onAdDismissed();
+          },
+        );
+        ad.show(
+          onUserEarnedReward: (ad, reward) {
+            debugPrint('User earned reward: ${reward.amount} ${reward.type}');
+          },
+        );
+      },
+      onAdFailedToLoad: (error) {
+        Navigator.of(context).pop(); // Close loading dialog
+        debugPrint('Failed to load rewarded interstitial ad: $error');
+        onAdDismissed();
+      },
+    );
+  }
+
   /// Get the Native Ad unit ID
   String get nativeAdUnitId {
     if (kDebugMode) {
@@ -182,7 +226,8 @@ class AdService {
     // Release Mode
     if (Platform.isIOS)
       return 'ca-app-pub-8583703891478819/4606651657'; // Confirmado: Native iOS
-    if (Platform.isAndroid) return '';
+    if (Platform.isAndroid)
+      return 'ca-app-pub-8583703891478819/4561395524'; // Confirmado: Native Android
     return '';
   }
 

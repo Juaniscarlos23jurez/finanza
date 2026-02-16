@@ -499,5 +499,7 @@
         }
     },
     "later": "Later",
-    "update": "Update"
+    "update": "Update",
+    "supportProject": "Support the project (Watch Ad)",
+    "supportThanks": "Thank you for your support!"
 }

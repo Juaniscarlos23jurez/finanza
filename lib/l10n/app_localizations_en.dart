@@ -1000,4 +1000,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get update => 'Update';
+
+  @override
+  String get supportProject => 'Support the project (Watch Ad)';
+
+  @override
+  String get supportThanks => 'Thank you for your support!';
 }

@@ -9,6 +9,7 @@ import 'package:geminifinanzas/providers/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/finance_service.dart';
+import '../services/ad_service.dart';
 import '../widgets/feedback_modal.dart';
 import 'login_screen.dart';
 
@@ -34,10 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchData() async {
-    await Future.wait([
-      _fetchProfile(),
-      _fetchTransactions(),
-    ]);
+    await Future.wait([_fetchProfile(), _fetchTransactions()]);
   }
 
   Future<void> _fetchTransactions() async {
@@ -70,57 +68,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: _isLoading 
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 48),
-                  _buildProfileHeader(context),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(AppLocalizations.of(context)!.accountSection, [
-                    _buildMenuItem(Icons.person_outline_rounded, AppLocalizations.of(context)!.personalInfo, onTap: () => _showPersonalInfoModal(context)),
-                    _buildMenuItem(Icons.email_outlined, AppLocalizations.of(context)!.scheduleReport, onTap: () => _showScheduleReportModal(context)),
-                    _buildMenuItem(Icons.language, AppLocalizations.of(context)!.language, onTap: () => _showLanguageModal(context)),
-                    //_buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
-                   // _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildCalendar(context),
-                 
-                  const SizedBox(height: 32),
-                  _buildMenuSection(AppLocalizations.of(context)!.otherSection, [
-                    _buildMenuItem(Icons.feedback_outlined, AppLocalizations.of(context)!.feedback, onTap: () => _showFeedbackModal(context)),
-                    _buildMenuItem(
-                      Icons.info_outline_rounded, 
-                      AppLocalizations.of(context)!.termsConditions,
-                      onTap: () async {
-                        final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.primary),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 48),
+                    _buildProfileHeader(context),
+                    const SizedBox(height: 32),
+                    _buildMenuSection(
+                      AppLocalizations.of(context)!.accountSection,
+                      [
+                        _buildMenuItem(
+                          Icons.person_outline_rounded,
+                          AppLocalizations.of(context)!.personalInfo,
+                          onTap: () => _showPersonalInfoModal(context),
+                        ),
+                        _buildMenuItem(
+                          Icons.email_outlined,
+                          AppLocalizations.of(context)!.scheduleReport,
+                          onTap: () => _showScheduleReportModal(context),
+                        ),
+                        _buildMenuItem(
+                          Icons.language,
+                          AppLocalizations.of(context)!.language,
+                          onTap: () => _showLanguageModal(context),
+                        ),
+                        //_buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
+                        // _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
+                      ],
                     ),
-                    _buildMenuItem(
-                      Icons.privacy_tip_outlined, 
-                      AppLocalizations.of(context)!.privacyPolicy,
-                      onTap: () async {
-                        final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                    ),
-                  ]),
-                  const SizedBox(height: 48),
-                  _buildLogoutButton(context),
-                  const SizedBox(height: 12),
-                  _buildDeleteAccountButton(context),
-                  const SizedBox(height: 48),
-                ],
+                    const SizedBox(height: 32),
+                    _buildCalendar(context),
+
+                    const SizedBox(height: 32),
+                    _buildMenuSection(AppLocalizations.of(context)!.otherSection, [
+                      _buildMenuItem(
+                        Icons.feedback_outlined,
+                        AppLocalizations.of(context)!.feedback,
+                        onTap: () => _showFeedbackModal(context),
+                      ),
+                      _buildMenuItem(
+                        Icons.info_outline_rounded,
+                        AppLocalizations.of(context)!.termsConditions,
+                        onTap: () async {
+                          final uri = Uri.parse(
+                            'https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos',
+                          );
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                      ),
+                      _buildMenuItem(
+                        Icons.privacy_tip_outlined,
+                        AppLocalizations.of(context)!.privacyPolicy,
+                        onTap: () async {
+                          final uri = Uri.parse(
+                            'https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad',
+                          );
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                      ),
+                      _buildMenuItem(
+                        Icons.favorite_border_rounded,
+                        AppLocalizations.of(context)!.supportProject,
+                        onTap: () {
+                          AdService().showRewardedInterstitialAd(
+                            context,
+                            onAdDismissed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(context)!.supportThanks,
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ]),
+                    const SizedBox(height: 48),
+                    _buildLogoutButton(context),
+                    const SizedBox(height: 12),
+                    _buildDeleteAccountButton(context),
+                    const SizedBox(height: 48),
+                  ],
+                ),
               ),
-            ),
       ),
     );
   }
@@ -144,14 +192,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 20,
-                  )
+                  ),
                 ],
               ),
               child: ClipOval(
                 child: photoUrl != null
                     ? Image.network(photoUrl, fit: BoxFit.cover)
                     : const Center(
-                        child: Icon(Icons.person_rounded, size: 60, color: AppTheme.primary),
+                        child: Icon(
+                          Icons.person_rounded,
+                          size: 60,
+                          color: AppTheme.primary,
+                        ),
                       ),
               ),
             ),
@@ -202,18 +254,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 10,
-              )
+              ),
             ],
           ),
-          child: Column(
-            children: items,
-          ),
+          child: Column(children: items),
         ),
       ],
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {bool hasSwitch = false, VoidCallback? onTap}) {
+  Widget _buildMenuItem(
+    IconData icon,
+    String title, {
+    bool hasSwitch = false,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -239,7 +294,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 activeTrackColor: AppTheme.primary,
               )
             else
-              const Icon(Icons.chevron_right_rounded, color: AppTheme.secondary, size: 20),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppTheme.secondary,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -255,7 +314,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => const Center(child: CircularProgressIndicator()),
+            builder: (context) =>
+                const Center(child: CircularProgressIndicator()),
           );
 
           await _authService.logout();
@@ -274,14 +334,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Text(
           AppLocalizations.of(context)!.logout,
-          style: GoogleFonts.manrope(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
+          style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w800),
         ),
       ),
     );
   }
+
   Widget _buildDeleteAccountButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -307,7 +365,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteAccountTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        title: Text(
+          AppLocalizations.of(context)!.deleteAccountTitle,
+          style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+        ),
         content: Text(
           AppLocalizations.of(context)!.deleteAccountContent,
           style: GoogleFonts.manrope(),
@@ -315,17 +376,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: GoogleFonts.manrope(color: AppTheme.secondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context); // Close dialog
-              
+
               // Show loading
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(child: CircularProgressIndicator()),
+                builder: (context) =>
+                    const Center(child: CircularProgressIndicator()),
               );
 
               // Solo hacer logout en lugar de borrar cuenta
@@ -340,7 +405,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: Text(AppLocalizations.of(context)!.confirm, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              AppLocalizations.of(context)!.confirm,
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -350,7 +421,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showFeedbackModal(BuildContext context) {
     FeedbackModal.show(context, _authService);
   }
-
 
   void _showLanguageModal(BuildContext context) {
     showModalBottomSheet(
@@ -417,7 +487,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: isSelected ? AppTheme.primary : AppTheme.secondary,
         ),
       ),
-      trailing: isSelected ? const Icon(Icons.check, color: AppTheme.primary) : null,
+      trailing: isSelected
+          ? const Icon(Icons.check, color: AppTheme.primary)
+          : null,
       onTap: () {
         provider.setLocale(locale);
         Navigator.pop(context);
@@ -434,7 +506,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
-          )
+          ),
         ],
       ),
       child: TableCalendar(
@@ -446,10 +518,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         headerStyle: HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
-          titleTextStyle: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary),
+          titleTextStyle: GoogleFonts.manrope(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primary,
+          ),
         ),
         calendarStyle: const CalendarStyle(
-          todayDecoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+          todayDecoration: BoxDecoration(
+            color: AppTheme.primary,
+            shape: BoxShape.circle,
+          ),
         ),
         calendarBuilders: CalendarBuilders(
           defaultBuilder: (context, day, focusedDay) {
@@ -461,7 +539,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                 child: Text(
                   '${day.day}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               );
             }
@@ -491,8 +572,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (!hasData) return null;
-    return income >= expense 
-        ? Colors.green.withValues(alpha: 0.2) 
+    return income >= expense
+        ? Colors.green.withValues(alpha: 0.2)
         : Colors.red.withValues(alpha: 0.2);
   }
 
@@ -530,11 +611,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            _buildInfoItem(AppLocalizations.of(context)!.fullName, _userData?['name'] ?? 'No disponible'),
+            _buildInfoItem(
+              AppLocalizations.of(context)!.fullName,
+              _userData?['name'] ?? 'No disponible',
+            ),
             const SizedBox(height: 16),
-            _buildInfoItem(AppLocalizations.of(context)!.email, _userData?['email'] ?? 'No disponible'),
+            _buildInfoItem(
+              AppLocalizations.of(context)!.email,
+              _userData?['email'] ?? 'No disponible',
+            ),
             const SizedBox(height: 16),
-            _buildInfoItem(AppLocalizations.of(context)!.userId, _userData?['id']?.toString() ?? 'No disponible'),
+            _buildInfoItem(
+              AppLocalizations.of(context)!.userId,
+              _userData?['id']?.toString() ?? 'No disponible',
+            ),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -543,7 +633,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
                 child: Text(
@@ -564,8 +656,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showScheduleReportModal(BuildContext context) {
     if (_userData == null) return;
-    
-    final TextEditingController emailController = TextEditingController(text: _userData?['email'] ?? '');
+
+    final TextEditingController emailController = TextEditingController(
+      text: _userData?['email'] ?? '',
+    );
     int selectedDays = 30;
     final List<int> frequencyOptions = [7, 15, 30];
     bool isRequesting = false;
@@ -579,26 +673,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context, setModalState) {
           // Fetch settings when modal opens
           if (isLoadingSettings) {
-            _financeService.getReportSettings().then((res) {
-              if (context.mounted) {
-                // If the API returns a list (as CRUD standard might), take first or handle. 
-                // Based on user description, it seems to handle one per user.
-                final data = res is List ? (res.isNotEmpty ? res.first : null) : res;
-                if (data != null) {
-                  setModalState(() {
-                    if (data['email'] != null) emailController.text = data['email'];
-                    if (data['frequency_days'] != null) selectedDays = int.tryParse(data['frequency_days'].toString()) ?? 30;
-                    isLoadingSettings = false;
-                  });
-                } else {
-                  setModalState(() => isLoadingSettings = false);
-                }
-              }
-            }).catchError((e) {
-              if (context.mounted) {
-                setModalState(() => isLoadingSettings = false);
-              }
-            });
+            _financeService
+                .getReportSettings()
+                .then((res) {
+                  if (context.mounted) {
+                    // If the API returns a list (as CRUD standard might), take first or handle.
+                    // Based on user description, it seems to handle one per user.
+                    final data = res is List
+                        ? (res.isNotEmpty ? res.first : null)
+                        : res;
+                    if (data != null) {
+                      setModalState(() {
+                        if (data['email'] != null)
+                          emailController.text = data['email'];
+                        if (data['frequency_days'] != null)
+                          selectedDays =
+                              int.tryParse(data['frequency_days'].toString()) ??
+                              30;
+                        isLoadingSettings = false;
+                      });
+                    } else {
+                      setModalState(() => isLoadingSettings = false);
+                    }
+                  }
+                })
+                .catchError((e) {
+                  if (context.mounted) {
+                    setModalState(() => isLoadingSettings = false);
+                  }
+                });
           }
 
           return Container(
@@ -642,7 +745,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_graph_rounded, color: AppTheme.primary),
+                      const Icon(
+                        Icons.auto_graph_rounded,
+                        color: AppTheme.primary,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
@@ -659,10 +765,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 24),
                 if (isLoadingSettings)
-                  const Center(child: Padding(
-                    padding: EdgeInsets.all(40.0),
-                    child: CircularProgressIndicator(color: AppTheme.primary),
-                  ))
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: CircularProgressIndicator(color: AppTheme.primary),
+                    ),
+                  )
                 else ...[
                   Text(
                     AppLocalizations.of(context)!.sendReportTo,
@@ -676,7 +784,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: emailController,
-                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary),
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primary,
+                    ),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: AppTheme.background,
@@ -684,7 +795,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20, color: AppTheme.primary),
+                      prefixIcon: const Icon(
+                        Icons.alternate_email_rounded,
+                        size: 20,
+                        color: AppTheme.primary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -703,7 +818,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: frequencyOptions.map((days) {
                       final isSelected = selectedDays == days;
                       return ChoiceChip(
-                        label: Text(AppLocalizations.of(context)!.daysLoop(days)),
+                        label: Text(
+                          AppLocalizations.of(context)!.daysLoop(days),
+                        ),
                         selected: isSelected,
                         onSelected: (selected) {
                           if (selected) {
@@ -731,18 +848,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             if (targetEmail.isEmpty) return;
 
                             setModalState(() => isRequesting = true);
-                            
+
                             try {
                               await _financeService.saveReportSettings(
-                                email: targetEmail, 
+                                email: targetEmail,
                                 frequencyDays: selectedDays,
                               );
-                              
+
                               if (context.mounted) {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(AppLocalizations.of(context)!.configSaved),
+                                    content: Text(
+                                      AppLocalizations.of(context)!.configSaved,
+                                    ),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -751,21 +870,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (context.mounted) {
                                 setModalState(() => isRequesting = false);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+                                  SnackBar(
+                                    content: Text(e.toString()),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
                                 );
                               }
                             }
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       elevation: 0,
                     ),
                     child: isRequesting
                         ? const SizedBox(
                             height: 24,
                             width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : Text(
                             AppLocalizations.of(context)!.confirmAndSchedule,
