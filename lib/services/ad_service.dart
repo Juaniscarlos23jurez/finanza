@@ -14,27 +14,37 @@ class AdService {
   /// Initialize the Google Mobile Ads SDK and check remote status.
   Future<void> initialize() async {
     // Escuchar cambios en tiempo real desde Firebase
-    FirebaseDatabase.instance.ref('AdMob').onValue.listen((event) {
-      final value = event.snapshot.value;
-      debugPrint('AdMob Remote Sync - Raw Value: $value (${value.runtimeType})');
-      
-      bool newValue = adsEnabled.value;
-      if (value is bool) {
-        newValue = value;
-      } else if (value is String) {
-        if (value.toLowerCase() == 'true' || value == '1') newValue = true;
-        if (value.toLowerCase() == 'false' || value == '0') newValue = false;
-      } else if (value is num) {
-        newValue = value == 1;
-      }
-      
-      if (adsEnabled.value != newValue) {
-        adsEnabled.value = newValue;
-      }
-      debugPrint('AdMob Remote Status Resolved: ${adsEnabled.value}');
-    }, onError: (error) {
-      debugPrint('AdMob Remote Error: $error');
-    });
+    FirebaseDatabase.instance
+        .ref('AdMob')
+        .onValue
+        .listen(
+          (event) {
+            final value = event.snapshot.value;
+            debugPrint(
+              'AdMob Remote Sync - Raw Value: $value (${value.runtimeType})',
+            );
+
+            bool newValue = adsEnabled.value;
+            if (value is bool) {
+              newValue = value;
+            } else if (value is String) {
+              if (value.toLowerCase() == 'true' || value == '1')
+                newValue = true;
+              if (value.toLowerCase() == 'false' || value == '0')
+                newValue = false;
+            } else if (value is num) {
+              newValue = value == 1;
+            }
+
+            if (adsEnabled.value != newValue) {
+              adsEnabled.value = newValue;
+            }
+            debugPrint('AdMob Remote Status Resolved: ${adsEnabled.value}');
+          },
+          onError: (error) {
+            debugPrint('AdMob Remote Error: $error');
+          },
+        );
 
     await MobileAds.instance.initialize();
   }
@@ -53,25 +63,25 @@ class AdService {
     if (Platform.isIOS) {
       return 'ca-app-pub-8583703891478819/7850287315'; // Confirmado: Banner iOS
     } else if (Platform.isAndroid) {
-      return ''; // No hay IDs para Android
+      return 'ca-app-pub-8583703891478819/9309500766'; // Confirmado: Banner Android
     }
     throw UnsupportedError('Unsupported platform');
   }
 
   /// Get the native ad unit ID (for "Native Advanced" look).
   /// Note: Flutter's google_mobile_ads package has limited support for fully custom Native Ads rendered with Flutter widgets.
-  /// Often "Native Templates" or Banner ads are used. 
-  /// For this implementation, we will use a **Banner** styled to look native (Medium Rectangle 300x250 or fluid) 
+  /// Often "Native Templates" or Banner ads are used.
+  /// For this implementation, we will use a **Banner** styled to look native (Medium Rectangle 300x250 or fluid)
   /// OR use the actual Native API if available.
-  /// 
-  /// However, standard Banners are easier to integrate in a ListView. 
+  ///
+  /// However, standard Banners are easier to integrate in a ListView.
   /// We will use a "Large Banner" or "Medium Rectangle" for the feed.
   String get feedAdUnitId {
     if (kDebugMode) {
-       if (Platform.isAndroid) {
+      if (Platform.isAndroid) {
         return 'ca-app-pub-3940256099942544/6300978111'; // Just using Banner for now as it's easiest for list integration
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-3940256099942544/2934735716'; 
+        return 'ca-app-pub-3940256099942544/2934735716';
       }
     }
     return '';
@@ -97,6 +107,7 @@ class AdService {
       ),
     );
   }
+
   /// Get the Rewarded Ad unit ID
   String get rewardedAdUnitId {
     if (kDebugMode) {
@@ -107,13 +118,17 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Intersticial Recompensado iOS
+    if (Platform.isIOS)
+      return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Intersticial Recompensado iOS
     if (Platform.isAndroid) return '';
     return '';
   }
 
   /// Load a Rewarded Ad
-  void loadRewardedAd({required Function(RewardedAd) onAdLoaded, required Function(LoadAdError) onAdFailedToLoad}) {
+  void loadRewardedAd({
+    required Function(RewardedAd) onAdLoaded,
+    required Function(LoadAdError) onAdFailedToLoad,
+  }) {
     RewardedAd.load(
       adUnitId: rewardedAdUnitId,
       request: const AdRequest(),
@@ -134,7 +149,8 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Rewarded Interstitial iOS
+    if (Platform.isIOS)
+      return 'ca-app-pub-8583703891478819/5224123972'; // Confirmado: Rewarded Interstitial iOS
     if (Platform.isAndroid) return '';
     return '';
   }
@@ -153,7 +169,7 @@ class AdService {
       ),
     );
   }
-  
+
   /// Get the Native Ad unit ID
   String get nativeAdUnitId {
     if (kDebugMode) {
@@ -164,14 +180,15 @@ class AdService {
       }
     }
     // Release Mode
-    if (Platform.isIOS) return 'ca-app-pub-8583703891478819/4606651657'; // Confirmado: Native iOS
+    if (Platform.isIOS)
+      return 'ca-app-pub-8583703891478819/4606651657'; // Confirmado: Native iOS
     if (Platform.isAndroid) return '';
     return '';
   }
 
   /// Load a Native Ad
   NativeAd createNativeAd({
-    required Function(NativeAd) onAdLoaded, 
+    required Function(NativeAd) onAdLoaded,
     required Function(LoadAdError) onAdFailedToLoad,
   }) {
     return NativeAd(
