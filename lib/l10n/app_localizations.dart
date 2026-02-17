@@ -707,7 +707,7 @@ abstract class AppLocalizations {
   /// No description provided for @add.
   ///
   /// In es, this message translates to:
-  /// **'Añadir'**
+  /// **'Agregar'**
   String get add;
 
   /// No description provided for @withdrawFromGoal.
@@ -2010,6 +2010,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Activar Inteligencia Artificial'**
   String get reEnableAi;
+
+  /// No description provided for @activateNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Activar ahora'**
+  String get activateNow;
+
+  /// No description provided for @newCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Categoría'**
+  String get newCategory;
+
+  /// No description provided for @addNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar nueva...'**
+  String get addNew;
+
+  /// No description provided for @categoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej. Gimnasio, Mascotas...'**
+  String get categoryHint;
+
+  /// No description provided for @descriptionHint.
+  ///
+  /// In es, this message translates to:
+  /// **'¿En qué gastaste?'**
+  String get descriptionHint;
+
+  /// No description provided for @reEnableAiSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa tu voz y recibe consejos inteligentes.'**
+  String get reEnableAiSubtitle;
+
+  /// No description provided for @catGeneral.
+  ///
+  /// In es, this message translates to:
+  /// **'General'**
+  String get catGeneral;
+
+  /// No description provided for @catFood.
+  ///
+  /// In es, this message translates to:
+  /// **'Comida y Bebida'**
+  String get catFood;
+
+  /// No description provided for @catTransport.
+  ///
+  /// In es, this message translates to:
+  /// **'Transporte'**
+  String get catTransport;
+
+  /// No description provided for @catHousing.
+  ///
+  /// In es, this message translates to:
+  /// **'Vivienda'**
+  String get catHousing;
+
+  /// No description provided for @catServices.
+  ///
+  /// In es, this message translates to:
+  /// **'Servicios (Luz, Internet)'**
+  String get catServices;
+
+  /// No description provided for @catHealth.
+  ///
+  /// In es, this message translates to:
+  /// **'Salud y Bienestar'**
+  String get catHealth;
+
+  /// No description provided for @catEntertainment.
+  ///
+  /// In es, this message translates to:
+  /// **'Entretenimiento'**
+  String get catEntertainment;
+
+  /// No description provided for @catShopping.
+  ///
+  /// In es, this message translates to:
+  /// **'Compras'**
+  String get catShopping;
+
+  /// No description provided for @catEducation.
+  ///
+  /// In es, this message translates to:
+  /// **'Educación'**
+  String get catEducation;
+
+  /// No description provided for @catTravel.
+  ///
+  /// In es, this message translates to:
+  /// **'Viajes'**
+  String get catTravel;
+
+  /// No description provided for @catInvestment.
+  ///
+  /// In es, this message translates to:
+  /// **'Inversiones'**
+  String get catInvestment;
+
+  /// No description provided for @catOthers.
+  ///
+  /// In es, this message translates to:
+  /// **'Otros'**
+  String get catOthers;
 }
 
 class _AppLocalizationsDelegate

@@ -8,10 +8,24 @@ class AuthService {
   final Dio _dio = Dio();
   final FirebaseService _firebaseService = FirebaseService();
   static const String baseUrl = 'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth';
+  
+  // Reactive consent state
+  final ValueNotifier<bool?> aiConsentNotifier = ValueNotifier<bool?>(null);
 
-  AuthService() {
+  static final AuthService _instance = AuthService._internal();
+
+  factory AuthService() {
+    return _instance;
+  }
+
+  AuthService._internal() {
     _dio.options.receiveTimeout = const Duration(seconds: 15);
     _dio.options.connectTimeout = const Duration(seconds: 15);
+    _initConsentNotifier();
+  }
+
+  Future<void> _initConsentNotifier() async {
+    aiConsentNotifier.value = await getAiConsent();
   }
 
   Future<Map<String, dynamic>> loginWithFirebaseIdToken({
@@ -233,6 +247,7 @@ class AuthService {
   Future<void> setAiConsent(bool consent) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('ai_consent', consent);
+    aiConsentNotifier.value = consent; // Update reactive state
     
     final userId = await getUserId();
     if (userId != null) {

@@ -1039,4 +1039,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reEnableAi => 'Enable AI Features';
+
+  @override
+  String get activateNow => 'Activate now';
+
+  @override
+  String get newCategory => 'New Category';
+
+  @override
+  String get addNew => 'Add new...';
+
+  @override
+  String get categoryHint => 'e.g. Gym, Pets...';
+
+  @override
+  String get descriptionHint => 'What did you spend on?';
+
+  @override
+  String get reEnableAiSubtitle => 'Use your voice and get smart advice.';
+
+  @override
+  String get catGeneral => 'General';
+
+  @override
+  String get catFood => 'Food & Drink';
+
+  @override
+  String get catTransport => 'Transportation';
+
+  @override
+  String get catHousing => 'Housing';
+
+  @override
+  String get catServices => 'Services (Light, Internet)';
+
+  @override
+  String get catHealth => 'Health & Wellness';
+
+  @override
+  String get catEntertainment => 'Entertainment';
+
+  @override
+  String get catShopping => 'Shopping';
+
+  @override
+  String get catEducation => 'Education';
+
+  @override
+  String get catTravel => 'Travel';
+
+  @override
+  String get catInvestment => 'Investments';
+
+  @override
+  String get catOthers => 'Others';
 }

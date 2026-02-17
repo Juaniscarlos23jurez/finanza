@@ -51,7 +51,64 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _descController = TextEditingController();
   String _selectedType = 'expense';
   String _selectedCategory = 'General';
+  List<String> _categories = [];
+  List<String> _customCategories = [];
   bool _isSavingManual = false;
+  Locale? _lastLocale;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newLocale = Localizations.localeOf(context);
+    if (_lastLocale != newLocale) {
+      _lastLocale = newLocale;
+      _initializeCategories(forceRefresh: true);
+    }
+  }
+
+  void _initializeCategories({bool forceRefresh = false}) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Save current selection to try and migrate it
+    final oldSelection = _selectedCategory;
+    
+    final List<String> predefined = [
+      l10n.catGeneral,
+      l10n.catFood,
+      l10n.catTransport,
+      l10n.catHousing,
+      l10n.catServices,
+      l10n.catHealth,
+      l10n.catEntertainment,
+      l10n.catShopping,
+      l10n.catEducation,
+      l10n.catTravel,
+      l10n.catInvestment,
+      l10n.catOthers,
+    ];
+
+    if (_categories.isEmpty || forceRefresh) {
+      setState(() {
+        _categories = [...predefined, ..._customCategories];
+        
+        // If the selection was a predefined one, migrate it to the new language
+        // This is a simple check: if it was first item, it stays first item, etc.
+        // For custom ones, it will just stay as is.
+        if (forceRefresh && !_customCategories.contains(oldSelection)) {
+          // If it was one of the predefined (we'd need old list to be sure, 
+          // but usually, if it's not custom, it's safe to reset to General or match by index)
+          _selectedCategory = predefined.first; 
+        } else {
+          _selectedCategory = oldSelection;
+        }
+        
+        // Ensure selected category is in the new list to avoid crashes
+        if (!_categories.contains(_selectedCategory)) {
+          _selectedCategory = predefined.first;
+        }
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -65,8 +122,17 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _initSpeech();
     
+    // Listen for consent changes (from Profile or other screens)
+    _authService.aiConsentNotifier.addListener(_onAiConsentChanged);
+    
     // Proactive Privacy Check: Navigate to full-screen choice or set status
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkAiConsentState());
+  }
+
+  void _onAiConsentChanged() {
+    if (mounted) {
+      setState(() => _aiConsentStatus = _authService.aiConsentNotifier.value);
+    }
   }
 
   Future<void> _checkAiConsentState() async {
@@ -91,6 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _authService.aiConsentNotifier.removeListener(_onAiConsentChanged);
     _messageController.dispose();
     _amountController.dispose();
     _descController.dispose();
@@ -186,6 +253,54 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _showAddCategoryDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final TextEditingController newCatController = TextEditingController();
+    final String? newCat = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(l10n.newCategory, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: newCatController,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.categoryHint,
+            hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, newCatController.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(l10n.add, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (newCat != null && newCat.isNotEmpty) {
+      setState(() {
+        if (!_customCategories.contains(newCat)) {
+          _customCategories.add(newCat);
+          _categories.add(newCat);
+        }
+        _selectedCategory = newCat;
+      });
+    } else {
+      // Re-select General if they cancelled adding
+      setState(() => _selectedCategory = l10n.catGeneral);
+    }
+  }
+
   Widget _buildManualEntryUI() {
     final l10n = AppLocalizations.of(context)!;
     return Container(
@@ -259,7 +374,13 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _selectedCategory,
-              onChanged: (v) => setState(() => _selectedCategory = v!),
+              onChanged: (v) {
+                if (v == 'ADD_NEW') {
+                  _showAddCategoryDialog();
+                } else {
+                  setState(() => _selectedCategory = v!);
+                }
+              },
               icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primary),
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.primary),
@@ -268,9 +389,25 @@ class _ChatScreenState extends State<ChatScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               ),
-              items: ['General', 'Comida', 'Transporte', 'Salud', 'Entretenimiento', 'Hogar', 'Otros']
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c, style: GoogleFonts.manrope(fontWeight: FontWeight.w600))))
-                  .toList(),
+              items: [
+                ..._categories.map((c) => DropdownMenuItem(
+                  value: c,
+                  child: Text(c, style: GoogleFonts.manrope(fontWeight: FontWeight.w600)),
+                )),
+                DropdownMenuItem(
+                  value: 'ADD_NEW',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_circle_outline, color: AppTheme.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.addNew,
+                        style: GoogleFonts.manrope(fontWeight: FontWeight.w800, color: AppTheme.primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             
@@ -289,7 +426,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 fillColor: AppTheme.background,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
                 contentPadding: const EdgeInsets.all(20),
-                hintText: '¿En qué gastaste?',
+                hintText: l10n.descriptionHint,
                 hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
               ),
             ),
@@ -346,7 +483,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Usa tu voz y recibe consejos inteligentes.',
+                    l10n.reEnableAiSubtitle,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: 13,
@@ -377,7 +514,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Activar ahora',
+                        l10n.activateNow,
                         style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -801,10 +938,16 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu_rounded, color: AppTheme.primary),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+          Visibility(
+            visible: _aiConsentStatus == true,
+            maintainSize: true, 
+            maintainAnimation: true,
+            maintainState: true,
+            child: Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu_rounded, color: AppTheme.primary),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
             ),
           ),
           Text(

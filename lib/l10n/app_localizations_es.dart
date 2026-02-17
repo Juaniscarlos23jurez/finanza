@@ -319,7 +319,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get withdraw => 'Retirar';
 
   @override
-  String get add => 'Añadir';
+  String get add => 'Agregar';
 
   @override
   String get withdrawFromGoal => 'Retirar de Meta';
@@ -1040,4 +1040,58 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get reEnableAi => 'Activar Inteligencia Artificial';
+
+  @override
+  String get activateNow => 'Activar ahora';
+
+  @override
+  String get newCategory => 'Nueva Categoría';
+
+  @override
+  String get addNew => 'Agregar nueva...';
+
+  @override
+  String get categoryHint => 'Ej. Gimnasio, Mascotas...';
+
+  @override
+  String get descriptionHint => '¿En qué gastaste?';
+
+  @override
+  String get reEnableAiSubtitle => 'Usa tu voz y recibe consejos inteligentes.';
+
+  @override
+  String get catGeneral => 'General';
+
+  @override
+  String get catFood => 'Comida y Bebida';
+
+  @override
+  String get catTransport => 'Transporte';
+
+  @override
+  String get catHousing => 'Vivienda';
+
+  @override
+  String get catServices => 'Servicios (Luz, Internet)';
+
+  @override
+  String get catHealth => 'Salud y Bienestar';
+
+  @override
+  String get catEntertainment => 'Entretenimiento';
+
+  @override
+  String get catShopping => 'Compras';
+
+  @override
+  String get catEducation => 'Educación';
+
+  @override
+  String get catTravel => 'Viajes';
+
+  @override
+  String get catInvestment => 'Inversiones';
+
+  @override
+  String get catOthers => 'Otros';
 }

@@ -11,6 +11,7 @@ import '../services/auth_service.dart';
 import '../services/finance_service.dart';
 import '../widgets/feedback_modal.dart';
 import 'login_screen.dart';
+import 'ai_consent_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -92,8 +93,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       hasSwitch: true, 
                       switchValue: _aiConsent,
                       onSwitchChanged: (val) async {
-                        await _authService.setAiConsent(val);
-                        setState(() => _aiConsent = val);
+                        if (val) {
+                          final result = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AiConsentScreen(),
+                              fullscreenDialog: true,
+                            ),
+                          );
+                          if (mounted && result != null) {
+                            setState(() => _aiConsent = result);
+                          }
+                        } else {
+                          _showAiDeclineConfirmation();
+                        }
                       },
                     ),
                   ]),
@@ -356,6 +369,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showAiDeclineConfirmation() async {
+    final l10n = AppLocalizations.of(context)!;
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(l10n.aiConsentDeclineConfirmTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        content: Text(l10n.aiConsentDeclineConfirmBody, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.aiConsentDeclineConfirmStay, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(l10n.aiConsentDeclineConfirmProceed, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _authService.setAiConsent(false);
+      if (mounted) {
+        setState(() => _aiConsent = false);
+      }
+    }
   }
 
   void _showFeedbackModal(BuildContext context) {
