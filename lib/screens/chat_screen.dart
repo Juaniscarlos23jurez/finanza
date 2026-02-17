@@ -17,6 +17,7 @@ import '../services/ad_service.dart';
 import '../l10n/app_localizations.dart';
 import '../services/ai_response_adapter.dart';
 import '../services/auth_service.dart';
+import 'ai_consent_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? conversationId;
@@ -31,8 +32,11 @@ class _ChatScreenState extends State<ChatScreen> {
   
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
+  final AuthService _authService = AuthService();
+  final FinanceService _financeService = FinanceService();
   String? _currentConversationId;
   bool _isTyping = false;
+  bool? _aiConsentStatus;
   final ScrollController _scrollController = ScrollController();
   
   // Speech to text
@@ -41,6 +45,13 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _speechAvailable = false;
   bool _showClearBtn = false;
   final FocusNode _messageFocusNode = FocusNode();
+
+  // Manual Entry Controllers
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  String _selectedType = 'expense';
+  String _selectedCategory = 'General';
+  bool _isSavingManual = false;
 
   @override
   void initState() {
@@ -53,11 +64,36 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
     _initSpeech();
+    
+    // Proactive Privacy Check: Navigate to full-screen choice or set status
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAiConsentState());
+  }
+
+  Future<void> _checkAiConsentState() async {
+    final status = await _authService.getAiConsent();
+    if (status == null && mounted) {
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AiConsentScreen(),
+          fullscreenDialog: true,
+        ),
+      );
+      if (mounted) {
+        setState(() => _aiConsentStatus = result);
+      }
+    } else {
+      if (mounted) {
+        setState(() => _aiConsentStatus = status);
+      }
+    }
   }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _amountController.dispose();
+    _descController.dispose();
     _scrollController.dispose();
     _messageFocusNode.dispose();
     super.dispose();
@@ -117,9 +153,280 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _handleManualSave() async {
+    final amountText = _amountController.text.trim();
+    if (amountText.isEmpty) return;
+
+    setState(() => _isSavingManual = true);
+    try {
+      await _financeService.createRecord({
+        'amount': double.parse(amountText),
+        'category': _selectedCategory,
+        'description': _descController.text.trim(),
+        'type': _selectedType,
+        'date': DateTime.now().toIso8601String(),
+      });
+      
+      _amountController.clear();
+      _descController.clear();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.configSaved), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingManual = false);
+    }
+  }
+
+  Widget _buildManualEntryUI() {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Colors.redAccent, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.manualEntrySubtitle,
+                      style: GoogleFonts.manrope(fontSize: 13, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              l10n.manualEntryTitle,
+              style: GoogleFonts.manrope(fontSize: 28, fontWeight: FontWeight.w900, color: AppTheme.primary),
+            ),
+            const SizedBox(height: 32),
+            
+            // Type Selector
+            Row(
+              children: [
+                Expanded(child: _buildTypeChip('expense', l10n.expense, Colors.redAccent)),
+                const SizedBox(width: 16),
+                Expanded(child: _buildTypeChip('income', l10n.income, Colors.green)),
+              ],
+            ),
+            const SizedBox(height: 32),
+            
+            // Amount
+            Text(
+              l10n.amount,
+              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: GoogleFonts.manrope(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.attach_money_rounded, color: AppTheme.primary),
+                filled: true,
+                fillColor: AppTheme.background,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.all(24),
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Category
+            Text(
+              l10n.category,
+              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              onChanged: (v) => setState(() => _selectedCategory = v!),
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primary),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.primary),
+                filled: true,
+                fillColor: AppTheme.background,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              ),
+              items: ['General', 'Comida', 'Transporte', 'Salud', 'Entretenimiento', 'Hogar', 'Otros']
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c, style: GoogleFonts.manrope(fontWeight: FontWeight.w600))))
+                  .toList(),
+            ),
+            const SizedBox(height: 24),
+            
+            // Description
+            Text(
+              l10n.description,
+              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _descController,
+              style: GoogleFonts.manrope(fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.description_outlined, color: AppTheme.primary),
+                filled: true,
+                fillColor: AppTheme.background,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.all(20),
+                hintText: '¿En qué gastaste?',
+                hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
+              ),
+            ),
+            const SizedBox(height: 48),
+            
+            SizedBox(
+              width: double.infinity,
+              height: 64,
+              child: ElevatedButton(
+                onPressed: _isSavingManual ? null : _handleManualSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 0,
+                ),
+                child: _isSavingManual 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(l10n.save, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+              ),
+            ),
+            const SizedBox(height: 48),
+            
+            // Re-enable AI Call to Action
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 40),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.reEnableAi,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Usa tu voz y recibe consejos inteligentes.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final result = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AiConsentScreen(),
+                            fullscreenDialog: true,
+                          ),
+                        );
+                        if (mounted && result != null) {
+                          setState(() => _aiConsentStatus = result);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Activar ahora',
+                        style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeChip(String type, String label, Color color) {
+    bool isSelected = _selectedType == type;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedType = type),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color : color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.manrope(
+            color: isSelected ? Colors.white : color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleSend() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
+
+    // Privacy Guard: Check AI Consent before sending anything to ChatService/AiService
+    final hasConsent = await _authService.getAiConsent();
+    debugPrint('ChatScreen: Attempting to send message. hasConsent: $hasConsent');
+    
+    if (hasConsent != true) {
+      debugPrint('ChatScreen: Blocking send due to missing AI consent.');
+      _showAiConsentDialog();
+      return;
+    }
 
     // Validate message length
     if (text.length > _maxMessageLength) {
@@ -156,15 +463,86 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _showAiConsentDialog() async {
+    if (!mounted) return;
+    
+    final l10n = AppLocalizations.of(context)!;
+    debugPrint('ChatScreen: Displaying AI Privacy Consent Dialog...');
+    
+    final bool? accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: AppTheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.aiConsentTitle, 
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            l10n.aiConsentDisclosure,
+            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(
+                l10n.accept, 
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (accepted == true) {
+      await _authService.setAiConsent(true);
+      _handleSend(); // Retry sending after consent
+    } else {
+      // If consent is rejected, update the state to show manual entry
+      if (mounted) {
+        setState(() => _aiConsentStatus = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Ensure we don't use null as condition
+    final currentStatus = _aiConsentStatus;
+    if (currentStatus == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+      );
+    }
+
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      drawer: HistoryDrawer(
-        onChatSelected: (id) {
-          setState(() => _currentConversationId = id);
-        },
-      ),
+      drawer: _aiConsentStatus == true 
+        ? HistoryDrawer(
+            onChatSelected: (id) {
+              setState(() => _currentConversationId = id);
+            },
+          )
+        : null,
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Container(
@@ -176,7 +554,9 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               _buildHeader(),
               Expanded(
-                child: _currentConversationId == null
+                child: _aiConsentStatus == false
+                  ? _buildManualEntryUI()
+                  : _currentConversationId == null
                     ? _buildWelcomeMessage()
                     : StreamBuilder<DatabaseEvent>(
                         stream: _chatService.getMessages(_currentConversationId!),
@@ -250,7 +630,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         },
                       ),
               ),
-              _buildInputArea(),
+              if (_aiConsentStatus == true) _buildInputArea(),
             ],
           ),
         ),

@@ -120,6 +120,20 @@ class FirebaseService {
     }
   }
 
+  /// Updates user configuration using ID (merges data)
+  Future<void> updateUserConfigById(String userId, Map<String, dynamic> updates) async {
+    final String path = 'user_configs_id/$userId';
+    try {
+      await _db.ref(path).update({
+        ...updates,
+        'updatedAt': ServerValue.timestamp,
+      });
+    } catch (e) {
+      debugPrint('FirebaseService: ERROR updating $path: $e');
+      rethrow;
+    }
+  }
+
   /// Retrieves user configuration using ID
   Future<Map<String, dynamic>?> getUserConfigById(String userId) async {
     final String path = 'user_configs_id/$userId';

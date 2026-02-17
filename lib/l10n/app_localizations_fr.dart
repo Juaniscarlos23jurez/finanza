@@ -1010,4 +1010,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get update => 'Actualizar';
+
+  @override
+  String get aiConsentTitle => 'Uso de inteligencia artificial';
+
+  @override
+  String get aiConsentDisclosure =>
+      'Esta app envía el contenido que escribes a un servicio de inteligencia artificial de terceros (Google Gemini) para generar respuestas.\n\nLos datos enviados pueden incluir texto que ingreses en la app.\n\nGoogle procesa estos datos de acuerdo con su política de privacidad.\n\n¿Aceptas que tus datos sean enviados a este servicio?';
+
+  @override
+  String get aiConsentDeclineConfirmTitle => '¿Estás seguro?';
+
+  @override
+  String get aiConsentDeclineConfirmBody =>
+      'Al rechazar, no podrás usar las funciones de inteligencia artificial para registrar gastos con voz o texto, ni recibir consejos personalizados.';
+
+  @override
+  String get aiConsentDeclineConfirmProceed => 'Continuar sin IA';
+
+  @override
+  String get aiConsentDeclineConfirmStay => 'Volver';
+
+  @override
+  String get manualEntryTitle => 'Registro Manual';
+
+  @override
+  String get manualEntrySubtitle =>
+      'La IA está desactivada. Registra tus movimientos manualmente.';
+
+  @override
+  String get income => 'Ingreso';
+
+  @override
+  String get expense => 'Gasto';
+
+  @override
+  String get category => 'Categoría';
+
+  @override
+  String get reEnableAi => 'Activar Inteligencia Artificial';
 }

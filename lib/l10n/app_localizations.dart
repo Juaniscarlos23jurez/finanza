@@ -1938,6 +1938,78 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Actualizar'**
   String get update;
+
+  /// No description provided for @aiConsentTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Uso de inteligencia artificial'**
+  String get aiConsentTitle;
+
+  /// No description provided for @aiConsentDisclosure.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta app envía el contenido que escribes a un servicio de inteligencia artificial de terceros (Google Gemini) para generar respuestas.\n\nLos datos enviados pueden incluir texto que ingreses en la app.\n\nGoogle procesa estos datos de acuerdo con su política de privacidad.\n\n¿Aceptas que tus datos sean enviados a este servicio?'**
+  String get aiConsentDisclosure;
+
+  /// No description provided for @aiConsentDeclineConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro?'**
+  String get aiConsentDeclineConfirmTitle;
+
+  /// No description provided for @aiConsentDeclineConfirmBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Al rechazar, no podrás usar las funciones de inteligencia artificial para registrar gastos con voz o texto, ni recibir consejos personalizados.'**
+  String get aiConsentDeclineConfirmBody;
+
+  /// No description provided for @aiConsentDeclineConfirmProceed.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar sin IA'**
+  String get aiConsentDeclineConfirmProceed;
+
+  /// No description provided for @aiConsentDeclineConfirmStay.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver'**
+  String get aiConsentDeclineConfirmStay;
+
+  /// No description provided for @manualEntryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro Manual'**
+  String get manualEntryTitle;
+
+  /// No description provided for @manualEntrySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'La IA está desactivada. Registra tus movimientos manualmente.'**
+  String get manualEntrySubtitle;
+
+  /// No description provided for @income.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingreso'**
+  String get income;
+
+  /// No description provided for @expense.
+  ///
+  /// In es, this message translates to:
+  /// **'Gasto'**
+  String get expense;
+
+  /// No description provided for @category.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get category;
+
+  /// No description provided for @reEnableAi.
+  ///
+  /// In es, this message translates to:
+  /// **'Activar Inteligencia Artificial'**
+  String get reEnableAi;
 }
 
 class _AppLocalizationsDelegate

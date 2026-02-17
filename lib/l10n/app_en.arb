@@ -499,5 +499,17 @@
         }
     },
     "later": "Later",
-    "update": "Update"
+    "update": "Update",
+    "aiConsentTitle": "AI Usage",
+    "aiConsentDisclosure": "This app sends the content you type to a third-party AI service (Google Gemini) to generate responses.\n\nThe data sent may include text you enter in the app.\n\nGoogle processes this data according to its privacy policy.\n\nDo you agree to your data being sent to this service?",
+    "aiConsentDeclineConfirmTitle": "Are you sure?",
+    "aiConsentDeclineConfirmBody": "By declining, you won't be able to use AI features to record expenses via voice or text, nor receive personalized advice.",
+    "aiConsentDeclineConfirmProceed": "Continue without AI",
+    "aiConsentDeclineConfirmStay": "Go Back",
+    "manualEntryTitle": "Manual Entry",
+    "manualEntrySubtitle": "AI is disabled. Record your movements manually.",
+    "income": "Income",
+    "expense": "Expense",
+    "category": "Category",
+    "reEnableAi": "Enable AI Features"
 }

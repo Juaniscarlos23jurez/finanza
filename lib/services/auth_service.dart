@@ -230,6 +230,39 @@ class AuthService {
     }
   }
 
+  Future<void> setAiConsent(bool consent) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('ai_consent', consent);
+    
+    final userId = await getUserId();
+    if (userId != null) {
+      await _firebaseService.updateUserConfigById(userId, {'ai_consent': consent});
+    }
+  }
+
+  Future<bool?> getAiConsent() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Check if we have a local decision
+    if (prefs.containsKey('ai_consent')) {
+      return prefs.getBool('ai_consent');
+    }
+    
+    // If not set locally, check Firebase as backup
+    final userId = await getUserId();
+    if (userId != null) {
+      final config = await _firebaseService.getUserConfigById(userId);
+      if (config != null && config['ai_consent'] != null) {
+        bool consent = config['ai_consent'] == true;
+        await prefs.setBool('ai_consent', consent);
+        return consent;
+      }
+    }
+    
+    return null; // Not decided yet
+  }
+
+
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');

@@ -25,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   List<dynamic> _allTransactions = [];
   bool _isLoading = true;
+  bool _aiConsent = false;
   final DateTime _focusedDay = DateTime.now();
 
   @override
@@ -55,11 +56,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _fetchProfile() async {
     final result = await _authService.getProfile();
+    final aiConsent = await _authService.getAiConsent();
     if (mounted) {
       setState(() {
         if (result['success']) {
           _userData = result['data'];
         }
+        _aiConsent = aiConsent ?? false;
         _isLoading = false;
       });
     }
@@ -83,8 +86,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildMenuItem(Icons.person_outline_rounded, AppLocalizations.of(context)!.personalInfo, onTap: () => _showPersonalInfoModal(context)),
                     _buildMenuItem(Icons.email_outlined, AppLocalizations.of(context)!.scheduleReport, onTap: () => _showScheduleReportModal(context)),
                     _buildMenuItem(Icons.language, AppLocalizations.of(context)!.language, onTap: () => _showLanguageModal(context)),
-                    //_buildMenuItem(Icons.account_balance_wallet_outlined, 'Métodos de Pago'),
-                   // _buildMenuItem(Icons.notifications_none_rounded, 'Notificaciones'),
+                    _buildMenuItem(
+                      Icons.auto_awesome_rounded, 
+                      AppLocalizations.of(context)!.aiConsentTitle, 
+                      hasSwitch: true, 
+                      switchValue: _aiConsent,
+                      onSwitchChanged: (val) async {
+                        await _authService.setAiConsent(val);
+                        setState(() => _aiConsent = val);
+                      },
+                    ),
                   ]),
                   const SizedBox(height: 32),
                   _buildCalendar(context),
@@ -213,9 +224,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {bool hasSwitch = false, VoidCallback? onTap}) {
+  Widget _buildMenuItem(IconData icon, String title, {bool hasSwitch = false, bool switchValue = false, ValueChanged<bool>? onSwitchChanged, VoidCallback? onTap}) {
     return InkWell(
-      onTap: onTap,
+      onTap: hasSwitch ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
@@ -234,8 +245,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             if (hasSwitch)
               Switch.adaptive(
-                value: true,
-                onChanged: (v) {},
+                value: switchValue,
+                onChanged: onSwitchChanged,
                 activeTrackColor: AppTheme.primary,
               )
             else

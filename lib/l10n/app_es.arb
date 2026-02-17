@@ -500,5 +500,17 @@
         }
     },
     "later": "Más tarde",
-    "update": "Actualizar"
+    "update": "Actualizar",
+    "aiConsentTitle": "Uso de inteligencia artificial",
+    "aiConsentDisclosure": "Esta app envía el contenido que escribes a un servicio de inteligencia artificial de terceros (Google Gemini) para generar respuestas.\n\nLos datos enviados pueden incluir texto que ingreses en la app.\n\nGoogle procesa estos datos de acuerdo con su política de privacidad.\n\n¿Aceptas que tus datos sean enviados a este servicio?",
+    "aiConsentDeclineConfirmTitle": "¿Estás seguro?",
+    "aiConsentDeclineConfirmBody": "Al rechazar, no podrás usar las funciones de inteligencia artificial para registrar gastos con voz o texto, ni recibir consejos personalizados.",
+    "aiConsentDeclineConfirmProceed": "Continuar sin IA",
+    "aiConsentDeclineConfirmStay": "Volver",
+    "manualEntryTitle": "Registro Manual",
+    "manualEntrySubtitle": "La IA está desactivada. Registra tus movimientos manualmente.",
+    "income": "Ingreso",
+    "expense": "Gasto",
+    "category": "Categoría",
+    "reEnableAi": "Activar Inteligencia Artificial"
 }
