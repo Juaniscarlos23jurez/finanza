@@ -67,6 +67,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "680910624455-je5r5528tdqskj5qhvmceuujchq7ifhp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fynlink.finanzas",
+            "certificate_hash": "5561e3f8923c0ead8d32035d4b7af1f5b21aed37"
+          }
+        },
+        {
           "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
           "client_type": 3
         }
