@@ -416,8 +416,8 @@
     "skipOnboardingTitle": "Einrichtung überspringen?",
     "skipOnboardingMessage": "Wenn Sie Ihr Profil bereits konfiguriert haben, können Sie diesen Schritt überspringen. Andernfalls empfehlen wir den Abschluss, damit die KI Sie besser beraten kann.",
     "cancel": "Abbrechen",
-    "confirm": "Bestätigen"
-    ,"monthlyBudgetLabel": "Monthly Budget",
+    "confirm": "Bestätigen",
+    "monthlyBudgetLabel": "Monthly Budget",
     "addDebtTitle": "New Debt",
     "debtMonthlyPayment": "Monthly Payment",
     "saveChanges": "Save Changes"

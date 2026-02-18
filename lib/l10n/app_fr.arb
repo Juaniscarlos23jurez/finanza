@@ -416,8 +416,8 @@
     "skipOnboardingTitle": "Passer la configuration ?",
     "skipOnboardingMessage": "Si vous avez déjà configuré votre profil, vous pouvez passer cette étape. Sinon, nous vous recommandons de la terminer pour que l'IA puisse vous donner de meilleurs conseils.",
     "cancel": "Annuler",
-    "confirm": "Confirmer"
-    ,"monthlyBudgetLabel": "Monthly Budget",
+    "confirm": "Confirmer",
+    "monthlyBudgetLabel": "Monthly Budget",
     "addDebtTitle": "New Debt",
     "debtMonthlyPayment": "Monthly Payment",
     "saveChanges": "Save Changes"

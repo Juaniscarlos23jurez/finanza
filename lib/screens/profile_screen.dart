@@ -45,7 +45,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _onAiConsentChanged() {
     if (mounted) {
-      setState(() => _aiConsent = _authService.aiConsentNotifier.value ?? false);
+      setState(
+        () => _aiConsent = _authService.aiConsentNotifier.value ?? false,
+      );
     }
   }
 
@@ -85,75 +87,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: _isLoading 
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 48),
-                  _buildProfileHeader(context),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(AppLocalizations.of(context)!.accountSection, [
-                    _buildMenuItem(Icons.person_outline_rounded, AppLocalizations.of(context)!.personalInfo, onTap: () => _showPersonalInfoModal(context)),
-                    _buildMenuItem(Icons.email_outlined, AppLocalizations.of(context)!.scheduleReport, onTap: () => _showScheduleReportModal(context)),
-                    _buildMenuItem(Icons.language, AppLocalizations.of(context)!.language, onTap: () => _showLanguageModal(context)),
-                    _buildMenuItem(
-                      Icons.auto_awesome_rounded, 
-                      AppLocalizations.of(context)!.aiConsentTitle, 
-                      hasSwitch: true, 
-                      switchValue: _aiConsent,
-                      onSwitchChanged: (val) async {
-                        if (val) {
-                          final result = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AiConsentScreen(),
-                              fullscreenDialog: true,
-                            ),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.primary),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 48),
+                    _buildProfileHeader(context),
+                    const SizedBox(height: 32),
+                    _buildMenuSection(
+                      AppLocalizations.of(context)!.accountSection,
+                      [
+                        _buildMenuItem(
+                          Icons.person_outline_rounded,
+                          AppLocalizations.of(context)!.personalInfo,
+                          onTap: () => _showPersonalInfoModal(context),
+                        ),
+                        _buildMenuItem(
+                          Icons.email_outlined,
+                          AppLocalizations.of(context)!.scheduleReport,
+                          onTap: () => _showScheduleReportModal(context),
+                        ),
+                        _buildMenuItem(
+                          Icons.language,
+                          AppLocalizations.of(context)!.language,
+                          onTap: () => _showLanguageModal(context),
+                        ),
+                        _buildMenuItem(
+                          Icons.auto_awesome_rounded,
+                          AppLocalizations.of(context)!.aiConsentTitle,
+                          hasSwitch: true,
+                          switchValue: _aiConsent,
+                          onSwitchChanged: (val) async {
+                            if (val) {
+                              final result = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AiConsentScreen(),
+                                  fullscreenDialog: true,
+                                ),
+                              );
+                              if (mounted && result != null) {
+                                setState(() => _aiConsent = result);
+                              }
+                            } else {
+                              _showAiDeclineConfirmation();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    _buildMenuSection(AppLocalizations.of(context)!.otherSection, [
+                      _buildMenuItem(
+                        Icons.feedback_outlined,
+                        AppLocalizations.of(context)!.feedback,
+                        onTap: () => _showFeedbackModal(context),
+                      ),
+                      _buildMenuItem(
+                        Icons.info_outline_rounded,
+                        AppLocalizations.of(context)!.termsConditions,
+                        onTap: () async {
+                          final uri = Uri.parse(
+                            'https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos',
                           );
-                          if (mounted && result != null) {
-                            setState(() => _aiConsent = result);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
                           }
-                        } else {
-                          _showAiDeclineConfirmation();
-                        }
-                      },
-                    ),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(AppLocalizations.of(context)!.otherSection, [
-                    _buildMenuItem(Icons.feedback_outlined, AppLocalizations.of(context)!.feedback, onTap: () => _showFeedbackModal(context)),
-                    _buildMenuItem(
-                      Icons.info_outline_rounded, 
-                      AppLocalizations.of(context)!.termsConditions,
-                      onTap: () async {
-                        final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                    ),
-                    _buildMenuItem(
-                      Icons.privacy_tip_outlined, 
-                      AppLocalizations.of(context)!.privacyPolicy,
-                      onTap: () async {
-                        final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                    ),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildCalendar(context),
-                  const SizedBox(height: 48),
-                  _buildLogoutButton(context),
-                  const SizedBox(height: 12),
-                  _buildDeleteAccountButton(context),
-                  const SizedBox(height: 48),
-                ],
-
+                        },
+                      ),
+                      _buildMenuItem(
+                        Icons.privacy_tip_outlined,
+                        AppLocalizations.of(context)!.privacyPolicy,
+                        onTap: () async {
+                          final uri = Uri.parse(
+                            'https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad',
+                          );
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                      ),
+                    ]),
+                    const SizedBox(height: 32),
+                    _buildCalendar(context),
+                    const SizedBox(height: 48),
+                    _buildLogoutButton(context),
+                    const SizedBox(height: 12),
+                    _buildDeleteAccountButton(context),
+                    const SizedBox(height: 48),
+                  ],
+                ),
               ),
       ),
     );
@@ -249,12 +282,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {bool hasSwitch = false, bool switchValue = false, ValueChanged<bool>? onSwitchChanged, VoidCallback? onTap}) {
-
+  Widget _buildMenuItem(
+    IconData icon,
+    String title, {
+    bool hasSwitch = false,
+    bool switchValue = false,
+    ValueChanged<bool>? onSwitchChanged,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
-      onTap: hasSwitch 
-          ? () => onSwitchChanged?.call(!switchValue) 
-          : onTap,
+      onTap: hasSwitch ? () => onSwitchChanged?.call(!switchValue) : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
@@ -409,20 +446,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.aiConsentDeclineConfirmTitle, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-        content: Text(l10n.aiConsentDeclineConfirmBody, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+        title: Text(
+          l10n.aiConsentDeclineConfirmTitle,
+          style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          l10n.aiConsentDeclineConfirmBody,
+          style: GoogleFonts.manrope(color: AppTheme.secondary),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.aiConsentDeclineConfirmStay, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(
+              l10n.aiConsentDeclineConfirmStay,
+              style: GoogleFonts.manrope(color: AppTheme.secondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text(l10n.aiConsentDeclineConfirmProceed, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              l10n.aiConsentDeclineConfirmProceed,
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),

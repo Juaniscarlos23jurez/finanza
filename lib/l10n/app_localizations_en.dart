@@ -1093,4 +1093,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catOthers => 'Others';
+
+  @override
+  String get supportProject => 'Support the project (Watch Ad)';
+
+  @override
+  String get supportThanks => 'Thank you for your support!';
 }

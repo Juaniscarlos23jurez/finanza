@@ -1,4 +1,3 @@
-
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,16 +28,16 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   static const int _maxMessageLength = 1000;
-  
+
   final TextEditingController _messageController = TextEditingController();
-  final ChatService _chatService = ChatService();
-  final AuthService _authService = AuthService();
-  final FinanceService _financeService = FinanceService();
+  late final ChatService _chatService;
+  late final AuthService _authService;
+  late final FinanceService _financeService;
   String? _currentConversationId;
   bool _isTyping = false;
   bool? _aiConsentStatus;
   final ScrollController _scrollController = ScrollController();
-  
+
   // Speech to text
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
@@ -68,10 +67,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _initializeCategories({bool forceRefresh = false}) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Save current selection to try and migrate it
     final oldSelection = _selectedCategory;
-    
+
     final List<String> predefined = [
       l10n.catGeneral,
       l10n.catFood,
@@ -90,18 +89,18 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_categories.isEmpty || forceRefresh) {
       setState(() {
         _categories = [...predefined, ..._customCategories];
-        
+
         // If the selection was a predefined one, migrate it to the new language
         // This is a simple check: if it was first item, it stays first item, etc.
         // For custom ones, it will just stay as is.
         if (forceRefresh && !_customCategories.contains(oldSelection)) {
-          // If it was one of the predefined (we'd need old list to be sure, 
+          // If it was one of the predefined (we'd need old list to be sure,
           // but usually, if it's not custom, it's safe to reset to General or match by index)
-          _selectedCategory = predefined.first; 
+          _selectedCategory = predefined.first;
         } else {
           _selectedCategory = oldSelection;
         }
-        
+
         // Ensure selected category is in the new list to avoid crashes
         if (!_categories.contains(_selectedCategory)) {
           _selectedCategory = predefined.first;
@@ -113,6 +112,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _chatService = ChatService();
+    _authService = AuthService();
+    _financeService = FinanceService();
     _currentConversationId = widget.conversationId;
     _messageController.addListener(() {
       final show = _messageController.text.isNotEmpty;
@@ -121,10 +123,10 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
     _initSpeech();
-    
+
     // Listen for consent changes (from Profile or other screens)
     _authService.aiConsentNotifier.addListener(_onAiConsentChanged);
-    
+
     // Proactive Privacy Check: Navigate to full-screen choice or set status
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkAiConsentState());
   }
@@ -189,9 +191,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _toggleListening() async {
     final l10n = AppLocalizations.of(context)!;
     if (!_speechAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.voiceRecognitionUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.voiceRecognitionUnavailable)));
       return;
     }
 
@@ -233,19 +235,25 @@ class _ChatScreenState extends State<ChatScreen> {
         'type': _selectedType,
         'date': DateTime.now().toIso8601String(),
       });
-      
+
       _amountController.clear();
       _descController.clear();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.configSaved), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.configSaved),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     } finally {
@@ -261,27 +269,44 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.newCategory, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+        title: Text(
+          l10n.newCategory,
+          style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+        ),
         content: TextField(
           controller: newCatController,
           autofocus: true,
           decoration: InputDecoration(
             hintText: l10n.categoryHint,
-            hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
+            hintStyle: GoogleFonts.manrope(
+              color: AppTheme.secondary.withValues(alpha: 0.5),
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            child: Text(
+              l10n.cancel,
+              style: GoogleFonts.manrope(color: AppTheme.secondary),
+            ),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, newCatController.text.trim()),
+            onPressed: () =>
+                Navigator.pop(context, newCatController.text.trim()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text(l10n.add, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              l10n.add,
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -318,12 +343,20 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: Colors.redAccent, size: 20),
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.redAccent,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       l10n.manualEntrySubtitle,
-                      style: GoogleFonts.manrope(fontSize: 13, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.manrope(
+                        fontSize: 13,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -332,44 +365,78 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(height: 32),
             Text(
               l10n.manualEntryTitle,
-              style: GoogleFonts.manrope(fontSize: 28, fontWeight: FontWeight.w900, color: AppTheme.primary),
+              style: GoogleFonts.manrope(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primary,
+              ),
             ),
             const SizedBox(height: 32),
-            
+
             // Type Selector
             Row(
               children: [
-                Expanded(child: _buildTypeChip('expense', l10n.expense, Colors.redAccent)),
+                Expanded(
+                  child: _buildTypeChip(
+                    'expense',
+                    l10n.expense,
+                    Colors.redAccent,
+                  ),
+                ),
                 const SizedBox(width: 16),
-                Expanded(child: _buildTypeChip('income', l10n.income, Colors.green)),
+                Expanded(
+                  child: _buildTypeChip('income', l10n.income, Colors.green),
+                ),
               ],
             ),
             const SizedBox(height: 32),
-            
+
             // Amount
             Text(
               l10n.amount,
-              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.secondary,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: GoogleFonts.manrope(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: GoogleFonts.manrope(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primary,
+              ),
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.attach_money_rounded, color: AppTheme.primary),
+                prefixIcon: const Icon(
+                  Icons.attach_money_rounded,
+                  color: AppTheme.primary,
+                ),
                 filled: true,
                 fillColor: AppTheme.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.all(24),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Category
             Text(
               l10n.category,
-              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.secondary,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
@@ -381,28 +448,52 @@ class _ChatScreenState extends State<ChatScreen> {
                   setState(() => _selectedCategory = v!);
                 }
               },
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primary),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppTheme.primary,
+              ),
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.primary),
+                prefixIcon: const Icon(
+                  Icons.category_outlined,
+                  color: AppTheme.primary,
+                ),
                 filled: true,
                 fillColor: AppTheme.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
               ),
               items: [
-                ..._categories.map((c) => DropdownMenuItem(
-                  value: c,
-                  child: Text(c, style: GoogleFonts.manrope(fontWeight: FontWeight.w600)),
-                )),
+                ..._categories.map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(
+                      c,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
                 DropdownMenuItem(
                   value: 'ADD_NEW',
                   child: Row(
                     children: [
-                      const Icon(Icons.add_circle_outline, color: AppTheme.primary, size: 20),
+                      const Icon(
+                        Icons.add_circle_outline,
+                        color: AppTheme.primary,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         l10n.addNew,
-                        style: GoogleFonts.manrope(fontWeight: FontWeight.w800, color: AppTheme.primary),
+                        style: GoogleFonts.manrope(
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -410,28 +501,41 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            
+
             // Description
             Text(
               l10n.description,
-              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.secondary,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _descController,
               style: GoogleFonts.manrope(fontWeight: FontWeight.w600),
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.description_outlined, color: AppTheme.primary),
+                prefixIcon: const Icon(
+                  Icons.description_outlined,
+                  color: AppTheme.primary,
+                ),
                 filled: true,
                 fillColor: AppTheme.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.all(20),
                 hintText: l10n.descriptionHint,
-                hintStyle: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5)),
+                hintStyle: GoogleFonts.manrope(
+                  color: AppTheme.secondary.withValues(alpha: 0.5),
+                ),
               ),
             ),
             const SizedBox(height: 48),
-            
+
             SizedBox(
               width: double.infinity,
               height: 64,
@@ -439,23 +543,35 @@ class _ChatScreenState extends State<ChatScreen> {
                 onPressed: _isSavingManual ? null : _handleManualSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   elevation: 0,
                 ),
-                child: _isSavingManual 
+                child: _isSavingManual
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(l10n.save, style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+                    : Text(
+                        l10n.save,
+                        style: GoogleFonts.manrope(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 48),
-            
+
             // Re-enable AI Call to Action
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
+                  colors: [
+                    AppTheme.primary,
+                    AppTheme.primary.withValues(alpha: 0.8),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -470,7 +586,11 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 40),
+                  const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     l10n.reEnableAi,
@@ -510,7 +630,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: AppTheme.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         elevation: 0,
                       ),
                       child: Text(
@@ -583,7 +705,9 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorGeneric(e.toString()))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorGeneric(e.toString()))),
+        );
       }
     } finally {
       if (mounted) setState(() => _isTyping = false);
@@ -602,106 +726,143 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      drawer: _aiConsentStatus == true 
-        ? HistoryDrawer(
-            onChatSelected: (id) {
-              setState(() => _currentConversationId = id);
-            },
-          )
-        : null,
+      drawer: _aiConsentStatus == true
+          ? HistoryDrawer(
+              onChatSelected: (id) {
+                setState(() => _currentConversationId = id);
+              },
+            )
+          : null,
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Container(
-          decoration: const BoxDecoration(
-            color: AppTheme.background,
-          ),
+          decoration: const BoxDecoration(color: AppTheme.background),
           child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: _aiConsentStatus == false
-                  ? _buildManualEntryUI()
-                  : _currentConversationId == null
-                    ? _buildWelcomeMessage()
-                    : StreamBuilder<DatabaseEvent>(
-                        stream: _chatService.getMessages(_currentConversationId!),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return Center(child: Text(l10n.errorGeneric(snapshot.error.toString())));
-                          }
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: _aiConsentStatus == false
+                      ? _buildManualEntryUI()
+                      : _currentConversationId == null
+                      ? _buildWelcomeMessage()
+                      : StreamBuilder<DatabaseEvent>(
+                          stream: _chatService.getMessages(
+                            _currentConversationId!,
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  l10n.errorGeneric(snapshot.error.toString()),
+                                ),
+                              );
+                            }
 
-                          if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
-                             if (snapshot.connectionState == ConnectionState.waiting) {
-                               return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
-                             }
-                             return const SizedBox(); 
-                          }
-
-                          final data = snapshot.data!.snapshot.value;
-                          final List<Message> messages = [];
-                          
-                           if (data is Map) {
-                              data.forEach((key, value) {
-                                final map = value as Map<dynamic, dynamic>;
-                                messages.add(_chatService.fromRealtimeDB(map, key: key?.toString()));
-                              });
-                           } else if (data is List) {
-                             for (var item in data) {
-                               if (item != null) {
-                                 messages.add(_chatService.fromRealtimeDB(item as Map<dynamic, dynamic>));
-                               }
-                             }
-                           }
-                          
-                          messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-                          WidgetsBinding.instance.addPostFrameCallback((_) { 
-                             if (_scrollController.hasClients) {
-                               _scrollController.animateTo(
-                                 _scrollController.position.maxScrollExtent,
-                                 duration: const Duration(milliseconds: 300),
-                                 curve: Curves.easeOut,
-                               );
-                             }
-                          });
-
-                          return ListView.builder(
-                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                            controller: _scrollController,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                            itemCount: messages.length + (_isTyping ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index == messages.length) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 24),
-                                  child: Text(l10n.aiThinking, style: const TextStyle(color: AppTheme.secondary, fontSize: 10, fontStyle: FontStyle.italic)),
+                            if (!snapshot.hasData ||
+                                snapshot.data?.snapshot.value == null) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppTheme.primary,
+                                  ),
                                 );
                               }
-                              return ChatMessageWidget(
-                                message: messages[index],
-                                conversationId: _currentConversationId,
-                                onTap: (text) {
-                                  setState(() {
-                                    _messageController.text = text;
-                                    _messageController.selection = TextSelection.fromPosition(
-                                      TextPosition(offset: _messageController.text.length),
-                                    );
-                                  });
-                                  _messageFocusNode.requestFocus();
-                                },
-                              );
-                            },
-                          );
-                        },
-                      ),
-              ),
-              if (_aiConsentStatus == true) _buildInputArea(),
-            ],
+                              return const SizedBox();
+                            }
+
+                            final data = snapshot.data!.snapshot.value;
+                            final List<Message> messages = [];
+
+                            if (data is Map) {
+                              data.forEach((key, value) {
+                                final map = value as Map<dynamic, dynamic>;
+                                messages.add(
+                                  _chatService.fromRealtimeDB(
+                                    map,
+                                    key: key?.toString(),
+                                  ),
+                                );
+                              });
+                            } else if (data is List) {
+                              for (var item in data) {
+                                if (item != null) {
+                                  messages.add(
+                                    _chatService.fromRealtimeDB(
+                                      item as Map<dynamic, dynamic>,
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+
+                            messages.sort(
+                              (a, b) => a.timestamp.compareTo(b.timestamp),
+                            );
+
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (_scrollController.hasClients) {
+                                _scrollController.animateTo(
+                                  _scrollController.position.maxScrollExtent,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            });
+
+                            return ListView.builder(
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 24,
+                              ),
+                              itemCount: messages.length + (_isTyping ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index == messages.length) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 24),
+                                    child: Text(
+                                      l10n.aiThinking,
+                                      style: const TextStyle(
+                                        color: AppTheme.secondary,
+                                        fontSize: 10,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return ChatMessageWidget(
+                                  message: messages[index],
+                                  conversationId: _currentConversationId,
+                                  onTap: (text) {
+                                    setState(() {
+                                      _messageController.text = text;
+                                      _messageController.selection =
+                                          TextSelection.fromPosition(
+                                            TextPosition(
+                                              offset: _messageController
+                                                  .text
+                                                  .length,
+                                            ),
+                                          );
+                                    });
+                                    _messageFocusNode.requestFocus();
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+                if (_aiConsentStatus == true) _buildInputArea(),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -713,76 +874,76 @@ class _ChatScreenState extends State<ChatScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 48),
-            Text(
-              l10n.assistantGreeting,
-              textAlign: TextAlign.center,
+          Text(
+            l10n.assistantGreeting,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.primary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.assistantDescription,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              fontSize: 14,
+              color: AppTheme.secondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 48),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.questionExamples,
               style: GoogleFonts.manrope(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.primary,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                color: AppTheme.secondary.withValues(alpha: 0.7),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.assistantDescription,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                fontSize: 14,
-                color: AppTheme.secondary,
-                height: 1.5,
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _buildSuggestionCard(
+                icon: Icons.receipt_long_rounded,
+                label: l10n.fastExpense,
+                subtitle: l10n.fastExpenseSubtitle,
+                color: Colors.orangeAccent,
+                onTap: () => _useSuggestion(l10n.fastExpenseSuggestion),
               ),
-            ),
-            const SizedBox(height: 48),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                l10n.questionExamples,
-                style: GoogleFonts.manrope(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: AppTheme.secondary.withValues(alpha: 0.7),
-                ),
+              _buildSuggestionCard(
+                icon: Icons.flag_rounded,
+                label: l10n.newGoal,
+                subtitle: l10n.newGoalSubtitle,
+                color: Colors.blueAccent,
+                onTap: () => _useSuggestion(l10n.newGoalSuggestion),
               ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _buildSuggestionCard(
-                  icon: Icons.receipt_long_rounded,
-                  label: l10n.fastExpense,
-                  subtitle: l10n.fastExpenseSubtitle,
-                  color: Colors.orangeAccent,
-                  onTap: () => _useSuggestion(l10n.fastExpenseSuggestion),
-                ),
-                _buildSuggestionCard(
-                  icon: Icons.flag_rounded,
-                  label: l10n.newGoal,
-                  subtitle: l10n.newGoalSubtitle,
-                  color: Colors.blueAccent,
-                  onTap: () => _useSuggestion(l10n.newGoalSuggestion),
-                ),
-                _buildSuggestionCard(
-                  icon: Icons.auto_awesome_rounded,
-                  label: l10n.iaAnalysis,
-                  subtitle: l10n.iaAnalysisSubtitle,
-                  color: Colors.purpleAccent,
-                  onTap: () => _useSuggestion(l10n.aiAnalysisSuggestion),
-                ),
-                _buildSuggestionCard(
-                  icon: Icons.file_download_rounded,
-                  label: l10n.exportCSV,
-                  subtitle: l10n.exportSubtitle,
-                  color: Colors.green,
-                  onTap: () => _useSuggestion(l10n.exportCsvSuggestion),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
+              _buildSuggestionCard(
+                icon: Icons.auto_awesome_rounded,
+                label: l10n.iaAnalysis,
+                subtitle: l10n.iaAnalysisSubtitle,
+                color: Colors.purpleAccent,
+                onTap: () => _useSuggestion(l10n.aiAnalysisSuggestion),
+              ),
+              _buildSuggestionCard(
+                icon: Icons.file_download_rounded,
+                label: l10n.exportCSV,
+                subtitle: l10n.exportSubtitle,
+                color: Colors.green,
+                onTap: () => _useSuggestion(l10n.exportCsvSuggestion),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   void _useSuggestion(String text) {
@@ -805,7 +966,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // Calculate width based on available screen width to make a 2-column grid roughly
     // We'll use LayoutBuilder or just flexible constraints if inside Wrap?
     // Wrap doesn't force width. Let's use a fixed width relative to screen or standard Container.
-    final width = (MediaQuery.of(context).size.width - 64 - 12) / 2; 
+    final width = (MediaQuery.of(context).size.width - 64 - 12) / 2;
 
     return InkWell(
       onTap: onTap,
@@ -869,7 +1030,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Visibility(
             visible: _aiConsentStatus == true,
-            maintainSize: true, 
+            maintainSize: true,
             maintainAnimation: true,
             maintainState: true,
             child: Builder(
@@ -896,7 +1057,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: IconButton(
               icon: const Icon(Icons.add_rounded, color: AppTheme.primary),
               onPressed: () {
-                 setState(() => _currentConversationId = null);
+                setState(() => _currentConversationId = null);
               },
             ),
           ),
@@ -916,9 +1077,11 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               constraints: const BoxConstraints(minHeight: 56),
               decoration: BoxDecoration(
-                color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
+                color: _isListening
+                    ? AppTheme.primary.withValues(alpha: 0.05)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(28),
-                border: _isListening 
+                border: _isListening
                     ? Border.all(color: AppTheme.primary, width: 2)
                     : null,
                 boxShadow: [
@@ -943,33 +1106,50 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 120),
-                        child: TextField(
+                      child: TextField(
                         controller: _messageController,
                         focusNode: _messageFocusNode,
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
                         textCapitalization: TextCapitalization.sentences,
-                        style: GoogleFonts.manrope(fontSize: 16, color: AppTheme.primary),
+                        style: GoogleFonts.manrope(
+                          fontSize: 16,
+                          color: AppTheme.primary,
+                        ),
                         decoration: InputDecoration(
-                          hintText: _isListening 
-                              ? l10n.listening 
+                          hintText: _isListening
+                              ? l10n.listening
                               : l10n.typeHere,
                           hintStyle: GoogleFonts.manrope(
-                            color: _isListening ? AppTheme.primary : AppTheme.secondary.withValues(alpha: 0.5),
-                            fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
+                            color: _isListening
+                                ? AppTheme.primary
+                                : AppTheme.secondary.withValues(alpha: 0.5),
+                            fontStyle: _isListening
+                                ? FontStyle.italic
+                                : FontStyle.normal,
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          counterText: '${_messageController.text.length}/$_maxMessageLength',
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          counterText:
+                              '${_messageController.text.length}/$_maxMessageLength',
                           counterStyle: GoogleFonts.manrope(
                             fontSize: 10,
-                            color: _messageController.text.length > _maxMessageLength
+                            color:
+                                _messageController.text.length >
+                                    _maxMessageLength
                                 ? Colors.red
                                 : AppTheme.secondary.withValues(alpha: 0.6),
                           ),
                           suffixIcon: _showClearBtn
                               ? IconButton(
-                                  icon: const Icon(Icons.close_rounded, color: AppTheme.secondary, size: 18),
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    color: AppTheme.secondary,
+                                    size: 18,
+                                  ),
                                   onPressed: () => _messageController.clear(),
                                 )
                               : null,
@@ -1005,15 +1185,17 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-
-
-
 class ChatMessageWidget extends StatefulWidget {
   final Message message;
   final String? conversationId;
   final Function(String)? onTap;
 
-  const ChatMessageWidget({super.key, required this.message, this.conversationId, this.onTap});
+  const ChatMessageWidget({
+    super.key,
+    required this.message,
+    this.conversationId,
+    this.onTap,
+  });
 
   @override
   State<ChatMessageWidget> createState() => _ChatMessageWidgetState();
@@ -1024,7 +1206,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   // bool _isSaved = false; // We will use widget.message.isHandled instead
   final FinanceService _financeService = FinanceService();
   final ChatService _chatService = ChatService();
-  
+
   Map<String, dynamic>? _localData;
 
   @override
@@ -1034,18 +1216,24 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       _localData = Map<String, dynamic>.from(widget.message.data!);
     }
   }
-  
+
   void _updateLocalData(Map<String, dynamic> newData) {
     setState(() {
       _localData = newData;
     });
   }
 
-  Future<void> _showEditTransactionDialog(NormalizedTransaction currentData) async {
+  Future<void> _showEditTransactionDialog(
+    NormalizedTransaction currentData,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     final descController = TextEditingController(text: currentData.description);
-    final amountController = TextEditingController(text: currentData.amount.toString());
-    final categoryController = TextEditingController(text: currentData.category);
+    final amountController = TextEditingController(
+      text: currentData.amount.toString(),
+    );
+    final categoryController = TextEditingController(
+      text: currentData.category,
+    );
     bool isExpense = currentData.isExpense;
 
     await showDialog(
@@ -1055,12 +1243,24 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
               title: Row(
                 children: [
-                  const Icon(Icons.edit_rounded, color: AppTheme.primary, size: 20),
+                  const Icon(
+                    Icons.edit_rounded,
+                    color: AppTheme.primary,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
-                  Text(l10n.editTransaction, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text(
+                    l10n.editTransaction,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                 ],
               ),
               content: SingleChildScrollView(
@@ -1069,7 +1269,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   children: [
                     // Type Switch
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.background,
                         borderRadius: BorderRadius.circular(12),
@@ -1078,29 +1281,69 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setStateDialog(() => isExpense = true),
+                              onTap: () =>
+                                  setStateDialog(() => isExpense = true),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: isExpense ? Colors.redAccent.withValues(alpha: 0.1) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: isExpense ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5)) : null,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
                                 ),
-                                child: Text(l10n.expenses, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: isExpense ? Colors.redAccent : AppTheme.secondary)),
+                                decoration: BoxDecoration(
+                                  color: isExpense
+                                      ? Colors.redAccent.withValues(alpha: 0.1)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: isExpense
+                                      ? Border.all(
+                                          color: Colors.redAccent.withValues(
+                                            alpha: 0.5,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                child: Text(
+                                  l10n.expenses,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.bold,
+                                    color: isExpense
+                                        ? Colors.redAccent
+                                        : AppTheme.secondary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setStateDialog(() => isExpense = false),
+                              onTap: () =>
+                                  setStateDialog(() => isExpense = false),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: !isExpense ? Colors.green.withValues(alpha: 0.1) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: !isExpense ? Border.all(color: Colors.green.withValues(alpha: 0.5)) : null,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
                                 ),
-                                child: Text(l10n.incomes, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: !isExpense ? Colors.green : AppTheme.secondary)),
+                                decoration: BoxDecoration(
+                                  color: !isExpense
+                                      ? Colors.green.withValues(alpha: 0.1)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: !isExpense
+                                      ? Border.all(
+                                          color: Colors.green.withValues(
+                                            alpha: 0.5,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                child: Text(
+                                  l10n.incomes,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.bold,
+                                    color: !isExpense
+                                        ? Colors.green
+                                        : AppTheme.secondary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -1113,21 +1356,39 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: l10n.description,
-                        labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
-                        prefixIcon: const Icon(Icons.description_outlined, color: AppTheme.secondary, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        labelStyle: GoogleFonts.manrope(
+                          color: AppTheme.secondary,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.description_outlined,
+                          color: AppTheme.secondary,
+                          size: 18,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: amountController,
                       textInputAction: TextInputAction.next,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       decoration: InputDecoration(
                         labelText: l10n.amountLabel,
-                        labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
-                        prefixIcon: const Icon(Icons.attach_money, color: AppTheme.secondary, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        labelStyle: GoogleFonts.manrope(
+                          color: AppTheme.secondary,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.attach_money,
+                          color: AppTheme.secondary,
+                          size: 18,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -1135,20 +1396,31 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       controller: categoryController,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) {
-                        final newMap = Map<String, dynamic>.from(_localData ?? {});
+                        final newMap = Map<String, dynamic>.from(
+                          _localData ?? {},
+                        );
                         newMap['description'] = descController.text;
-                        newMap['amount'] = double.tryParse(amountController.text) ?? 0.0;
+                        newMap['amount'] =
+                            double.tryParse(amountController.text) ?? 0.0;
                         newMap['category'] = categoryController.text;
                         newMap['is_expense'] = isExpense;
-                        
+
                         _updateLocalData(newMap);
                         Navigator.pop(context);
                       },
                       decoration: InputDecoration(
                         labelText: l10n.categoryLabel,
-                        labelStyle: GoogleFonts.manrope(color: AppTheme.secondary),
-                        prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.secondary, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        labelStyle: GoogleFonts.manrope(
+                          color: AppTheme.secondary,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.category_outlined,
+                          color: AppTheme.secondary,
+                          size: 18,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],
@@ -1157,42 +1429,53 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+                  child: Text(
+                    l10n.cancel,
+                    style: GoogleFonts.manrope(color: AppTheme.secondary),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     final newMap = Map<String, dynamic>.from(_localData ?? {});
                     // Update with canonical keys for Adapter
                     newMap['description'] = descController.text;
-                    newMap['amount'] = double.tryParse(amountController.text) ?? 0.0;
+                    newMap['amount'] =
+                        double.tryParse(amountController.text) ?? 0.0;
                     newMap['category'] = categoryController.text;
                     newMap['is_expense'] = isExpense;
-                    
+
                     _updateLocalData(newMap);
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: Text(l10n.save, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: Text(
+                    l10n.save,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             );
-          }
+          },
         );
       },
     );
   }
 
-
   // --- Actions ---
   Future<void> _markAsHandled() async {
     if (widget.conversationId != null && widget.message.key != null) {
       await _chatService.updateMessage(
-        widget.conversationId!, 
-        widget.message.key!, 
-        {'is_handled': true}
+        widget.conversationId!,
+        widget.message.key!,
+        {'is_handled': true},
       );
     }
   }
@@ -1200,19 +1483,19 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Future<void> _saveTransaction(Map<String, dynamic> data) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
-    
+
     try {
       // Use Adapter to normalize data
       final transaction = AiResponseAdapter.adaptTransaction(data);
-      
+
       await _financeService.createRecord(transaction.toMap());
       await _markAsHandled();
 
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.transactionSavedSuccess)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.transactionSavedSuccess)));
       }
     } catch (e) {
       if (mounted) {
@@ -1230,24 +1513,30 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
-        crossAxisAlignment: widget.message.isAi ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        crossAxisAlignment: widget.message.isAi
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.end,
         children: [
           if (widget.message.isAi)
-             Row(
-               children: [
-                 const Icon(FontAwesomeIcons.robot, size: 12, color: AppTheme.secondary),
-                 const SizedBox(width: 8),
-                 Text(
-                   l10n.aiAssistant,
-                   style: GoogleFonts.manrope(
-                     fontSize: 10,
-                     fontWeight: FontWeight.w800,
-                     color: AppTheme.secondary,
-                     letterSpacing: 1.0,
-                   ),
-                 ),
-               ],
-             )
+            Row(
+              children: [
+                const Icon(
+                  FontAwesomeIcons.robot,
+                  size: 12,
+                  color: AppTheme.secondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.aiAssistant,
+                  style: GoogleFonts.manrope(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.secondary,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ],
+            )
           else
             Text(
               l10n.youLabel,
@@ -1263,7 +1552,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             _buildGenUIPlaceholder()
           else
             InkWell(
-              onTap: widget.onTap != null ? () => widget.onTap!(widget.message.text) : null,
+              onTap: widget.onTap != null
+                  ? () => widget.onTap!(widget.message.text)
+                  : null,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
@@ -1272,7 +1563,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               ),
               child: Container(
                 padding: const EdgeInsets.all(16),
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                ),
                 decoration: BoxDecoration(
                   color: widget.message.isAi ? Colors.white : AppTheme.primary,
                   borderRadius: BorderRadius.only(
@@ -1287,17 +1580,21 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                             color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
-                          )
+                          ),
                         ]
                       : [],
                 ),
                 child: Text(
                   widget.message.text,
                   style: GoogleFonts.manrope(
-                    color: widget.message.isAi ? AppTheme.primary : Colors.white,
+                    color: widget.message.isAi
+                        ? AppTheme.primary
+                        : Colors.white,
                     fontSize: 15,
                     height: 1.5,
-                    fontWeight: widget.message.isAi ? FontWeight.w500 : FontWeight.w400,
+                    fontWeight: widget.message.isAi
+                        ? FontWeight.w500
+                        : FontWeight.w400,
                   ),
                 ),
               ),
@@ -1362,11 +1659,19 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       ),
       child: Column(
         children: [
-          Icon(Icons.error_outline_rounded, size: 48, color: Colors.redAccent.withValues(alpha: 0.8)),
+          Icon(
+            Icons.error_outline_rounded,
+            size: 48,
+            color: Colors.redAccent.withValues(alpha: 0.8),
+          ),
           const SizedBox(height: 16),
           Text(
             l10n.aiErrorTitle,
-            style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent),
+            style: GoogleFonts.manrope(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.redAccent,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -1381,18 +1686,31 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             child: OutlinedButton.icon(
               onPressed: () {
                 // Retry last message logic could go here, for now just clear input or let user retry
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Por favor intenta enviar tu mensaje nuevamente.")));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "Por favor intenta enviar tu mensaje nuevamente.",
+                    ),
+                  ),
+                );
               },
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text("Reintentar", style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+              label: Text(
+                "Reintentar",
+                style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.redAccent,
-                side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+                side: BorderSide(
+                  color: Colors.redAccent.withValues(alpha: 0.5),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -1410,9 +1728,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isUnlocked 
-            ? [Colors.white, Colors.white]
-            : [const Color(0xFF2E3192), const Color(0xFF1BFFFF)],
+          colors: isUnlocked
+              ? [Colors.white, Colors.white]
+              : [const Color(0xFF2E3192), const Color(0xFF1BFFFF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1439,7 +1757,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
-                    Icons.auto_awesome, 
+                    Icons.auto_awesome,
                     color: isUnlocked ? AppTheme.primary : Colors.white,
                   ),
                 ),
@@ -1470,27 +1788,56 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               ],
             ),
           ),
-          
+
           if (isUnlocked) ...[
-            if (data['metrics'] != null)
-             _buildReportMetrics(data['metrics']),
-          
+            if (data['metrics'] != null) _buildReportMetrics(data['metrics']),
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
               child: MarkdownBody(
                 data: content,
                 styleSheet: MarkdownStyleSheet(
-                  p: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, height: 1.6),
-                  h1: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary),
-                  h2: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary),
-                  h3: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  p: GoogleFonts.manrope(
+                    fontSize: 14,
+                    color: AppTheme.secondary,
+                    height: 1.6,
+                  ),
+                  h1: GoogleFonts.manrope(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primary,
+                  ),
+                  h2: GoogleFonts.manrope(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primary,
+                  ),
+                  h3: GoogleFonts.manrope(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primary,
+                  ),
                   listBullet: GoogleFonts.manrope(color: AppTheme.primary),
-                  tableBorder: TableBorder.all(color: AppTheme.primary.withValues(alpha: 0.1), width: 1),
-                  tableBody: GoogleFonts.manrope(fontSize: 13, color: AppTheme.secondary),
-                  tableHead: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  tableBorder: TableBorder.all(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                  tableBody: GoogleFonts.manrope(
+                    fontSize: 13,
+                    color: AppTheme.secondary,
+                  ),
+                  tableHead: GoogleFonts.manrope(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primary,
+                  ),
                   tableCellsPadding: const EdgeInsets.all(8),
-                  blockquote: GoogleFonts.manrope(fontSize: 14, color: AppTheme.primary, fontStyle: FontStyle.italic),
+                  blockquote: GoogleFonts.manrope(
+                    fontSize: 14,
+                    color: AppTheme.primary,
+                    fontStyle: FontStyle.italic,
+                  ),
                   blockquoteDecoration: BoxDecoration(
                     color: AppTheme.primary.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
@@ -1503,81 +1850,105 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, size: 12, color: AppTheme.secondary),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 12,
+                    color: AppTheme.secondary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     l10n.aiGeneratedAnalysis,
-                    style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontStyle: FontStyle.italic),
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      color: AppTheme.secondary,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
           ] else ...[
-             // Locked State
-             Padding(
-               padding: const EdgeInsets.symmetric(horizontal: 24),
-               child: Text(
-                 summary,
-                 style: GoogleFonts.manrope(color: Colors.white, fontSize: 14, height: 1.5),
-               ),
-             ),
-             const SizedBox(height: 24),
-             Container(
-               width: double.infinity,
-               padding: const EdgeInsets.all(24),
-               decoration: const BoxDecoration(
-                 color: Colors.white,
-                 borderRadius: BorderRadius.only(
-                   bottomLeft: Radius.circular(22), // slightly less than outer
-                   bottomRight: Radius.circular(22),
-                 ),
-               ),
-               child: Column(
-                 children: [
-                   Text(
-                     l10n.strategicReportInfo,
-                     textAlign: TextAlign.center,
-                     style: GoogleFonts.manrope(
-                       color: AppTheme.secondary,
-                       fontSize: 12,
-                     ),
-                   ),
-                   const SizedBox(height: 16),
-                   SizedBox(
-                     width: double.infinity,
-                     child: ElevatedButton(
-                     onPressed: _isSaving ? null : _showRewardedAd,
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: AppTheme.primary,
-                       foregroundColor: Colors.white,
-                       padding: const EdgeInsets.symmetric(vertical: 16),
-                       elevation: 0,
-                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                       disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.6),
-                     ),
-                     child: _isSaving 
-                         ? const SizedBox(
-                             height: 20,
-                             width: 20,
-                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                           )
-                         : Row(
-                             mainAxisAlignment: MainAxisAlignment.center,
-                             children: [
-                               const Icon(Icons.play_circle_fill_rounded, size: 20),
-                               const SizedBox(width: 8),
-                               Text(
-                                 l10n.unlockVideo,
-                                 style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
-                               ),
-                             ],
-                           ),
-                   ),
-                   ),
-                 ],
-               ),
-             ),
+            // Locked State
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                summary,
+                style: GoogleFonts.manrope(
+                  color: Colors.white,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(22), // slightly less than outer
+                  bottomRight: Radius.circular(22),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    l10n.strategicReportInfo,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: AppTheme.secondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _showRewardedAd,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        disabledBackgroundColor: AppTheme.primary.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.play_circle_fill_rounded,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.unlockVideo,
+                                  style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ],
       ),
@@ -1610,19 +1981,25 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: (isUnlocked ? Colors.green : Colors.orangeAccent).withValues(alpha: 0.1),
+              color: (isUnlocked ? Colors.green : Colors.orangeAccent)
+                  .withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isUnlocked ? Icons.description_outlined : Icons.lock_clock_rounded, 
-              color: isUnlocked ? Colors.green : Colors.orangeAccent, 
+              isUnlocked
+                  ? Icons.description_outlined
+                  : Icons.lock_clock_rounded,
+              color: isUnlocked ? Colors.green : Colors.orangeAccent,
               size: 32,
             ),
           ),
           const SizedBox(height: 16),
           Text(
             isUnlocked ? l10n.csvReady : l10n.reportLocked,
-            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+            style: GoogleFonts.manrope(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1632,37 +2009,50 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            child: isUnlocked 
-              ? ElevatedButton.icon(
-                  onPressed: () => _shareCsv(filename, csvData),
-                  icon: const Icon(Icons.share_rounded, size: 18),
-                  label: Text(
-                    l10n.shareCsv,
-                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+            child: isUnlocked
+                ? ElevatedButton.icon(
+                    onPressed: () => _shareCsv(filename, csvData),
+                    icon: const Icon(Icons.share_rounded, size: 18),
+                    label: Text(
+                      l10n.shareCsv,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  )
+                : ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _showRewardedAd,
+                    icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
+                    label: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            l10n.unlockVideo,
+                            style: GoogleFonts.manrope(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                )
-              : ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _showRewardedAd,
-                  icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
-                  label: _isSaving 
-                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                     : Text(
-                          l10n.unlockVideo,
-                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
-                        ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                ),
           ),
         ],
       ),
@@ -1675,11 +2065,11 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/$filename');
       await file.writeAsString(data);
-      
+
       if (!mounted) return;
       final box = context.findRenderObject() as RenderBox?;
-      final Rect? sharePositionOrigin = box != null 
-          ? box.localToGlobal(Offset.zero) & box.size 
+      final Rect? sharePositionOrigin = box != null
+          ? box.localToGlobal(Offset.zero) & box.size
           : null;
 
       await SharePlus.instance.share(
@@ -1691,15 +2081,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.csvShareError(e.toString()))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.csvShareError(e.toString()))));
     }
   }
 
   Widget _buildReportMetrics(dynamic metrics) {
     if (metrics is! List) return const SizedBox.shrink();
-    
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Row(
@@ -1708,13 +2098,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           final String label = m['label'] ?? '';
           final String value = m['value'] ?? '';
           final String iconName = m['icon'] ?? 'star';
-          
+
           IconData displayIcon = Icons.auto_graph_rounded;
-          if (iconName == 'trending_up') displayIcon = Icons.trending_up_rounded;
-          if (iconName == 'trending_down') displayIcon = Icons.trending_down_rounded;
+          if (iconName == 'trending_up')
+            displayIcon = Icons.trending_up_rounded;
+          if (iconName == 'trending_down')
+            displayIcon = Icons.trending_down_rounded;
           if (iconName == 'savings') displayIcon = Icons.savings_rounded;
           if (iconName == 'warning') displayIcon = Icons.warning_amber_rounded;
-          
+
           return Expanded(
             child: Container(
               margin: const EdgeInsets.only(right: 8),
@@ -1722,7 +2114,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               decoration: BoxDecoration(
                 color: AppTheme.background,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.05)),
+                border: Border.all(
+                  color: AppTheme.primary.withValues(alpha: 0.05),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1733,14 +2127,22 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       const SizedBox(width: 4),
                       Text(
                         label,
-                        style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.manrope(
+                          fontSize: 10,
+                          color: AppTheme.secondary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w900, color: AppTheme.primary),
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.primary,
+                    ),
                   ),
                 ],
               ),
@@ -1753,12 +2155,12 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   void _showRewardedAd() {
     setState(() => _isSaving = true); // Loading state
-    
+
     // El usuario reporta que es un "Intersticial Recompensado", por lo que usamos esa clase específicamente.
     AdService().loadRewardedInterstitialAd(
       onAdLoaded: (ad) {
         setState(() => _isSaving = false);
-        
+
         ad.fullScreenContentCallback = FullScreenContentCallback(
           onAdFailedToShowFullScreenContent: (ad, error) {
             ad.dispose();
@@ -1773,14 +2175,17 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           onUserEarnedReward: (AdWithoutView ad, RewardItem rewardItem) {
             // Usuario vio el anuncio! Desbloqueamos el contenido.
             _markAsHandled(); // Esto persiste el estado "desbloqueado" en Firebase
-            
+
             if (mounted) {
               final l10n = AppLocalizations.of(context)!;
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.contentUnlocked), backgroundColor: Colors.green),
+                SnackBar(
+                  content: Text(l10n.contentUnlocked),
+                  backgroundColor: Colors.green,
+                ),
               );
             }
-          }
+          },
         );
       },
       onAdFailedToLoad: (error) {
@@ -1794,17 +2199,23 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                 if (mounted) {
                   final l10n = AppLocalizations.of(context)!;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.contentUnlocked), backgroundColor: Colors.green),
+                    SnackBar(
+                      content: Text(l10n.contentUnlocked),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 }
-              }
+              },
             );
           },
           onAdFailedToLoad: (error2) {
             final l10n = AppLocalizations.of(context)!;
             setState(() => _isSaving = false);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.adLoadError(error.toString())), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text(l10n.adLoadError(error.toString())),
+                backgroundColor: Colors.red,
+              ),
             );
           },
         );
@@ -1836,11 +2247,18 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         children: [
           Row(
             children: [
-              const Icon(Icons.table_chart_rounded, size: 18, color: AppTheme.primary),
+              const Icon(
+                Icons.table_chart_rounded,
+                size: 18,
+                color: AppTheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.transactionSummary,
-                style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
@@ -1854,10 +2272,50 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             ),
             child: Row(
               children: [
-                Expanded(flex: 2, child: Text(l10n.concept, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary))),
-                Expanded(child: Text(l10n.amountLabel, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
-                Expanded(child: Text(l10n.result, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
-                Expanded(child: Text(l10n.impact, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary), textAlign: TextAlign.right)),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    l10n.concept,
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    l10n.amountLabel,
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondary,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    l10n.result,
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondary,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    l10n.impact,
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondary,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1874,8 +2332,20 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.description, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text(item.date, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
+                        Text(
+                          item.description,
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        Text(
+                          item.date,
+                          style: GoogleFonts.manrope(
+                            fontSize: 10,
+                            color: AppTheme.secondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1883,31 +2353,42 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     child: Text(
                       '\$${amount.toStringAsFixed(0)}',
                       textAlign: TextAlign.right,
-                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       '', // Balance not available
                       textAlign: TextAlign.right,
-                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primary),
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppTheme.primary,
+                      ),
                     ),
                   ),
                   Expanded(
                     child: Container(
                       alignment: Alignment.centerRight,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
+                          color: (isExpense ? Colors.red : Colors.green)
+                              .withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           isExpense ? 'Baja 📉' : 'Sube 📈',
                           style: GoogleFonts.manrope(
-                            fontSize: 9, 
+                            fontSize: 9,
                             fontWeight: FontWeight.bold,
-                            color: isExpense ? Colors.red : Colors.green
+                            color: isExpense ? Colors.red : Colors.green,
                           ),
                         ),
                       ),
@@ -1918,7 +2399,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             );
           }),
           if (items.isEmpty)
-             Center(child: Text(l10n.noRecentData, style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.secondary)))
+            Center(
+              child: Text(
+                l10n.noRecentData,
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: AppTheme.secondary,
+                ),
+              ),
+            )
           else ...[
             const Divider(height: 32),
             Row(
@@ -1926,14 +2415,18 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               children: [
                 Text(
                   l10n.resultingBalance,
-                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.secondary),
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppTheme.secondary,
+                  ),
                 ),
                 Text(
                   '\$${(double.tryParse(data['total_balance']?.toString() ?? '') ?? double.tryParse(data['balance']?.toString() ?? '') ?? 0.0).toStringAsFixed(2)}',
                   style: GoogleFonts.manrope(
-                    fontWeight: FontWeight.w900, 
-                    fontSize: 18, 
-                    color: AppTheme.primary
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    color: AppTheme.primary,
                   ),
                 ),
               ],
@@ -1951,7 +2444,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     if (transactions.isEmpty) return const SizedBox.shrink();
 
     // Use adapter
-    final normalizedTransactions = AiResponseAdapter.adaptMultiTransaction(transactions);
+    final normalizedTransactions = AiResponseAdapter.adaptMultiTransaction(
+      transactions,
+    );
 
     // Calculate totals
     double totalIncome = 0;
@@ -1994,29 +2489,43 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       color: AppTheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.receipt_long_rounded, size: 18, color: AppTheme.primary),
+                    child: const Icon(
+                      Icons.receipt_long_rounded,
+                      size: 18,
+                      color: AppTheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     l10n.multiTransactionTitle(transactions.length),
-                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: (totalIncome >= totalExpense ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                  color:
+                      (totalIncome >= totalExpense ? Colors.green : Colors.red)
+                          .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  totalIncome >= totalExpense 
-                      ? '+\$${(totalIncome - totalExpense).toStringAsFixed(2)}' 
+                  totalIncome >= totalExpense
+                      ? '+\$${(totalIncome - totalExpense).toStringAsFixed(2)}'
                       : '-\$${(totalExpense - totalIncome).toStringAsFixed(2)}',
                   style: GoogleFonts.manrope(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
-                    color: totalIncome >= totalExpense ? Colors.green : Colors.red,
+                    color: totalIncome >= totalExpense
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 ),
               ),
@@ -2039,11 +2548,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1),
+                      color: (isExpense ? Colors.red : Colors.green).withValues(
+                        alpha: 0.1,
+                      ),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                      isExpense
+                          ? Icons.arrow_downward_rounded
+                          : Icons.arrow_upward_rounded,
                       size: 16,
                       color: isExpense ? Colors.red : Colors.green,
                     ),
@@ -2055,11 +2568,17 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                       children: [
                         Text(
                           desc,
-                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                         Text(
                           category,
-                          style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.secondary),
+                          style: GoogleFonts.manrope(
+                            fontSize: 11,
+                            color: AppTheme.secondary,
+                          ),
                         ),
                       ],
                     ),
@@ -2089,15 +2608,43 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               children: [
                 Column(
                   children: [
-                    Text(l10n.incomes, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
-                    Text('+\$${totalIncome.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.green)),
+                    Text(
+                      l10n.incomes,
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        color: AppTheme.secondary,
+                      ),
+                    ),
+                    Text(
+                      '+\$${totalIncome.toStringAsFixed(2)}',
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
                   ],
                 ),
-                Container(width: 1, height: 30, color: Colors.grey.withValues(alpha: 0.2)),
+                Container(
+                  width: 1,
+                  height: 30,
+                  color: Colors.grey.withValues(alpha: 0.2),
+                ),
                 Column(
                   children: [
-                    Text(l10n.expenses, style: GoogleFonts.manrope(fontSize: 10, color: AppTheme.secondary)),
-                    Text('-\$${totalExpense.toStringAsFixed(2)}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.red)),
+                    Text(
+                      l10n.expenses,
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        color: AppTheme.secondary,
+                      ),
+                    ),
+                    Text(
+                      '-\$${totalExpense.toStringAsFixed(2)}',
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -2108,23 +2655,47 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveAllTransactions(transactions),
+              onPressed: (_isSaving || widget.message.isHandled)
+                  ? null
+                  : () => _saveAllTransactions(transactions),
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.message.isHandled ? Colors.green : AppTheme.primary,
+                backgroundColor: widget.message.isHandled
+                    ? Colors.green
+                    : AppTheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 elevation: 0,
               ),
               child: _isSaving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(widget.message.isHandled ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
+                        Icon(
+                          widget.message.isHandled
+                              ? Icons.check_circle_outline
+                              : Icons.save_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
-                          widget.message.isHandled ? l10n.allSaved : l10n.saveAllTransactions(transactions.length),
-                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                          widget.message.isHandled
+                              ? l10n.allSaved
+                              : l10n.saveAllTransactions(transactions.length),
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -2144,22 +2715,24 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       for (var t in normalized) {
         await _financeService.createRecord(t.toMap());
       }
-      
+
       await _markAsHandled();
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.transactionsSavedCount(transactions.length))),
+          SnackBar(
+            content: Text(l10n.transactionsSavedCount(transactions.length)),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.saveError(e.toString()))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.saveError(e.toString()))));
       }
     }
   }
@@ -2191,38 +2764,86 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(Icons.flag_rounded, color: Colors.blueAccent),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   l10n.goalSuggestion,
-                  style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.secondary,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(goal.title, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18)),
+          Text(
+            goal.title,
+            style: GoogleFonts.manrope(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(l10n.objective(goal.targetAmount.toStringAsFixed(0)), style: GoogleFonts.manrope(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(
+            l10n.objective(goal.targetAmount.toStringAsFixed(0)),
+            style: GoogleFonts.manrope(
+              color: AppTheme.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(goal.description, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 13, height: 1.4)),
+          Text(
+            goal.description,
+            style: GoogleFonts.manrope(
+              color: AppTheme.secondary,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _createGoal(data),
+              onPressed: (_isSaving || widget.message.isHandled)
+                  ? null
+                  : () => _createGoal(data),
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.message.isHandled ? Colors.green : Colors.blueAccent,
+                backgroundColor: widget.message.isHandled
+                    ? Colors.green
+                    : Colors.blueAccent,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 elevation: 0,
               ),
-              child: _isSaving 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(widget.message.isHandled ? l10n.goalCreated : l10n.createGoal, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      widget.message.isHandled
+                          ? l10n.goalCreated
+                          : l10n.createGoal,
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -2250,7 +2871,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
             child: const Icon(Icons.bar_chart_rounded, color: Colors.white),
           ),
           const SizedBox(width: 16),
@@ -2258,20 +2882,36 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.analysisAvailable, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(
+                  l10n.analysisAvailable,
+                  style: GoogleFonts.manrope(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   data['message'] ?? l10n.viewChartsPrompt,
-                  style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
           ),
           IconButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.viewChartsPrompt)));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(l10n.viewChartsPrompt)));
             },
-            style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppTheme.primary),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppTheme.primary,
+            ),
             icon: const Icon(Icons.arrow_forward_rounded),
           ),
         ],
@@ -2293,9 +2933,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         setState(() {
           _isSaving = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.goalCreated)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.goalCreated)));
       }
     } catch (e) {
       if (mounted) {
@@ -2340,7 +2980,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             children: [
               Row(
                 children: [
-                  Text(l10n.ticketGenerated, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text(
+                    l10n.ticketGenerated,
+                    style: GoogleFonts.manrope(
+                      color: AppTheme.secondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   if (!widget.message.isHandled) ...[
                     const SizedBox(width: 8),
                     InkWell(
@@ -2352,14 +2999,23 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                           color: AppTheme.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.edit_rounded, size: 14, color: AppTheme.primary),
+                        child: const Icon(
+                          Icons.edit_rounded,
+                          size: 14,
+                          color: AppTheme.primary,
+                        ),
                       ),
                     ),
                   ],
                 ],
               ),
-              Icon(isExpense ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, 
-                   color: isExpense ? Colors.redAccent : Colors.green, size: 20),
+              Icon(
+                isExpense
+                    ? Icons.arrow_downward_rounded
+                    : Icons.arrow_upward_rounded,
+                color: isExpense ? Colors.redAccent : Colors.green,
+                size: 20,
+              ),
             ],
           ),
 
@@ -2369,7 +3025,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: (isExpense ? Colors.redAccent : Colors.green).withValues(alpha: 0.1),
+                  color: (isExpense ? Colors.redAccent : Colors.green)
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -2381,8 +3038,20 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(category, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(description, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 12)),
+                  Text(
+                    category,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: GoogleFonts.manrope(
+                      color: AppTheme.secondary,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -2393,11 +3062,17 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.total, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                l10n.total,
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               Text(
                 '${isExpense ? "-" : "+"}\$${amount.toStringAsFixed(2)}',
                 style: GoogleFonts.manrope(
-                  fontWeight: FontWeight.w900, 
+                  fontWeight: FontWeight.w900,
                   fontSize: 20,
                   color: isExpense ? AppTheme.primary : Colors.green,
                 ),
@@ -2408,35 +3083,52 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveTransaction(data),
+              onPressed: (_isSaving || widget.message.isHandled)
+                  ? null
+                  : () => _saveTransaction(data),
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.message.isHandled ? Colors.green : AppTheme.primary,
+                backgroundColor: widget.message.isHandled
+                    ? Colors.green
+                    : AppTheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 elevation: 0,
               ),
-              child: _isSaving 
-                ? const SizedBox(
-                    width: 20, 
-                    height: 20, 
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(widget.message.isHandled ? Icons.check_circle_outline : Icons.save_rounded, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.message.isHandled ? l10n.allSaved : l10n.confirmAndSave,
-                        style: GoogleFonts.manrope(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
                       ),
-                    ],
-                  ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          widget.message.isHandled
+                              ? Icons.check_circle_outline
+                              : Icons.save_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.message.isHandled
+                              ? l10n.allSaved
+                              : l10n.confirmAndSave,
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -2446,7 +3138,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     final l10n = AppLocalizations.of(context)!;
     // Use adapter
     final balance = AiResponseAdapter.adaptBalance(data);
-    
+
     final double total = balance.total;
     final double income = balance.income;
     final double expenses = balance.expenses;
@@ -2458,20 +3150,47 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         color: AppTheme.primary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
         children: [
-          Text(l10n.balanceActual, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 12, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          Text(
+            l10n.balanceActual,
+            style: GoogleFonts.manrope(
+              color: Colors.white70,
+              fontSize: 12,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('\$${total.toStringAsFixed(2)}', style: GoogleFonts.manrope(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
+          Text(
+            '\$${total.toStringAsFixed(2)}',
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMiniStat(l10n.incomes, '+\$${income.toStringAsFixed(0)}', Colors.greenAccent),
-              _buildMiniStat(l10n.expenses, '-\$${expenses.toStringAsFixed(0)}', Colors.redAccent),
+              _buildMiniStat(
+                l10n.incomes,
+                '+\$${income.toStringAsFixed(0)}',
+                Colors.greenAccent,
+              ),
+              _buildMiniStat(
+                l10n.expenses,
+                '-\$${expenses.toStringAsFixed(0)}',
+                Colors.redAccent,
+              ),
             ],
           ),
         ],
@@ -2482,9 +3201,19 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Widget _buildMiniStat(String label, String value, Color color) {
     return Column(
       children: [
-        Text(label, style: GoogleFonts.manrope(color: Colors.white70, fontSize: 11)),
+        Text(
+          label,
+          style: GoogleFonts.manrope(color: Colors.white70, fontSize: 11),
+        ),
         const SizedBox(height: 4),
-        Text(value, style: GoogleFonts.manrope(color: color, fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: GoogleFonts.manrope(
+            color: color,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -2492,7 +3221,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Widget _buildDebtPaymentCard(Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
     final payment = AiResponseAdapter.adaptDebtPayment(data);
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -2516,12 +3245,19 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               color: Colors.blueAccent.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.payment_rounded, color: Colors.blueAccent, size: 32),
+            child: const Icon(
+              Icons.payment_rounded,
+              color: Colors.blueAccent,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             l10n.paymentMethod,
-            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+            style: GoogleFonts.manrope(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -2532,17 +3268,33 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveDebtPayment(payment),
+              onPressed: (_isSaving || widget.message.isHandled)
+                  ? null
+                  : () => _saveDebtPayment(payment),
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.message.isHandled ? Colors.green : AppTheme.primary,
+                backgroundColor: widget.message.isHandled
+                    ? Colors.green
+                    : AppTheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              child: _isSaving 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Text(
                       widget.message.isHandled ? l10n.allSaved : l10n.save,
-                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
             ),
           ),
@@ -2554,7 +3306,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Widget _buildGoalContributionCard(Map<String, dynamic> data) {
     final l10n = AppLocalizations.of(context)!;
     final contribution = AiResponseAdapter.adaptGoalContribution(data);
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -2578,12 +3330,19 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               color: Colors.orangeAccent.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.stars_rounded, color: Colors.orangeAccent, size: 32),
+            child: const Icon(
+              Icons.stars_rounded,
+              color: Colors.orangeAccent,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             l10n.addSaving,
-            style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold),
+            style: GoogleFonts.manrope(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -2594,17 +3353,33 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_isSaving || widget.message.isHandled) ? null : () => _saveGoalContribution(contribution),
+              onPressed: (_isSaving || widget.message.isHandled)
+                  ? null
+                  : () => _saveGoalContribution(contribution),
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.message.isHandled ? Colors.green : Colors.orangeAccent,
+                backgroundColor: widget.message.isHandled
+                    ? Colors.green
+                    : Colors.orangeAccent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              child: _isSaving 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Text(
                       widget.message.isHandled ? l10n.allSaved : l10n.save,
-                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white),
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
             ),
           ),
@@ -2613,17 +3388,24 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     );
   }
 
-  Future<void> _saveGoalContribution(NormalizedGoalContribution contribution) async {
+  Future<void> _saveGoalContribution(
+    NormalizedGoalContribution contribution,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
-    
+
     try {
       if (contribution.goalId == null) {
-        throw Exception("No se pudo identificar la meta. Por favor, especifica el nombre de la meta.");
+        throw Exception(
+          "No se pudo identificar la meta. Por favor, especifica el nombre de la meta.",
+        );
       }
 
       // 1. Contribute to goal (This usually creates the financial record in the backend)
-      await _financeService.contributeToGoal(contribution.goalId!, contribution.amount);
+      await _financeService.contributeToGoal(
+        contribution.goalId!,
+        contribution.amount,
+      );
 
       await _markAsHandled();
       _financeService.notifyListeners();
@@ -2631,7 +3413,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ahorro registrado exitosamente"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Ahorro registrado exitosamente"),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -2647,7 +3432,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Future<void> _saveDebtPayment(NormalizedDebtPayment payment) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
-    
+
     try {
       // 1. Update debt balance
       final AuthService authService = AuthService();
@@ -2668,7 +3453,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Pago registrado exitosamente"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Pago registrado exitosamente"),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -2717,47 +3505,67 @@ class HistoryDrawer extends StatelessWidget {
                   stream: chatService.getUserConversations(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return Text(l10n.errorGeneric(snapshot.error.toString()), style: GoogleFonts.manrope(color: Colors.red));
+                      return Text(
+                        l10n.errorGeneric(snapshot.error.toString()),
+                        style: GoogleFonts.manrope(color: Colors.red),
+                      );
                     }
-                    if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
-                       return const Center(child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2));
+                    if (!snapshot.hasData ||
+                        snapshot.data?.snapshot.value == null) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primary,
+                          strokeWidth: 2,
+                        ),
+                      );
                     }
-                    
+
                     final data = snapshot.data!.snapshot.value;
                     if (data == null || (data is Map && data.isEmpty)) {
-                      return Text(l10n.noSavedConversations, style: GoogleFonts.manrope(color: AppTheme.secondary));
+                      return Text(
+                        l10n.noSavedConversations,
+                        style: GoogleFonts.manrope(color: AppTheme.secondary),
+                      );
                     }
 
                     // Convert map to list and sort
                     final List<MapEntry<dynamic, dynamic>> entries = [];
                     if (data is Map) {
-                       entries.addAll(data.entries);
+                      entries.addAll(data.entries);
                     }
-                    
+
                     entries.sort((a, b) {
-                       final tA = a.value['last_activity'] as int? ?? 0;
-                       final tB = b.value['last_activity'] as int? ?? 0;
-                       return tB.compareTo(tA);
+                      final tA = a.value['last_activity'] as int? ?? 0;
+                      final tB = b.value['last_activity'] as int? ?? 0;
+                      return tB.compareTo(tA);
                     });
 
                     return ListView.builder(
                       itemCount: entries.length,
                       itemBuilder: (context, index) {
                         final key = entries[index].key;
-                        final value = entries[index].value as Map<dynamic, dynamic>;
-                        
+                        final value =
+                            entries[index].value as Map<dynamic, dynamic>;
+
                         String dateLabel = '';
                         if (value['last_activity'] is int) {
-                           final dt = DateTime.fromMillisecondsSinceEpoch(value['last_activity'] as int);
-                           dateLabel = '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+                          final dt = DateTime.fromMillisecondsSinceEpoch(
+                            value['last_activity'] as int,
+                          );
+                          dateLabel =
+                              '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
                         }
-                        
+
                         return GestureDetector(
                           onTap: () {
-                             Navigator.pop(context); // Close drawer
-                             onChatSelected(key);
+                            Navigator.pop(context); // Close drawer
+                            onChatSelected(key);
                           },
-                          child: _buildHistoryItem(value['title']?.toString() ?? l10n.untitledConversation, dateLabel),
+                          child: _buildHistoryItem(
+                            value['title']?.toString() ??
+                                l10n.untitledConversation,
+                            dateLabel,
+                          ),
                         );
                       },
                     );
@@ -2768,11 +3576,10 @@ class HistoryDrawer extends StatelessWidget {
                 icon: Icons.add_rounded,
                 text: l10n.newChat,
                 onPressed: () {
-                   Navigator.pop(context);
-                   onChatSelected(null);
+                  Navigator.pop(context);
+                  onChatSelected(null);
                 },
               ),
-           
             ],
           ),
         ),
@@ -2791,7 +3598,11 @@ class HistoryDrawer extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppTheme.primary),
+            child: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 18,
+              color: AppTheme.primary,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -2799,12 +3610,21 @@ class HistoryDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title, 
-                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
+                  title,
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(date, style: GoogleFonts.manrope(color: AppTheme.secondary, fontSize: 11)),
+                Text(
+                  date,
+                  style: GoogleFonts.manrope(
+                    color: AppTheme.secondary,
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -2839,14 +3659,22 @@ class CustomDrawerButton extends StatelessWidget {
           backgroundColor: isSecondary ? Colors.white : AppTheme.primary,
           foregroundColor: isSecondary ? AppTheme.primary : Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 18),
             const SizedBox(width: 12),
-            Text(text, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(
+              text,
+              style: GoogleFonts.manrope(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),

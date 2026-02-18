@@ -410,8 +410,8 @@
                 "type": "String"
             }
         }
-    }
-    ,"monthlyBudgetLabel": "Monthly Budget",
+    },
+    "monthlyBudgetLabel": "Monthly Budget",
     "addDebtTitle": "New Debt",
     "debtMonthlyPayment": "Monthly Payment",
     "saveChanges": "Save Changes"

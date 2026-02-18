@@ -2118,6 +2118,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Otros'**
   String get catOthers;
+
+  /// No description provided for @supportProject.
+  ///
+  /// In es, this message translates to:
+  /// **'Apoyar el proyecto (Ver anuncio)'**
+  String get supportProject;
+
+  /// No description provided for @supportThanks.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Gracias por tu apoyo!'**
+  String get supportThanks;
 }
 
 class _AppLocalizationsDelegate

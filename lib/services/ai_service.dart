@@ -8,16 +8,23 @@ import 'auth_service.dart';
 
 class AiService {
   // Use dotenv to get the API Key
-  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
+  static String get _apiKey {
+    try {
+      return dotenv.env['GEMINI_API_KEY'] ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
   
-  final GenerativeModel _model;
+  late final GenerativeModel _model;
   final FinanceService _financeService = FinanceService();
   final AuthService _authService = AuthService();
   ChatSession? _chat;
 
-  AiService() : _model = GenerativeModel(
-    model: 'gemini-2.5-flash-lite',
-    apiKey: _apiKey,
+  AiService() {
+    _model = GenerativeModel(
+      model: 'gemini-2.5-flash-lite',
+      apiKey: _apiKey,
     systemInstruction: Content.system(
       'Eres el asistente financiero de "Finanzas AI". '
       'TU OBJETIVO PRINCIPAL: Ayudar al usuario a gestionar su dinero, ahorros y metas. '
