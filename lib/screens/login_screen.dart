@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,8 +57,11 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Step 3: Account Selected: ${googleUser.email}');
 
       debugPrint('Step 4: Getting Authentication Tokens');
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      debugPrint('Step 4: ID Token obtained (length: ${googleAuth.idToken?.length})');
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      debugPrint(
+        'Step 4: ID Token obtained (length: ${googleAuth.idToken?.length})',
+      );
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -65,11 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       debugPrint('Step 5: Authenticating with Firebase using Credential');
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
       debugPrint('Step 6: Firebase Auth Success: ${userCredential.user?.uid}');
 
       final String? idToken = await userCredential.user?.getIdToken();
-      debugPrint('Step 7: Firebase idToken extracted (length: ${idToken?.length})');
+      debugPrint(
+        'Step 7: Firebase idToken extracted (length: ${idToken?.length})',
+      );
 
       if (idToken != null) {
         debugPrint('Step 8: Sending idToken to Laravel Backend');
@@ -86,7 +93,11 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('CRITICAL ERROR during Google Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.googleError(e.toString()))),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.googleError(e.toString()),
+          ),
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -101,12 +112,17 @@ class _LoginScreenState extends State<LoginScreen> {
       final appleProvider = AppleAuthProvider();
       appleProvider.addScope('email');
       appleProvider.addScope('name');
-      
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
-      
-      debugPrint('Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}');
+
+      final UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithProvider(appleProvider);
+
+      debugPrint(
+        'Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}',
+      );
       final String? idToken = await userCredential.user?.getIdToken();
-      debugPrint('Step 4: Firebase idToken extracted (length: ${idToken?.length})');
+      debugPrint(
+        'Step 4: Firebase idToken extracted (length: ${idToken?.length})',
+      );
 
       if (idToken != null) {
         debugPrint('Step 5: Sending Apple idToken to Laravel Backend');
@@ -119,22 +135,32 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         debugPrint('Error: Apple idToken is NULL');
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: No se pudo obtener el token de autenticación.')),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error: No se pudo obtener el token de autenticación.',
+              ),
+            ),
           );
         }
       }
     } on FirebaseAuthException catch (e) {
-      debugPrint('CRITICAL ERROR during Apple Sign In (Firebase): ${e.code} - ${e.message}');
+      debugPrint(
+        'CRITICAL ERROR during Apple Sign In (Firebase): ${e.code} - ${e.message}',
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Apple Auth Error: ${e.message} (Code: ${e.code})')),
+        SnackBar(
+          content: Text('Apple Auth Error: ${e.message} (Code: ${e.code})'),
+        ),
       );
     } catch (e) {
       debugPrint('CRITICAL ERROR during Apple Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.appleError(e.toString()))),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.appleError(e.toString())),
+        ),
       );
     } finally {
       if (mounted) {
@@ -146,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _processAuthResult(Map<String, dynamic> result) async {
     if (result['success']) {
       if (!mounted) return;
-      
+
       final bool onboardingComplete = await _authService.isOnboardingComplete();
       if (!mounted) return;
 
@@ -163,9 +189,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
     }
   }
 
@@ -202,13 +228,19 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: _isLoading ? AppLocalizations.of(context)!.loggingIn : AppLocalizations.of(context)!.login,
+                text: _isLoading
+                    ? AppLocalizations.of(context)!.loggingIn
+                    : AppLocalizations.of(context)!.login,
                 onPressed: _isLoading ? () {} : _handleLogin,
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Expanded(
+                    child: Divider(
+                      color: AppTheme.secondary.withValues(alpha: 0.3),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
@@ -216,30 +248,42 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
-                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Expanded(
+                    child: Divider(
+                      color: AppTheme.secondary.withValues(alpha: 0.3),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: _isLoading ? AppLocalizations.of(context)!.loading : AppLocalizations.of(context)!.continueWithGoogle,
+                text: _isLoading
+                    ? AppLocalizations.of(context)!.loading
+                    : AppLocalizations.of(context)!.continueWithGoogle,
                 onPressed: _isLoading ? () {} : _handleGoogleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.google,
               ),
-              const SizedBox(height: 16),
-              CustomButton(
-                text: _isLoading ? AppLocalizations.of(context)!.loading : AppLocalizations.of(context)!.continueWithApple,
-                onPressed: _isLoading ? () {} : _handleAppleSignIn,
-                isOutlined: true,
-                icon: FontAwesomeIcons.apple,
-              ),
+              if (Platform.isIOS) ...[
+                const SizedBox(height: 16),
+                CustomButton(
+                  text: _isLoading
+                      ? AppLocalizations.of(context)!.loading
+                      : AppLocalizations.of(context)!.continueWithApple,
+                  onPressed: _isLoading ? () {} : _handleAppleSignIn,
+                  isOutlined: true,
+                  icon: FontAwesomeIcons.apple,
+                ),
+              ],
               const SizedBox(height: 40),
               Center(
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterScreen(),
+                      ),
                     );
                   },
                   child: RichText(
@@ -249,7 +293,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         TextSpan(
                           text: AppLocalizations.of(context)!.register,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
                                 color: AppTheme.primary,
                                 fontWeight: FontWeight.bold,
                               ),

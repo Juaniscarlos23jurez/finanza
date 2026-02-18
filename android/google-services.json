@@ -1,0 +1,143 @@
+{
+  "project_info": {
+    "project_number": "680910624455",
+    "firebase_url": "https://menushenu-2828b-default-rtdb.firebaseio.com",
+    "project_id": "menushenu-2828b",
+    "storage_bucket": "menushenu-2828b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680910624455:android:205fc838231141754810e2",
+        "android_client_info": {
+          "package_name": "com.fynlink.BoostYou"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "680910624455-4g767vqt5saqlvhbf58dmoc7j4q1nvmv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fynlink.BoostYou",
+            "certificate_hash": "9985747167471bce87f00bdb82afc85a34e3336c"
+          }
+        },
+        {
+          "client_id": "680910624455-l7cvuf6d632e1gfec5iorrd0hjbtg3l6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fynlink.BoostYou",
+            "certificate_hash": "efddadc0febb128af7a8f358c17c2ff6e784fcea"
+          }
+        },
+        {
+          "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXHhXGjiK8jEahrV-wDG9F-V6btoeMIlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "680910624455-1d9e157e5bcnecmq3t9656vedtq5r0tv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fynlink.menushenu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680910624455:android:277f857abff08a284810e2",
+        "android_client_info": {
+          "package_name": "com.fynlink.finanzas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "680910624455-je5r5528tdqskj5qhvmceuujchq7ifhp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fynlink.finanzas",
+            "certificate_hash": "5561e3f8923c0ead8d32035d4b7af1f5b21aed37"
+          }
+        },
+        {
+          "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXHhXGjiK8jEahrV-wDG9F-V6btoeMIlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "680910624455-1d9e157e5bcnecmq3t9656vedtq5r0tv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fynlink.menushenu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680910624455:android:6dd70fbf53a8adce4810e2",
+        "android_client_info": {
+          "package_name": "com.fynlink.menushenu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXHhXGjiK8jEahrV-wDG9F-V6btoeMIlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680910624455-ob4k3t739g9ksie823dej5sn57budnh9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "680910624455-1d9e157e5bcnecmq3t9656vedtq5r0tv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fynlink.menushenu"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

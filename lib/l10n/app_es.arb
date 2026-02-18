@@ -501,6 +501,7 @@
     },
     "later": "Más tarde",
     "update": "Actualizar",
+
     "aiConsentTitle": "Uso de inteligencia artificial",
     "aiConsentDisclosure": "Esta app envía el contenido que escribes a un servicio de inteligencia artificial de terceros (Google Gemini) para generar respuestas.\n\nLos datos enviados pueden incluir texto que ingreses en la app.\n\nGoogle procesa estos datos de acuerdo con su política de privacidad.\n\n¿Aceptas que tus datos sean enviados a este servicio?",
     "aiConsentDeclineConfirmTitle": "¿Estás seguro?",
@@ -532,4 +533,7 @@
     "catTravel": "Viajes",
     "catInvestment": "Inversiones",
     "catOthers": "Otros"
+
+    "supportProject": "Apoyar el proyecto (Ver anuncio)",
+    "supportThanks": "¡Gracias por tu apoyo!"
 }

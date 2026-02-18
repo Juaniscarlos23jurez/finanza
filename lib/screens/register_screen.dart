@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geminifinanzas/l10n/app_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -55,9 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
     }
   }
 
@@ -75,8 +76,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       debugPrint('Step 3: Account Selected: ${googleUser.email}');
 
       debugPrint('Step 4: Getting Authentication Tokens');
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      debugPrint('Step 4: ID Token obtained (length: ${googleAuth.idToken?.length})');
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      debugPrint(
+        'Step 4: ID Token obtained (length: ${googleAuth.idToken?.length})',
+      );
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -84,11 +88,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       debugPrint('Step 5: Authenticating with Firebase using Credential');
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
       debugPrint('Step 6: Firebase Auth Success: ${userCredential.user?.uid}');
 
       final String? idToken = await userCredential.user?.getIdToken();
-      debugPrint('Step 7: Firebase idToken extracted (length: ${idToken?.length})');
+      debugPrint(
+        'Step 7: Firebase idToken extracted (length: ${idToken?.length})',
+      );
 
       if (idToken != null) {
         debugPrint('Step 8: Sending idToken to Laravel Backend');
@@ -105,7 +112,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       debugPrint('CRITICAL ERROR during Google Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.googleError(e.toString()))),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.googleError(e.toString()),
+          ),
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -120,12 +131,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final appleProvider = AppleAuthProvider();
       appleProvider.addScope('email');
       appleProvider.addScope('name');
-      
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
-      
-      debugPrint('Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}');
+
+      final UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithProvider(appleProvider);
+
+      debugPrint(
+        'Step 3: Apple/Firebase Auth Success: ${userCredential.user?.uid}',
+      );
       final String? idToken = await userCredential.user?.getIdToken();
-      debugPrint('Step 4: Firebase idToken extracted (length: ${idToken?.length})');
+      debugPrint(
+        'Step 4: Firebase idToken extracted (length: ${idToken?.length})',
+      );
 
       if (idToken != null) {
         debugPrint('Step 5: Sending Apple idToken to Laravel Backend');
@@ -138,22 +154,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         debugPrint('Error: Apple idToken is NULL');
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: No se pudo obtener el token de autenticación.')),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error: No se pudo obtener el token de autenticación.',
+              ),
+            ),
           );
         }
       }
     } on FirebaseAuthException catch (e) {
-      debugPrint('CRITICAL ERROR during Apple Sign In (Firebase): ${e.code} - ${e.message}');
+      debugPrint(
+        'CRITICAL ERROR during Apple Sign In (Firebase): ${e.code} - ${e.message}',
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Apple Auth Error: ${e.message} (Code: ${e.code})')),
+        SnackBar(
+          content: Text('Apple Auth Error: ${e.message} (Code: ${e.code})'),
+        ),
       );
     } catch (e) {
       debugPrint('CRITICAL ERROR during Apple Sign In: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.appleError(e.toString()))),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.appleError(e.toString())),
+        ),
       );
     } finally {
       if (mounted) {
@@ -165,7 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _processAuthResult(Map<String, dynamic> result) async {
     if (result['success']) {
       if (!mounted) return;
-      
+
       final bool onboardingComplete = await _authService.isOnboardingComplete();
       if (!mounted) return;
 
@@ -184,9 +210,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
     }
   }
 
@@ -237,13 +263,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: _isLoading ? AppLocalizations.of(context)!.registering : AppLocalizations.of(context)!.signUp,
+                text: _isLoading
+                    ? AppLocalizations.of(context)!.registering
+                    : AppLocalizations.of(context)!.signUp,
                 onPressed: _isLoading ? () {} : _handleRegister,
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Expanded(
+                    child: Divider(
+                      color: AppTheme.secondary.withValues(alpha: 0.3),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
@@ -251,23 +283,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
-                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Expanded(
+                    child: Divider(
+                      color: AppTheme.secondary.withValues(alpha: 0.3),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: _isLoading ? AppLocalizations.of(context)!.loading : AppLocalizations.of(context)!.continueWithGoogle,
+                text: _isLoading
+                    ? AppLocalizations.of(context)!.loading
+                    : AppLocalizations.of(context)!.continueWithGoogle,
                 onPressed: _isLoading ? () {} : _handleGoogleSignIn,
                 isOutlined: true,
                 icon: FontAwesomeIcons.google,
               ),
-              const SizedBox(height: 16),
-              CustomButton(
-                text: _isLoading ? AppLocalizations.of(context)!.loading : AppLocalizations.of(context)!.continueWithApple,
-                onPressed: _isLoading ? () {} : _handleAppleSignIn,
-                isOutlined: true,
-                icon: FontAwesomeIcons.apple,
-              ),
+              if (Platform.isIOS) ...[
+                const SizedBox(height: 16),
+                CustomButton(
+                  text: _isLoading
+                      ? AppLocalizations.of(context)!.loading
+                      : AppLocalizations.of(context)!.continueWithApple,
+                  onPressed: _isLoading ? () {} : _handleAppleSignIn,
+                  isOutlined: true,
+                  icon: FontAwesomeIcons.apple,
+                ),
+              ],
             ],
           ),
         ),
