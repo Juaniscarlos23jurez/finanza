@@ -8,6 +8,7 @@ class AuthService {
   final Dio _dio = Dio();
   final FirebaseService _firebaseService = FirebaseService();
   static const String baseUrl = 'https://laravel-pkpass-backend-development-pfaawl.laravel.cloud/api/client/auth';
+  static const String appKey = 'Finanzas AI';
   
   // Reactive consent state
   final ValueNotifier<bool?> aiConsentNotifier = ValueNotifier<bool?>(null);
@@ -33,17 +34,24 @@ class AuthService {
     required String provider,
   }) async {
     try {
+      final dataPayload = {
+        'idToken': idToken,
+        'provider': provider,
+        'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
+        'app_name': appKey,
+      };
       debugPrint('AuthService: Requesting social login to $baseUrl/login');
-      debugPrint('AuthService: Payload: idToken: ${idToken.substring(0, 20)}..., provider: $provider');
+      debugPrint('AuthService: Payload: $dataPayload');
       
       final response = await _dio.post(
         '$baseUrl/login',
-        data: {
-          'idToken': idToken,
-          'provider': provider,
-          'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
-          'app_name': 'Finanzas AI',
-        },
+        data: dataPayload,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'X-App-Name': appKey,
+          },
+        ),
       );
       
       debugPrint('AuthService: Response Status: ${response.statusCode}');
@@ -52,7 +60,7 @@ class AuthService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
-        final user = data['user'];
+        final user = data['user'] ?? data['client'];
         if (token != null) {
           await _saveToken(token);
         }
@@ -78,16 +86,22 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
-          'app_name': 'Finanzas AI',
+          'app_name': appKey,
           'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
           'provider': 'email',
         },
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'X-App-Name': appKey,
+          },
+        ),
       );
       
       if (response.statusCode == 200) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
-        final user = data['user'];
+        final user = data['user'] ?? data['client'];
         if (token != null) {
           await _saveToken(token);
         }
@@ -114,16 +128,22 @@ class AuthService {
           'name': name,
           'email': email,
           'password': password,
-          'app_name': 'Finanzas AI',
+          'app_name': appKey,
           'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
           'provider': 'email',
         },
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'X-App-Name': appKey,
+          },
+        ),
       );
       
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'] ?? response.data;
         final token = data['token'];
-        final user = data['user'];
+        final user = data['user'] ?? data['client'];
         if (token != null) {
           await _saveToken(token);
         }
@@ -397,12 +417,13 @@ class AuthService {
           if (fcmToken != null) 'fcm_token': fcmToken,
           if (devicePlatform != null) 'device_platform': devicePlatform,
           if (devicePlatform == null) 'device_platform': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android'),
-          'app_name': 'Finanzas AI',
+          'app_name': appKey,
         },
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
+            'X-App-Name': appKey,
           },
         ),
       );
@@ -513,12 +534,16 @@ class AuthService {
       );
       if (financeResponse.statusCode == 200) {
         final data = financeResponse.data;
-        final List<dynamic> records = data['records'] ?? [];
-        final Map<String, dynamic> summary = data['summary'] ?? {};
-        final double totalIn = (summary['total_income'] ?? 0).toDouble();
-        final double totalOut = (summary['total_expense'] ?? 0).toDouble();
+        if (data is Map<String, dynamic>) {
+          final List<dynamic> records = data['records'] ?? [];
+          final Map<String, dynamic> summary = data['summary'] ?? {};
+          final double totalIn = (summary['total_income'] ?? 0).toDouble();
+          final double totalOut = (summary['total_expense'] ?? 0).toDouble();
 
-        if (records.isNotEmpty || totalIn > 0 || totalOut > 0) {
+          if (records.isNotEmpty || totalIn > 0 || totalOut > 0) {
+            return true;
+          }
+        } else if (data is List && data.isNotEmpty) {
           return true;
         }
       }

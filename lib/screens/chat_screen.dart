@@ -555,16 +555,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    // Privacy Guard: Check AI Consent before sending anything to ChatService/AiService
-    final hasConsent = await _authService.getAiConsent();
-    debugPrint('ChatScreen: Attempting to send message. hasConsent: $hasConsent');
-    
-    if (hasConsent != true) {
-      debugPrint('ChatScreen: Blocking send due to missing AI consent.');
-      _showAiConsentDialog();
-      return;
-    }
-
     // Validate message length
     if (text.length > _maxMessageLength) {
       final l10n = AppLocalizations.of(context)!;
@@ -597,67 +587,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } finally {
       if (mounted) setState(() => _isTyping = false);
-    }
-  }
-
-  Future<void> _showAiConsentDialog() async {
-    if (!mounted) return;
-    
-    final l10n = AppLocalizations.of(context)!;
-    debugPrint('ChatScreen: Displaying AI Privacy Consent Dialog...');
-    
-    final bool? accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: Row(
-            children: [
-              const Icon(Icons.auto_awesome_rounded, color: AppTheme.primary, size: 24),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.aiConsentTitle, 
-                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 18)
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            l10n.aiConsentDisclosure,
-            style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.secondary, height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.cancel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(
-                l10n.accept, 
-                style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white)
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (accepted == true) {
-      await _authService.setAiConsent(true);
-      _handleSend(); // Retry sending after consent
-    } else {
-      // If consent is rejected, update the state to show manual entry
-      if (mounted) {
-        setState(() => _aiConsentStatus = false);
-      }
     }
   }
 

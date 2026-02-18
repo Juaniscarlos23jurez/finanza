@@ -32,7 +32,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _authService.aiConsentNotifier.addListener(_onAiConsentChanged);
     _fetchData();
+  }
+
+  @override
+  void dispose() {
+    _authService.aiConsentNotifier.removeListener(_onAiConsentChanged);
+    super.dispose();
+  }
+
+  void _onAiConsentChanged() {
+    if (mounted) {
+      setState(() => _aiConsent = _authService.aiConsentNotifier.value ?? false);
+    }
   }
 
   Future<void> _fetchData() async {
@@ -111,9 +124,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ]),
                   const SizedBox(height: 32),
-                  _buildCalendar(context),
-                 
-                  const SizedBox(height: 32),
                   _buildMenuSection(AppLocalizations.of(context)!.otherSection, [
                     _buildMenuItem(Icons.feedback_outlined, AppLocalizations.of(context)!.feedback, onTap: () => _showFeedbackModal(context)),
                     _buildMenuItem(
@@ -137,6 +147,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                   ]),
+                  const SizedBox(height: 32),
+                  _buildCalendar(context),
                   const SizedBox(height: 48),
                   _buildLogoutButton(context),
                   const SizedBox(height: 12),
@@ -239,7 +251,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildMenuItem(IconData icon, String title, {bool hasSwitch = false, bool switchValue = false, ValueChanged<bool>? onSwitchChanged, VoidCallback? onTap}) {
     return InkWell(
-      onTap: hasSwitch ? null : onTap,
+      onTap: hasSwitch 
+          ? () => onSwitchChanged?.call(!switchValue) 
+          : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
