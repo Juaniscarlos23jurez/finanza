@@ -22,6 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
@@ -47,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       debugPrint('Step 2: Opening Google Account Selector');
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         debugPrint('Step 2: Aborted - User closed the selector');
         setState(() => _isLoading = false);
@@ -58,6 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Step 4: Getting Authentication Tokens');
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       debugPrint('Step 4: ID Token obtained (length: ${googleAuth.idToken?.length})');
+
+      if (googleAuth.idToken == null) {
+        throw Exception('No se pudo obtener el ID Token de Google');
+      }
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -81,7 +88,14 @@ class _LoginScreenState extends State<LoginScreen> {
         _processAuthResult(result);
       } else {
         debugPrint('Error: idToken is NULL after Firebase login');
+        throw Exception('No se pudo obtener el token de Firebase');
       }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FIREBASE AUTH ERROR: ${e.code} - ${e.message}');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de Firebase: ${e.message}')),
+      );
     } catch (e) {
       debugPrint('CRITICAL ERROR during Google Sign In: $e');
       if (!mounted) return;
@@ -89,7 +103,9 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(content: Text('Error con Google: $e')),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
