@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
@@ -26,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     scopes: ['email', 'profile'],
   );
   bool _isLoading = false;
+  bool _isAIEnabled = true;
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
@@ -151,6 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('ai_enabled', _isAIEnabled);
       final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
       if (!mounted) return;
@@ -200,6 +204,50 @@ class _LoginScreenState extends State<LoginScreen> {
               CustomButton(
                 text: _isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión',
                 onPressed: _isLoading ? () {} : _handleLogin,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: _isAIEnabled,
+                      onChanged: (value) {
+                        setState(() {
+                          _isAIEnabled = value ?? true;
+                        });
+                      },
+                      activeColor: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Habilitar funciones de IA (Google Gemini)',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () async {
+                  final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    'Política de Privacidad',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               Row(

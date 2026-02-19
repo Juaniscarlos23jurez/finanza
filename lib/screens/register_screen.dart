@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -47,6 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('ai_enabled', true); // Default to true on register
       final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
       if (!mounted) return;
@@ -110,6 +113,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
               CustomButton(
                 text: _isLoading ? 'Registrando...' : 'Registrarse',
                 onPressed: _isLoading ? () {} : _handleRegister,
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.secondary,
+                            height: 1.5,
+                          ),
+                      children: [
+                        const TextSpan(text: 'Al registrarte, aceptas nuestros '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#terminos');
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Text(
+                              'Términos y Condiciones',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        const TextSpan(text: ', la '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Text(
+                              'Política de Privacidad',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        const TextSpan(text: ' y el uso de '),
+                        TextSpan(
+                          text: 'IA (Google Gemini)',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppTheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const TextSpan(text: '.'),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
