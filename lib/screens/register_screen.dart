@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
@@ -21,7 +24,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
   bool _isLoading = false;
+  bool _isAIEnabled = false;
+  bool _showAIError = false;
 
   Future<void> _handleRegister() async {
     final name = _nameController.text.trim();
@@ -35,6 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+
     setState(() => _isLoading = true);
 
     final result = await _authService.register(
@@ -45,11 +54,83 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = false);
 
+    _processAuthResult(result);
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      if (googleAuth.idToken == null) {
+        throw Exception('No se pudo obtener el ID Token de Google');
+      }
+
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final String? idToken = await userCredential.user?.getIdToken();
+
+      if (idToken != null) {
+        final result = await _authService.loginWithFirebaseIdToken(
+          idToken: idToken,
+          provider: 'google.com',
+        );
+        _processAuthResult(result);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error con Google: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+
+    setState(() => _isLoading = true);
+    try {
+      final appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(appleProvider);
+      final String? idToken = await userCredential.user?.getIdToken();
+
+      if (idToken != null) {
+        final result = await _authService.loginWithFirebaseIdToken(
+          idToken: idToken,
+          provider: 'apple.com',
+        );
+        _processAuthResult(result);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error con Apple: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _processAuthResult(Map<String, dynamic> result) async {
     if (result['success']) {
       if (!mounted) return;
       
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('ai_enabled', true); // Default to true on register
+      await prefs.setBool('ai_enabled', true); // Default true now that we move consent to usage
       final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
       if (!mounted) return;
@@ -110,9 +191,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hintText: '••••••••',
               ),
               const SizedBox(height: 40),
+              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               CustomButton(
                 text: _isLoading ? 'Registrando...' : 'Registrarse',
                 onPressed: _isLoading ? () {} : _handleRegister,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'O',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  Expanded(child: Divider(color: AppTheme.secondary.withValues(alpha: 0.3))),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: _isLoading ? '...' : 'Google',
+                      onPressed: _isLoading ? () {} : _handleGoogleSignIn,
+                      isOutlined: true,
+                      icon: FontAwesomeIcons.google,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CustomButton(
+                      text: _isLoading ? '...' : 'Apple',
+                      onPressed: _isLoading ? () {} : _handleAppleSignIn,
+                      isOutlined: true,
+                      icon: FontAwesomeIcons.apple,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               Center(

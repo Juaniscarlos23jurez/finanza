@@ -28,7 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
     scopes: ['email', 'profile'],
   );
   bool _isLoading = false;
-  bool _isAIEnabled = true;
+  bool _isAIEnabled = false;
+  bool _showAIError = false;
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
@@ -50,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     debugPrint('Step 1: Button Pressed - Starting Google Sign In');
+
     setState(() => _isLoading = true);
     try {
       debugPrint('Step 2: Opening Google Account Selector');
@@ -113,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleAppleSignIn() async {
+
     debugPrint('Step 1: Apple Button Pressed');
     setState(() => _isLoading = true);
     try {
@@ -154,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('ai_enabled', _isAIEnabled);
+      await prefs.setBool('ai_enabled', true);
       final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
       if (!mounted) return;
@@ -206,49 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _isLoading ? () {} : _handleLogin,
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: Checkbox(
-                      value: _isAIEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          _isAIEnabled = value ?? true;
-                        });
-                      },
-                      activeColor: AppTheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Habilitar funciones de IA (Google Gemini)',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    'Política de Privacidad',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.primary,
-                          decoration: TextDecoration.underline,
-                        ),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 16),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -264,18 +225,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              CustomButton(
-                text: _isLoading ? 'Cargando...' : 'Continuar con Google',
-                onPressed: _isLoading ? () {} : _handleGoogleSignIn,
-                isOutlined: true,
-                icon: FontAwesomeIcons.google,
-              ),
-              const SizedBox(height: 16),
-              CustomButton(
-                text: _isLoading ? 'Cargando...' : 'Continuar con Apple',
-                onPressed: _isLoading ? () {} : _handleAppleSignIn,
-                isOutlined: true,
-                icon: FontAwesomeIcons.apple,
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: _isLoading ? '...' : 'Google',
+                      onPressed: _isLoading ? () {} : _handleGoogleSignIn,
+                      isOutlined: true,
+                      icon: FontAwesomeIcons.google,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CustomButton(
+                      text: _isLoading ? '...' : 'Apple',
+                      onPressed: _isLoading ? () {} : _handleAppleSignIn,
+                      isOutlined: true,
+                      icon: FontAwesomeIcons.apple,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 40),
               Center(

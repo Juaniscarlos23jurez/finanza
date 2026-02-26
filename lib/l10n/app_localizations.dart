@@ -378,6 +378,13 @@ class AppLocalizations {
       'processing_video': 'Extrayendo receta del video...',
       'invalid_url': 'URL no válida. Usa YouTube o TikTok.',
       'view_original_video': 'Ver video original 🎥',
+      'ai_consent_title': 'Uso de Inteligencia Artificial',
+      'ai_consent_chat_desc': 'Para generar respuestas personalizadas, tus mensajes, preguntas escritas y prompts se enviarán a Google Gemini AI (Google LLC).',
+      'ai_consent_onboarding_desc': 'Para generar tu transformación visual y darte consejos motivadores, tu foto y datos de perfil se enviarán a Google Gemini AI (Google LLC).',
+      'ai_consent_video_desc': 'Para analizar este video y extraer sus macros e ingredientes, tu enlace de video se enviará a Google Gemini AI (Google LLC).',
+      'ai_consent_footer': 'Esta información se usa exclusivamente para procesar esta función de IA.',
+      'ai_processed_by': 'Procesado mediante Google Gemini AI',
+      'view_privacy_policy': 'Ver Política de Privacidad',
     },
     'en': {
       'profile': 'Profile',
@@ -748,6 +755,13 @@ class AppLocalizations {
       'processing_video': 'Extracting recipe from video...',
       'invalid_url': 'Invalid URL. Use YouTube or TikTok.',
       'view_original_video': 'View original video 🎥',
+      'ai_consent_title': 'AI Usage',
+      'ai_consent_chat_desc': 'To generate personalized responses, your messages, written questions and prompts will be sent to Google Gemini AI (Google LLC).',
+      'ai_consent_onboarding_desc': 'To generate your visual transformation and give you motivating advice, your photo and profile data will be sent to Google Gemini AI (Google LLC).',
+      'ai_consent_video_desc': 'To analyze this video and extract its macros and ingredients, your video link will be sent to Google Gemini AI (Google LLC).',
+      'ai_consent_footer': 'This information is used exclusively to process this AI feature.',
+      'ai_processed_by': 'Processed via Google Gemini AI',
+      'view_privacy_policy': 'View Privacy Policy',
     },
     'de': {
       'profile': 'Profil',
@@ -2462,6 +2476,13 @@ class AppLocalizations {
   String get processingVideo => get('processing_video');
   String get invalidUrl => get('invalid_url');
   String get viewOriginalVideo => get('view_original_video');
+  String get aiConsentTitle => get('ai_consent_title');
+  String get aiConsentChatDesc => get('ai_consent_chat_desc');
+  String get aiConsentOnboardingDesc => get('ai_consent_onboarding_desc');
+  String get aiConsentVideoDesc => get('ai_consent_video_desc');
+  String get aiConsentFooter => get('ai_consent_footer');
+  String get aiProcessedBy => get('ai_processed_by');
+  String get viewPrivacyPolicy => get('view_privacy_policy');
 
   String errorSaving(String error) => get('error_saving').replaceAll('{error}', error);
   String transactionsCount(int count) => get('transactions_count').replaceAll('{count}', count.toString());

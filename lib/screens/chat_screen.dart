@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
@@ -36,6 +38,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
   bool _speechAvailable = false;
+  bool _aiConsentAccepted = false;
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -43,6 +46,82 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _currentConversationId = widget.conversationId;
+    _checkAIConsent();
+  }
+
+  Future<void> _checkAIConsent() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _aiConsentAccepted = prefs.getBool('ai_consent_accepted') ?? false;
+    });
+  }
+
+  Future<void> _showAIConsentDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l10n.aiConsentTitle,
+          style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.aiConsentChatDesc,
+              style: GoogleFonts.manrope(fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.aiConsentFooter,
+              style: GoogleFonts.manrope(fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri.parse('https://fynlink.shop/terminos_y_privacidad_app_clientes_html.html#privacidad');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Text(
+                l10n.viewPrivacyPolicy,
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: AppTheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancelLabel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(l10n.confirmBtn, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('ai_consent_accepted', true);
+      setState(() {
+        _aiConsentAccepted = true;
+      });
+    }
   }
 
   Future<void> _initSpeech() async {
@@ -113,6 +192,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _handleSend() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
+
+    if (!_aiConsentAccepted) {
+      await _showAIConsentDialog();
+      if (!_aiConsentAccepted) return;
+    }
 
     if (text.length > 1000) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -378,74 +462,88 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildInputArea() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Column(
         children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                border: _isListening 
-                    ? Border.all(color: AppTheme.primary, width: 2)
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      onSubmitted: (_) => _handleSend(),
-                      decoration: InputDecoration(
-                        hintText: _isListening 
-                            ? l10n.listeningLabel 
-                            : l10n.askHint,
-                        hintStyle: GoogleFonts.manrope(
-                          color: _isListening ? AppTheme.primary : AppTheme.secondary,
-                          fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _isListening ? AppTheme.primary.withValues(alpha: 0.05) : Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    border: _isListening 
+                        ? Border.all(color: AppTheme.primary, width: 2)
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 5),
                       ),
-                    ),
+                    ],
                   ),
-                  IconButton(
-                    icon: Icon(
-                      _isListening ? Icons.mic : Icons.mic_none_outlined,
-                      color: _isListening ? Colors.red : AppTheme.secondary,
-                    ),
-                    onPressed: _toggleListening,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          onSubmitted: (_) => _handleSend(),
+                          decoration: InputDecoration(
+                            hintText: _isListening 
+                                ? l10n.listeningLabel 
+                                : l10n.askHint,
+                            hintStyle: GoogleFonts.manrope(
+                              color: _isListening ? AppTheme.primary : AppTheme.secondary,
+                              fontStyle: _isListening ? FontStyle.italic : FontStyle.normal,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isListening ? Icons.mic : Icons.mic_none_outlined,
+                          color: _isListening ? Colors.red : AppTheme.secondary,
+                        ),
+                        onPressed: _toggleListening,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                ],
+                ),
               ),
+              const SizedBox(width: 12),
+              Container(
+                height: 56,
+                width: 56,
+                decoration: BoxDecoration(
+                  color: _isListening ? Colors.red : AppTheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    _isListening ? Icons.stop_rounded : Icons.send_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: _isListening ? _toggleListening : _handleSend,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.aiProcessedBy,
+            style: GoogleFonts.manrope(
+              fontSize: 10,
+              color: AppTheme.secondary.withValues(alpha: 0.7),
+              fontStyle: FontStyle.italic,
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            height: 56,
-            width: 56,
-            decoration: BoxDecoration(
-              color: _isListening ? Colors.red : AppTheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(
-                _isListening ? Icons.stop_rounded : Icons.send_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              onPressed: _isListening ? _toggleListening : _handleSend,
-            ),
-          ),
+          const SizedBox(height: 4),
         ],
       ),
     );

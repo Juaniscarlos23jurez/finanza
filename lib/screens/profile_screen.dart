@@ -688,7 +688,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               final result = await _authService.deleteAccount();
               
-              if (!mounted) return;
+              if (!mounted || !parentContext.mounted) return;
               Navigator.of(parentContext).pop(); // Close loading
               
               if (result['success']) {

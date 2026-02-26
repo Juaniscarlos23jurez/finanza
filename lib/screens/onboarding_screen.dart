@@ -242,6 +242,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return;
     }
 
+    // Check AI Consent for Onboarding
+    final prefs = await SharedPreferences.getInstance();
+    bool consent = prefs.getBool('ai_consent_accepted') ?? false;
+
+    if (!consent) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            l10n.aiConsentTitle,
+            style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: AppTheme.primary),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.aiConsentOnboardingDesc,
+                style: GoogleFonts.manrope(fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.aiConsentFooter,
+                style: GoogleFonts.manrope(fontSize: 14),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancelLabel, style: GoogleFonts.manrope(color: AppTheme.secondary)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(l10n.confirmBtn, style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        await prefs.setBool('ai_consent_accepted', true);
+        consent = true;
+      } else {
+        return;
+      }
+    }
 
     setState(() {
       _isAnalyzing = true;
