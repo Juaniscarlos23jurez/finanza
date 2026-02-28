@@ -108,6 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 32),
                       _buildMenuSection(l10n.transparency, [
                         _buildMenuItem(Icons.security_outlined, l10n.dataControl, onTap: () => _showPrivacyInfo(context)),
+                        _buildMenuItem(Icons.info_outline_rounded, l10n.healthCitationsTitle, onTap: () => _showCitationsDialog(context)),
                        ]),
                       const SizedBox(height: 32),
                       _buildMenuSection(l10n.otherSection, [
@@ -516,6 +517,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(l10n.confirmBtn, style: const TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCitationsDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppTheme.primary, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.healthCitationsTitle, 
+                    style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary)
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              l10n.healthDisclaimer,
+              style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.primary.withValues(alpha: 0.8), height: 1.6),
+            ),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+            Text(
+              l10n.sourcesLabel,
+              style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+            ),
+            const SizedBox(height: 12),
+            _buildSourceLink(context, l10n.whoDietSource, 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet'),
+            _buildSourceLink(context, l10n.usdaDietSource, 'https://www.dietaryguidelines.gov/'),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                minimumSize: const Size(double.infinity, 54),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                l10n.closeBtn, 
+                style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSourceLink(BuildContext context, String label, String url) {
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            const Icon(Icons.link_rounded, color: AppTheme.accent, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: 13, 
+                  color: AppTheme.accent, 
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

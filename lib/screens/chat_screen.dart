@@ -195,6 +195,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (!_aiConsentAccepted) {
       await _showAIConsentDialog();
+      if (!mounted) return;
       if (!_aiConsentAccepted) return;
     }
 
@@ -453,9 +454,112 @@ class _ChatScreenState extends State<ChatScreen> {
                  setState(() => _currentConversationId = null);
               },
             )
-          else
-            const SizedBox(width: 48), // Maintain spacing for title alignment
+          else ...[
+            IconButton(
+              onPressed: () => _showCitationsDialog(
+                title: l10n.healthCitationsTitle,
+                content: l10n.healthDisclaimer,
+                showSources: true,
+              ),
+              icon: const Icon(Icons.info_outline_rounded, color: AppTheme.primary, size: 24),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  void _showCitationsDialog({required String title, required String content, bool showSources = false}) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppTheme.primary, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title, 
+                    style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary)
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              content,
+              style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.primary.withValues(alpha: 0.8), height: 1.6),
+            ),
+            if (showSources) ...[
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                l10n.sourcesLabel,
+                style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+              ),
+              const SizedBox(height: 12),
+              _buildSourceLink(l10n.whoDietSource, 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet'),
+              _buildSourceLink(l10n.usdaDietSource, 'https://www.dietaryguidelines.gov/'),
+            ],
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                minimumSize: const Size(double.infinity, 54),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                l10n.closeBtn, 
+                style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSourceLink(String label, String url) {
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            const Icon(Icons.link_rounded, color: AppTheme.accent, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: 13, 
+                  color: AppTheme.accent, 
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,8 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
     scopes: ['email', 'profile'],
   );
   bool _isLoading = false;
-  bool _isAIEnabled = false;
-  bool _showAIError = false;
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();

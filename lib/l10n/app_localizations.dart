@@ -385,6 +385,13 @@ class AppLocalizations {
       'ai_consent_footer': 'Esta información se usa exclusivamente para procesar esta función de IA.',
       'ai_processed_by': 'Procesado mediante Google Gemini AI',
       'view_privacy_policy': 'Ver Política de Privacidad',
+      'health_citations_title': 'Citaciones e Información Médica',
+      'health_disclaimer': 'Esta aplicación es para fines informativos y educativos únicamente. Los cálculos calóricos y las recomendaciones nutricionales son estimaciones basadas en estándares generales del sector y no deben interpretarse como asesoramiento médico profesional. Siempre consulte con un médico o nutricionista antes de realizar cambios significativos en su dieta o rutina de ejercicios.',
+      'sources_label': 'Fuentes y Referencias',
+      'who_diet_source': 'OMS: Dieta Saludable',
+      'usda_diet_source': 'USDA: Guías Alimentarias para Estadounidenses',
+      'calorie_target_info': 'La meta calórica diaria es una estimación general. Un adulto promedio necesita aproximadamente 2,000 kcal al día para mantener su peso, según las guías generales de la OMS y la FDA.',
+      'weight_monitoring_info': 'El seguimiento del peso corporal es una herramienta de referencia. Las fluctuaciones diarias son normales y dependen de múltiples factores biológicos.',
     },
     'en': {
       'profile': 'Profile',
@@ -762,6 +769,13 @@ class AppLocalizations {
       'ai_consent_footer': 'This information is used exclusively to process this AI feature.',
       'ai_processed_by': 'Processed via Google Gemini AI',
       'view_privacy_policy': 'View Privacy Policy',
+      'health_citations_title': 'Citations & Medical Information',
+      'health_disclaimer': 'This application is for informational and educational purposes only. Caloric calculations and nutritional recommendations are estimates based on general industry standards and should not be construed as professional medical advice. Always consult with a physician or nutritionist before making significant changes to your diet or exercise routine.',
+      'sources_label': 'Sources & References',
+      'who_diet_source': 'WHO: Healthy Diet Guidelines',
+      'usda_diet_source': 'USDA: Dietary Guidelines for Americans',
+      'calorie_target_info': 'The daily caloric target is a general estimate. An average adult needs approximately 2,000 kcal per day to maintain weight, according to general guidelines from the WHO and FDA.',
+      'weight_monitoring_info': 'Body weight tracking is a reference tool. Daily fluctuations are normal and depend on multiple biological factors.',
     },
     'de': {
       'profile': 'Profil',
@@ -2483,6 +2497,13 @@ class AppLocalizations {
   String get aiConsentFooter => get('ai_consent_footer');
   String get aiProcessedBy => get('ai_processed_by');
   String get viewPrivacyPolicy => get('view_privacy_policy');
+  String get healthCitationsTitle => get('health_citations_title');
+  String get healthDisclaimer => get('health_disclaimer');
+  String get sourcesLabel => get('sources_label');
+  String get whoDietSource => get('who_diet_source');
+  String get usdaDietSource => get('usda_diet_source');
+  String get calorieTargetInfo => get('calorie_target_info');
+  String get weightMonitoringInfo => get('weight_monitoring_info');
 
   String errorSaving(String error) => get('error_saving').replaceAll('{error}', error);
   String transactionsCount(int count) => get('transactions_count').replaceAll('{count}', count.toString());

@@ -28,8 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     scopes: ['email', 'profile'],
   );
   bool _isLoading = false;
-  bool _isAIEnabled = false;
-  bool _showAIError = false;
 
   Future<void> _handleRegister() async {
     final name = _nameController.text.trim();

@@ -244,6 +244,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     // Check AI Consent for Onboarding
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     bool consent = prefs.getBool('ai_consent_accepted') ?? false;
 
     if (!consent) {

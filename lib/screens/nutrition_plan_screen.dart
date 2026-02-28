@@ -1501,6 +1501,7 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
 
                 // Check AI Consent
                 final prefs = await SharedPreferences.getInstance();
+                if (!context.mounted) return;
                 bool consent = prefs.getBool('ai_consent_accepted') ?? false;
 
                 if (!consent) {
