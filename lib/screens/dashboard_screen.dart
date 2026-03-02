@@ -608,14 +608,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Icon(Icons.auto_awesome_rounded, color: Colors.amber, size: 24),
               const SizedBox(width: 12),
-              Text(
-                '${l10n.aiVision}: ${(_visualGoal!['prompt'] ?? l10n.targetLabel.toUpperCase()).toString().toUpperCase()}',
-                style: GoogleFonts.manrope(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 12,
-                  color: AppTheme.primary,
-                  letterSpacing: 1.2,
+              Expanded(
+                child: Text(
+                  '${l10n.aiVision}: ${(_visualGoal!['prompt'] ?? l10n.targetLabel.toUpperCase()).toString().toUpperCase()}',
+                  style: GoogleFonts.manrope(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    color: AppTheme.primary,
+                    letterSpacing: 1.2,
+                  ),
                 ),
+              ),
+              IconButton(
+                onPressed: () => _showCitationsDialog(
+                  title: l10n.aiVision,
+                  content: l10n.aiVisionDisclaimer,
+                  showSources: true,
+                ),
+                icon: Icon(Icons.info_outline_rounded, color: AppTheme.primary.withValues(alpha: 0.4), size: 16),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

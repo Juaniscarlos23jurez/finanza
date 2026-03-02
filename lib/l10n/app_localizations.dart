@@ -392,6 +392,10 @@ class AppLocalizations {
       'usda_diet_source': 'USDA: Guías Alimentarias para Estadounidenses',
       'calorie_target_info': 'La meta calórica diaria es una estimación general. Un adulto promedio necesita aproximadamente 2,000 kcal al día para mantener su peso, según las guías generales de la OMS y la FDA.',
       'weight_monitoring_info': 'El seguimiento del peso corporal es una herramienta de referencia. Las fluctuaciones diarias son normales y dependen de múltiples factores biológicos.',
+      'onboarding_health_disclaimer': 'Los cálculos se basan en fórmulas estándar (Harris-Benedict/OMS). Consulta a un médico antes de iniciar un plan.',
+      'ai_vision_disclaimer': 'Nuestra IA utiliza modelos avanzados para predecir transformaciones visuales basadas en tus datos y plan actual. Estas imágenes son representaciones ilustrativas y los resultados reales pueden variar.',
+      'apple_health_connected': 'Apple Health Conectado',
+      'apple_health_sync_desc': 'Leyendo: pasos, calorías, distancia y minutos activos para personalizar tu nutrición',
     },
     'en': {
       'profile': 'Profile',
@@ -776,6 +780,10 @@ class AppLocalizations {
       'usda_diet_source': 'USDA: Dietary Guidelines for Americans',
       'calorie_target_info': 'The daily caloric target is a general estimate. An average adult needs approximately 2,000 kcal per day to maintain weight, according to general guidelines from the WHO and FDA.',
       'weight_monitoring_info': 'Body weight tracking is a reference tool. Daily fluctuations are normal and depend on multiple biological factors.',
+      'onboarding_health_disclaimer': 'Calculations are based on standard formulas (Harris-Benedict/WHO). Consult a physician before starting a plan.',
+      'ai_vision_disclaimer': 'Our AI uses advanced models to predict visual transformations based on your data and current plan. These images are illustrative representations and actual results may vary.',
+      'apple_health_connected': 'Apple Health Connected',
+      'apple_health_sync_desc': 'Reading: steps, calories, distance, and active minutes to personalize your nutrition',
     },
     'de': {
       'profile': 'Profil',
@@ -1043,6 +1051,10 @@ class AppLocalizations {
       'onboarding_prompt_health_2': 'Strahlende Haut und ideale Haltung',
       'onboarding_prompt_health_3': 'Ausgewogener und energetischer Körper',
       'onboarding_prompt_plant_powered': '"Plant-Powered" Pro Körper',
+      'onboarding_health_disclaimer': 'Die Berechnungen basieren auf Standardformeln (Harris-Benedict/WHO). Konsultieren Sie einen Arzt, bevor Sie mit einem Plan beginnen.',
+      'ai_vision_disclaimer': 'Unsere KI verwendet fortgeschrittene Modelle, um visuelle Transformationen basierend auf Ihren Daten und Ihrem aktuellen Plan vorherzusagen. Diese Bilder sind illustrative Darstellungen und die tatsächlichen Ergebnisse können variieren.',
+      'apple_health_connected': 'Apple Health Verbunden',
+      'apple_health_sync_desc': 'Lesen: Schritte, Kalorien, Entfernung und aktive Minuten zur Personalisierung Ihrer Ernährung',
     },
     'fr': {
       'profile': 'Profil',
@@ -1310,6 +1322,10 @@ class AppLocalizations {
       'onboarding_prompt_health_2': 'Peau éclatante et posture idéale',
       'onboarding_prompt_health_3': 'Physique équilibré et énergique',
       'onboarding_prompt_plant_powered': 'Physique "Plant-Powered" Pro',
+      'onboarding_health_disclaimer': 'Les calculs sont basés sur des formules standard (Harris-Benedict/OMS). Consultez un médecin avant de commencer un plan.',
+      'ai_vision_disclaimer': 'Notre IA utilise des modèles avancés pour prédire les transformations visuelles basées sur vos données et votre plan actuel. Ces images sont des représentations illustratives et les résultats réels peuvent varier.',
+      'apple_health_connected': 'Apple Health Connecté',
+      'apple_health_sync_desc': 'Lecture : pas, calories, distance et minutes actives pour personnaliser votre nutrition',
     },
     'ja': {
       'profile': 'プロフィール',
@@ -1577,6 +1593,10 @@ class AppLocalizations {
       'onboarding_prompt_health_2': '輝く肌と理想的な姿勢',
       'onboarding_prompt_health_3': 'バランスの取れたエネルギッシュな体格',
       'onboarding_prompt_plant_powered': 'プロ級の「プラント・パワード」体格',
+      'onboarding_health_disclaimer': '計算は標準的な計算式（ハリス-ベネディクト/WHO）に基づいています。プランを開始する前に医師に相談してください。',
+      'ai_vision_disclaimer': '当社のAIは、お客様のデータと現在のプランに基づいて、視覚的な変化を予測するために高度なモデルを使用しています。これらの画像は説明用の表現であり、実際の結果は異なる場合があります。',
+      'apple_health_connected': 'Apple Health 接続済み',
+      'apple_health_sync_desc': '歩数、カロリー、距離、アクティブな時間を読み取り、栄養状態をパーソナライズしています',
     },
     'it': {
       'profile': 'Profilo',
@@ -1844,6 +1864,10 @@ class AppLocalizations {
       'onboarding_prompt_health_2': 'Pelle radiosa e postura ideale',
       'onboarding_prompt_health_3': 'Fisico equilibrato ed energico',
       'onboarding_prompt_plant_powered': 'Fisico "Plant-Powered" Pro',
+      'onboarding_health_disclaimer': 'I calcoli si basano su formule standard (Harris-Benedict/OMS). Consultare un medico prima di iniziare un piano.',
+      'ai_vision_disclaimer': 'La nostra IA utilizza modelli avanzati per prevedere trasformazioni visive basate sui tuoi dati e sul piano attuale. Queste immagini sono rappresentazioni illustrative e i risultati reali possono variare.',
+      'apple_health_connected': 'Apple Health Connesso',
+      'apple_health_sync_desc': 'Lettura: passi, calorie, distanza e minuti attivi per personalizzare la tua nutrizione',
     },
     'pt': {
       'profile': 'Perfil',
@@ -2111,6 +2135,10 @@ class AppLocalizations {
       'onboarding_prompt_health_2': 'Pele radiante e postura ideal',
       'onboarding_prompt_health_3': 'Físico equilibrado e enérgico',
       'onboarding_prompt_plant_powered': 'Físico "Plant-Powered" Pro',
+      'onboarding_health_disclaimer': 'Os cálculos baseiam-se em fórmulas padrão (Harris-Benedict/OMS). Consulte um médico antes de iniciar um plano.',
+      'ai_vision_disclaimer': 'Nossa IA utiliza modelos avançados para prever transformações visuais com base em seus dados e plano atual. Estas imagens são representações ilustrativas e os resultados reais podem variar.',
+      'apple_health_connected': 'Apple Health Conectado',
+      'apple_health_sync_desc': 'Lendo: passos, calorias, distância e minutos ativos para personalizar sua nutrição',
     },
   };
 
@@ -2504,6 +2532,10 @@ class AppLocalizations {
   String get usdaDietSource => get('usda_diet_source');
   String get calorieTargetInfo => get('calorie_target_info');
   String get weightMonitoringInfo => get('weight_monitoring_info');
+  String get onboardingHealthDisclaimer => get('onboarding_health_disclaimer');
+  String get aiVisionDisclaimer => get('ai_vision_disclaimer');
+  String get appleHealthConnected => get('apple_health_connected');
+  String get appleHealthSyncDesc => get('apple_health_sync_desc');
 
   String errorSaving(String error) => get('error_saving').replaceAll('{error}', error);
   String transactionsCount(int count) => get('transactions_count').replaceAll('{count}', count.toString());

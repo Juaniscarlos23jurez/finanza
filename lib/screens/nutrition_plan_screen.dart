@@ -499,8 +499,151 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                    style: GoogleFonts.manrope(color: AppTheme.secondary.withValues(alpha: 0.5), fontStyle: FontStyle.italic),
                  ),
                ),
-             )
+             ),
+          
+          const SizedBox(height: 48),
+          _buildCitationsSection(context),
+          const SizedBox(height: 48),
         ],
+      ),
+    );
+  }
+
+  void _showCitationsDialog({required String title, required String content, bool showSources = false}) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppTheme.primary, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title, 
+                    style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary)
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              content,
+              style: GoogleFonts.manrope(fontSize: 14, color: AppTheme.primary.withValues(alpha: 0.8), height: 1.6),
+            ),
+            if (showSources) ...[
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                l10n.sourcesLabel,
+                style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.secondary, letterSpacing: 1.2),
+              ),
+              const SizedBox(height: 12),
+              _buildSourceLink(l10n.whoDietSource, 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet'),
+              _buildSourceLink(l10n.usdaDietSource, 'https://www.dietaryguidelines.gov/'),
+            ],
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                minimumSize: const Size(double.infinity, 54),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                l10n.closeBtn, 
+                style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCitationsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.menu_book_rounded, color: AppTheme.primary, size: 20),
+              const SizedBox(width: 12),
+              Text(
+                l10n.healthCitationsTitle,
+                style: GoogleFonts.manrope(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.healthDisclaimer,
+            style: GoogleFonts.manrope(
+              fontSize: 11,
+              color: AppTheme.secondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSourceLink(l10n.whoDietSource, 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet'),
+          _buildSourceLink(l10n.usdaDietSource, 'https://www.dietaryguidelines.gov/'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSourceLink(String label, String url) {
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            const Icon(Icons.link_rounded, color: AppTheme.accent, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: 13, 
+                  color: AppTheme.accent, 
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -552,16 +695,31 @@ class _NutritionPlanScreenState extends State<NutritionPlanScreen> {
                   letterSpacing: 1.5,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12)
-                ),
-                child: Text(
-                  '${((consumed/targetCalories)*100).clamp(0, 100).toInt()}%',
-                   style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)
-                ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _showCitationsDialog(
+                      title: l10n.target,
+                      content: l10n.calorieTargetInfo,
+                      showSources: true,
+                    ),
+                    icon: Icon(Icons.info_outline_rounded, color: Colors.white.withValues(alpha: 0.6), size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12)
+                    ),
+                    child: Text(
+                      '${((consumed/targetCalories)*100).clamp(0, 100).toInt()}%',
+                       style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)
+                    ),
+                  ),
+                ],
               )
             ],
           ),

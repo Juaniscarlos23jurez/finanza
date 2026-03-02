@@ -593,7 +593,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           icon: Icons.straighten,
           keyboardType: TextInputType.number,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
+        // ⚕️ Medical Citation / Disclaimer (REQUERIDO POR APPLE)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.info_outline_rounded, color: AppTheme.secondary, size: 14),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.onboardingHealthDisclaimer,
+                style: GoogleFonts.manrope(
+                  fontSize: 10,
+                  color: AppTheme.secondary.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
